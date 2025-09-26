@@ -1,0 +1,33 @@
+.menu-item{
+    display: flex;
+    border-radius: 8px;
+    background-color: none;
+    gap: 6px;
+    padding: 6px 8px;
+    cursor: pointer;
+    align-items: center;
+}
+
+.menu-item:hover{
+    background-color: var(--light-border);
+}
+
+.menu-item-icon{
+    width: 24px;
+    height: 24px;
+}
+
+.menu-item-label{
+    font-family: 'Nunito Sans';
+    font-weight: 450;
+    font-size: 16px;
+    color: var(--text-black);
+}
+
+.menu-item.active{
+    background-color: var(--accent-purple);
+}
+
+.menu-item.active .menu-item-label{
+    color: var(--base-purple);
+}

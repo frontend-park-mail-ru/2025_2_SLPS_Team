@@ -1,0 +1,27 @@
+@font-face {
+  font-family: 'Nunito Sans';
+  src: url('../asserts/fonts/NunitoSans-VariableFont_YTLC\,opsz\,wdth\,wght.woff2');
+  font-weight: 100 900;
+  font-style: normal;
+}
+
+
+body{
+    margin: 0;
+    background-color: var(--base-background);
+}
+
+.main-container {
+  display: flex;
+  gap: 16px;
+  padding: 0 5%;
+  box-sizing: border-box;
+  align-items: flex-start;
+  margin: 0px calc(5%);
+}
+
+.header{
+  height: 60px;
+  width: 100%;
+  color: var(--base-white);
+}
