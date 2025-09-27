@@ -1,10 +1,22 @@
 import { FeedPage } from "./Pages/FeedPage.js";
+import LoginForm from "./components/molecules/LoginForm/LoginFrom.js"
+import {renderLoginPage} from "./Pages/LoginPage/LoginPage.js"
+import RegistrationForm from './components/molecules/RegForm/RegForm.js'
+import { renderRegPage } from "./Pages/RegPage/RegPage.js";
 
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const mainContainer = document.getElementById('main-container');
-    const feedPage = new FeedPage(mainContainer, posts);
-    await feedPage.render();
+  //СТРАНИЦА ЛЕНТЫ
+  /*  
+  const feedPage = new FeedPage(document.body, posts);
+  await feedPage.render();
+  */
+
+  //СТРАНИЦА ФОРМЫ ВХОДА
+  //renderLoginPage(document.body);
+
+  //САРНИЦА ФОРМЫ РЕГИСТРАЦИИ
+  //renderRegPage(document.body);
 });
 
 

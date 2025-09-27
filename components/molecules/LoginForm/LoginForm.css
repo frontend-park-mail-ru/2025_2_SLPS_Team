@@ -1,0 +1,83 @@
+.login-form{
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    width: 322px;
+}
+
+.input-container{
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 322px;
+}
+
+.button-container{
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.profile-actions{
+    display: flex;
+    width: 322px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.foget-password{
+    display: flex;
+    align-items: center;
+    font-family: "Nunito Sans";
+    font-size: 14px;
+    color: var(--base-purple);
+    cursor: pointer;
+    font-weight: 400;
+    text-decoration: none;
+}
+
+.foget-password:hover{
+    text-decoration: underline;
+}
+
+.remember-me{
+    font-family: "Nunito Sans";
+    font-size: 14px;
+    color: var(--base-purple);
+    display: flex;
+    width: 140px;
+    gap: 8px;
+    align-items: center;
+}
+
+.remember-me input[type="checkbox"] {
+  display: none;
+}
+
+.custom-checkbox {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    border: 1.3px solid var(--base-purple);
+    border-radius: 16px;
+    transition: all 0.2s;
+    cursor: pointer;
+    position: relative;
+}
+
+.remember-me input[type="checkbox"]:checked + .custom-checkbox::after {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.custom-checkbox::after {
+    content: "";
+    width: 12px;
+    height: 12px;
+    background-color: var(--base-purple);
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.2s ease-in-out;
+}

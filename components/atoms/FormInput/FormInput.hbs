@@ -1,0 +1,28 @@
+<div class="form-input">
+  <div class="input-inner">
+    <input
+      type="{{type}}"
+      name="{{name}}"
+      placeholder="{{placeholder}}"
+      maxlength="{{maxLength}}"
+      autocomplete="{{autocomplete}}"
+      class="input-field"
+      value="{{value}}"
+      {{#if required}}required{{/if}}
+    />
+
+    <div class="input-floating-label">{{label}}</div>
+        {{#if isPassword}}
+      <a class="pwd-control"></a>
+    {{/if}}
+  </div>
+
+  {{#if description}}
+    <div class="description-wrapper">
+      <span class="input-description">{{description}}</span>
+      {{#if maxLength}}
+        <span class="input-counter">{{maxLength}}</span>
+      {{/if}}
+    </div>
+  {{/if}}
+</div>

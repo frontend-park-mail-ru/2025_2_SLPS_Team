@@ -1,0 +1,45 @@
+.form-button--base{
+    width: 322px;
+    height: 40px;
+    padding: 0px 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid var(--base-purple);
+    background: var(--base-white);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.form-button--base:hover {
+    background-color: var(--accent-purple);
+}
+
+.button-text--base{
+    font-family: 'Nunito Sans';
+    font-size: 14px;
+    color: var(--base-purple);
+}
+
+.form-button--accent{
+    width: 322px;
+    height: 40px;
+    padding: 0px 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: none;
+    background: var(--base-purple);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.form-button--accent:hover{
+    filter: brightness(95%);
+}
+
+.button-text--accent{
+    font-family: 'Nunito Sans';
+    font-size: 16px;
+    color: var(--base-white);
+}
