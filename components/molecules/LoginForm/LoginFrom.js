@@ -1,5 +1,6 @@
 import FormInput from "../../atoms/FormInput/FromInput.js";
 import { renderFormButton } from "../../atoms/FormButtons/FormButton.js";
+import CONFIG from '/config.js'
 
 export default class LoginForm {
     constructor(container, options = {}) {
@@ -63,7 +64,7 @@ export default class LoginForm {
     handleSubmit() {
         const { email, password, rememberMe } = this.getValues();
         console.log(email,password,rememberMe);
-        fetch(`${API_BASE_URL}/api/auth/login`, {
+        fetch(`${CONFIG.API_BASE_URL}/api/auth/login`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {

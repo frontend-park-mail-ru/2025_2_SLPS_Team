@@ -2,6 +2,7 @@ import BasePage from './BasePage.js';
 import { renderMenu } from '../components/molecules/Menu/Menu.js';
 import { renderFeed } from '../components/organisms/Feed/Feed.js';
 import { renderFeedSettings } from '../components/molecules/FeedSettings/FeedSettings.js';
+import CONFIG from '/config.js'
 
 
 const POSTS = [{
@@ -40,7 +41,7 @@ const POSTS = [{
 async function getPosts(limit = 10, page = 1) {
     try {
         const params = new URLSearchParams({ limit, page });
-        const res = await fetch(`${API_BASE_URL}/api/posts?${params.toString()}`);
+        const res = await fetch(`${CONFIG.API_BASE_URL}/api/posts?${params.toString()}`);
         if (!res.ok) throw new Error("Ошибка HTTP " + res.status);
         return await res.json();
     } catch (err) {
