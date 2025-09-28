@@ -3,10 +3,56 @@ import { renderMenu } from '../components/molecules/Menu/Menu.js';
 import { renderFeed } from '../components/organisms/Feed/Feed.js';
 import { renderFeedSettings } from '../components/molecules/FeedSettings/FeedSettings.js';
 
+
+const POSTS = [{
+    groupName: "Fast Food Music",
+    groupIcon: "path/to/icon.png",
+    subscribed: false,
+    text: "С днём рождения, Boulevard Depo!\nТалантливому рэп-артисту, стоявшему у истоков творческого объединения YungRussia и продолжающему развивать успешную сольную карьеру, сегодня исполнилось 34 года.\n#ffmbirthdays",
+    photos: [
+        "./asserts/postImage.jpg",
+        "./asserts/groupImage1.png",
+        "./asserts/PostPhoto3.jpg",
+        "./asserts/PostPhoto4.png"
+    ],
+    communityAvatar: "./asserts/groupImage1.png",
+    likes: 5,
+    reposts: 2,
+    comments: 3
+}, {
+    groupName: "Fast Food Music",
+    groupIcon: "path/to/icon.png",
+    subscribed: false,
+    text: "С днём рождения, Boulevard Depo!\nТалантливому рэп-артисту, стоявшему у истоков творческого объединения YungRussia и продолжающему развивать успешную сольную карьеру, сегодня исполнилось 34 года.\n#ffmbirthdays",
+    photos: [
+        "./asserts/postImage.jpg",
+        "./asserts/groupImage1.png",
+        "./asserts/PostPhoto3.jpg",
+        "./asserts/PostPhoto4.png"
+    ],
+    communityAvatar: "./asserts/groupImage1.png",
+    likes: 5,
+    reposts: 2,
+    comments: 3
+}];
+
+
+async function getPosts(limit = 10, page = 1) {
+    try {
+        const params = new URLSearchParams({ limit, page });
+        const res = await fetch(`${API_BASE_URL}/api/posts?${params.toString()}`);
+        if (!res.ok) throw new Error("Ошибка HTTP " + res.status);
+        return await res.json();
+    } catch (err) {
+        console.warn("Используем моковые посты, сервер недоступен", err);
+        return POSTS;
+    }
+}
+
 export class FeedPage extends BasePage {
-    constructor(rootElement, posts) {
+    constructor(rootElement) {
         super(rootElement);
-        this.posts = posts;
+        this.posts = [];
     }
 
     async render() {
@@ -25,6 +71,7 @@ export class FeedPage extends BasePage {
         const menuElement = await renderMenu({ items: menuItems });
         wrapper.appendChild(menuElement);
 
+        this.posts = await getPosts(10, 1);
         const feedElement = await renderFeed(this.posts);
         wrapper.appendChild(feedElement);
 

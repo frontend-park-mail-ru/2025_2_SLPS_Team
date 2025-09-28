@@ -9,6 +9,7 @@ export default class RegistrationForm {
         this.inputs = {};
         this.currentStep = 1;
         this.savedValues = {};
+        this.emailError = false;
     }
 
     async render() {
@@ -79,6 +80,10 @@ export default class RegistrationForm {
             value: this.savedValues?.confirmPassword || ""
         });
         await this.inputs.confirmPassword.render();
+
+        if(this.emailError){
+            this.validateStep1();
+        }
 
         await renderFormButton(this.buttons, "button", "Далее", "accent", (e) => {
             e.preventDefault();
@@ -204,7 +209,11 @@ export default class RegistrationForm {
         this.inputs.email.hideError();
         this.inputs.password.hideError();
         this.inputs.confirmPassword.hideError();
-
+        if(this.emailError){
+            this.inputs.email.showError("email занят");
+            valid = false;
+            this.emailError = false;
+        }
         if (!email.includes("@")) {
             this.inputs.email.showError("Введите корректный email");
             valid = false;
@@ -244,7 +253,6 @@ export default class RegistrationForm {
     validateStep3() {
         let valid = true;
         const age = parseInt(this.inputs.age.input.value.trim(), 10);
-        const genders = [...this.form.querySelectorAll('input[name="gender"]:checked')];
 
         this.inputs.age.hideError();
 
@@ -265,13 +273,41 @@ export default class RegistrationForm {
             age: this.inputs.age.input.value.trim(),
             gender: this.form.querySelector('input[name="gender"]:checked')?.value || null,
         };
+        try {
+            const res = fetch(`${API_BASE_URL}/api/auth/register`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    Username: data.username,
+                    Email: data.email,
+                    Password: data.password,
+                    ConfirmPassword: data.confirm_password,
+                }),
+            });
 
-        console.log("Регистрация завершена:", data);
+                const result = res.json();
 
-        if (this.options.onSubmit) {
-            this.options.onSubmit(data);
+                if (result.Message === "User already exist") {
+                    this.emailError = true;
+                    this.currentStep = 1;
+                    this.renderStep(true);
+                    return;
+                }
+            
+
+            console.log("Регистрация завершена:", data);
+
+            if (this.options.onSubmit) {
+                this.options.onSubmit(data);
+            }
+        }catch (err) {
+            console.error('Ошибка при регистрации:', err);
         }
     }
+
 
     handleLogin() {
         if (this.options.onLog) {

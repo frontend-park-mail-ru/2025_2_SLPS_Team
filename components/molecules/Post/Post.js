@@ -14,12 +14,15 @@ export async function renderPost(postData) {
 
     const postElement = wrapper.firstElementChild;
     const postHeader = postElement.querySelector(".post-header");
+    postData.photos = Array.isArray(postData.photos) 
+    ? postData.photos 
+    : postData.imagePath ? [postData.imagePath] : [];
     const photoElement = await renderPostPhoto(postData.photos)
     postHeader.insertAdjacentElement("afterend", photoElement);
 
     const postFooter = postElement.querySelector(".post-footer").querySelector('.post-actions-container');
 
-    const LikeButton = await renderIconButton("./asserts/IconButtons/LikeButton.svg",124);
+    const LikeButton = await renderIconButton("./asserts/IconButtons/LikeButton.svg",postData.like_count);
     const CommentButton = await renderIconButton("./asserts/IconButtons/CommentButton.svg",34);
     const ShareButton = await renderIconButton("./asserts/IconButtons/ShareButton.svg",79);
     postFooter.appendChild(LikeButton);

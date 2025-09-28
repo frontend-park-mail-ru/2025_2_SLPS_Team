@@ -63,31 +63,32 @@ export default class LoginForm {
     handleSubmit() {
         const { email, password, rememberMe } = this.getValues();
         console.log(email,password,rememberMe);
-
-        const mockEmail = "test@example.com";
-        const mockPassword = "12345678";
-
-        this.inputs.email.hideError();
-        this.inputs.password.hideError();
-
-        let hasError = false;
-
-        if (email !== mockEmail) {
-            this.inputs.email.showError("Неверный email");
-            hasError = true;
-        }
-
-        if (password !== mockPassword) {
-            this.inputs.password.showError("Неверный пароль");
-            hasError = true;
-        }
-
-        if (!hasError) {
-            console.log("Успешный вход");
-            if (this.options.onSubmit) {
-                this.options.onSubmit({ email, password });
-            }
-        }
+        fetch(`${API_BASE_URL}/api/auth/login`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: email,
+                    password: password
+                }),
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log("Успешный вход");
+                            if (this.options.onSubmit) {
+                                this.options.onSubmit({ email, password });
+                            }
+                    } else {
+                        this.inputs.email.showError("Неверный email");
+                        this.inputs.password.showError("Неверный пароль");
+                    }
+                })
+                .catch(err => {
+                    console.error("Ошибка при запросе:", err);
+                });
     }
 
     handleRegister() {
