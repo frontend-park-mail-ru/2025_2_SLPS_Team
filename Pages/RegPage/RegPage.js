@@ -14,6 +14,7 @@ export async function renderRegPage(container, options = {}) {
 
     const RegForm = new RegistrationForm(tempContainer, {
         onSubmit: options.onSubmit || ((data) => console.log("Форма отправлена:", data)),
+        onLog: options.onLog,
         onStepChange: (step) => {
             const info = stepInfo[step];
             if (info) {

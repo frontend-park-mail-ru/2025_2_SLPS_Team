@@ -92,7 +92,10 @@ export default class RegistrationForm {
             }
         });
 
-        renderFormButton(this.buttons, "button", "Регистрация","base");
+        renderFormButton(this.buttons, "button", "Войти", "base", (e) => {
+            e.preventDefault();
+            this.handleLogin();
+        });
     }
 
     async renderStep2() {
@@ -267,6 +270,12 @@ export default class RegistrationForm {
 
         if (this.options.onSubmit) {
             this.options.onSubmit(data);
+        }
+    }
+
+    handleLogin() {
+        if (this.options.onLog) {
+            this.options.onLog();
         }
     }
 }

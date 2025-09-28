@@ -33,7 +33,7 @@ export default class LoginForm {
             required: true,
             showRequired: true,
         });
-        this.inputs.email.render();
+        await this.inputs.email.render();
 
         this.inputs.password = new FormInput(inputContainer, {
             name: "password",
@@ -43,7 +43,7 @@ export default class LoginForm {
             required: true,
             showRequired: true,
         });
-        this.inputs.password.render();
+        await this.inputs.password.render();
 
         await renderFormButton(buttons, "submit", "Войти", "accent", (e) => {
             e.preventDefault();
@@ -91,7 +91,9 @@ export default class LoginForm {
     }
 
     handleRegister() {
-        console.log('Переход на форму. регистрации')
+        if (this.options.onReg) {
+            this.options.onReg();
+        }
     }
 
 

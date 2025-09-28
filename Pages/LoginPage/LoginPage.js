@@ -8,7 +8,8 @@ export async function renderLoginPage(container, options = {}) {
 
         const tempContainer = document.createElement("div");
         const loginForm = new LoginForm(tempContainer, {
-            onSubmit: options.onSubmit || ((data) => console.log("Форма отправлена:", data))
+            onSubmit: options.onSubmit || ((data) => console.log("Форма отправлена:", data)),
+            onReg: options.onReg
         });
         await loginForm.render();
 
