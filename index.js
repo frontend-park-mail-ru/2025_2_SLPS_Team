@@ -3,7 +3,7 @@ import LoginForm from "./components/molecules/LoginForm/LoginFrom.js"
 import {renderLoginPage} from "./Pages/LoginPage/LoginPage.js"
 import RegistrationForm from './components/molecules/RegForm/RegForm.js'
 import {renderRegPage} from "./Pages/RegPage/RegPage.js";
-
+import CONFIG from "./config.js";
 
 document.addEventListener('DOMContentLoaded', router);
 
@@ -17,11 +17,14 @@ const routes = {
             const feedPage = new FeedPage(document.body);
             await feedPage.render();
         },
-        access: "guest-only",
+        access: "auth-only",
     },
     "/login": {
         renderFunc: async () => {
-            await renderLoginPage(document.body, {onSubmit: () => navigateTo("/"), onReg: () => navigateTo("/register")});
+            await renderLoginPage(document.body, {
+                onSubmit: () => navigateTo("/"),
+                onReg: () => navigateTo("/register")
+            });
         },
         access: "guest-only",
     },
@@ -33,10 +36,23 @@ const routes = {
     },
 };
 
-function navigateTo(url) {
+export function navigateTo(url) {
     history.pushState(null, null, url);
     router();
 }
+
+async function isLoggedIn() {
+    const res = await fetch(`${CONFIG.API_BASE_URL}/api/auth/isloggedin`, {
+        method: 'GET',
+        credentials: 'include',
+    });
+
+    const data = await res.json();
+
+    return data.isloggedin;
+}
+
+
 
 async function router() {
     const path = window.location.pathname;
@@ -47,12 +63,13 @@ async function router() {
         return;
     }
     const access = route.access;
-
-    if (access === "guest-only" && isAuthenticated()) {
+    const loggedIn = await isLoggedIn()
+    if (access === "guest-only" && loggedIn) {
         navigateTo("/");
         return;
     }
-    if (access === "auth-only" && !isAuthenticated()) {
+    if (access === "auth-only" && !loggedIn) {
+        console.log("123112312")
         navigateTo("/register");
         return;
     }
@@ -60,21 +77,7 @@ async function router() {
     await route.renderFunc()
 
 }
-async function isLoggedIn()
-{
-    fetch(`${API_BASE_URL}/api/auth/isloggedin`, {
-        method: 'GET',
-        credentials: 'include',
-    })
-        .then(res => res.json())
-        .then(data => {
-            return data.isloggedin
-        })
-        .catch(err => {
-            console.error('Error:', err);
-        });
 
-}
 /*async function getPosts(limit, page) {
     const params = new URLParams({
         limit: limit,

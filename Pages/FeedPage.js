@@ -73,7 +73,8 @@ export class FeedPage extends BasePage {
         wrapper.appendChild(menuElement);
 
         this.posts = await getPosts(10, 1);
-        const feedElement = await renderFeed(this.posts);
+        console.log(this.posts)
+        const feedElement = await renderFeed(this.posts.posts);
         wrapper.appendChild(feedElement);
 
         const settingsItems = [

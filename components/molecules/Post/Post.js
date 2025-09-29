@@ -22,9 +22,9 @@ export async function renderPost(postData) {
 
     const postFooter = postElement.querySelector(".post-footer").querySelector('.post-actions-container');
 
-    const LikeButton = await renderIconButton("./asserts/IconButtons/LikeButton.svg",postData.like_count);
-    const CommentButton = await renderIconButton("./asserts/IconButtons/CommentButton.svg",34);
-    const ShareButton = await renderIconButton("./asserts/IconButtons/ShareButton.svg",79);
+    const LikeButton = await renderIconButton("./asserts/IconButtons/LikeButton.svg",postData.likes);
+    const CommentButton = await renderIconButton("./asserts/IconButtons/CommentButton.svg",postData.comments);
+    const ShareButton = await renderIconButton("./asserts/IconButtons/ShareButton.svg",postData.reposts);
     postFooter.appendChild(LikeButton);
     postFooter.appendChild(CommentButton);
     postFooter.appendChild(ShareButton);

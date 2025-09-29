@@ -1,6 +1,7 @@
 import FormInput from "../../atoms/FormInput/FromInput.js";
 import { renderFormButton } from "../../atoms/FormButtons/FormButton.js";
 import CONFIG from '/config.js'
+import {navigateTo} from "../../../index.js";
 
 export default class RegistrationForm {
     constructor(container, options = {}) {
@@ -269,46 +270,45 @@ export default class RegistrationForm {
         const data = {
             email: this.inputs.email.input.value.trim(),
             password: this.inputs.password.input.value.trim(),
-            firstName: this.inputs.firstName.input.value.trim(),
-            lastName: this.inputs.lastName.input.value.trim(),
+            username: this.inputs.firstName.input.value.trim() + this.inputs.lastName.input.value.trim(),
+            confirmpassword: this.inputs.confirmPassword.input.value.trim(),
             age: this.inputs.age.input.value.trim(),
             gender: this.form.querySelector('input[name="gender"]:checked')?.value || null,
         };
-        try {
-            const res = fetch(`${CONFIG.API_BASE_URL}/api/auth/register`, {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    Username: data.username,
-                    Email: data.email,
-                    Password: data.password,
-                    ConfirmPassword: data.confirm_password,
-                }),
-            });
-
-                const result = res.json();
-
-                if (result.Message === "User already exist") {
+        fetch(`${CONFIG.API_BASE_URL}/api/auth/register`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                username: data.username,
+                email: data.email,
+                password: data.password,
+                confirm_password: data.confirmpassword,
+            }),
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.Message === "User already exist") {
                     this.emailError = true;
                     this.currentStep = 1;
                     this.renderStep(true);
                     return;
                 }
-            
 
-            console.log("Регистрация завершена:", data);
 
-            if (this.options.onSubmit) {
-                this.options.onSubmit(data);
-            }
-        }catch (err) {
-            console.error('Ошибка при регистрации:', err);
-        }
+                console.log("Регистрация завершена:", data);
+
+                if (this.options.onSubmit) {
+                    this.options.onSubmit(data);
+                }
+
+            })
+            .catch(err => {
+                console.error('Ошибка при регистрации:', err);
+            })
     }
-
 
     handleLogin() {
         if (this.options.onLog) {
