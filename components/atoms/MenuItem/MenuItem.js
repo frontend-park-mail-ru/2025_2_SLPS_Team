@@ -1,8 +1,27 @@
+/**
+ * Создаёт и возвращает HTML-элемент пункта меню.
+ * Использует Handlebars-шаблон `MenuItem.hbs`.
+ *
+ * @async
+ * @param {Object} options - Параметры пункта меню.
+ * @param {string} options.label - Текст метки пункта меню.
+ * @param {string} options.view - Идентификатор или название вида, связанного с пунктом.
+ * @param {string|null} [options.icon=null] - Название или путь иконки для пункта меню.
+ * @param {boolean} [options.isActive=false] - Флаг, указывающий, активен ли пункт меню.
+ * @param {Function} [options.onClick] - Функция, вызываемая при клике на пункт меню; получает `view` как аргумент.
+ * @returns {Promise<HTMLElement>} Promise, который разрешается в HTML-элемент пункта меню.
+ *
+ * @example
+ * renderMenuItem({
+ *   label: 'Главная',
+ *   view: 'home',
+ *   icon: 'home-icon',
+ *   isActive: true,
+ *   onClick: (view) => console.log('Перешли на', view)
+ * }).then(menuItem => document.body.appendChild(menuItem));
+ */
 export async function renderMenuItem({ label, view, icon = null, isActive = false, onClick }) {
-    const response = await fetch('./components/atoms/MenuItem/MenuItem.hbs');
-    const templateSource = await response.text();
-    const template = Handlebars.compile(templateSource);
-
+    const template = Handlebars.templates['MenuItem.hbs'];
     const html = template({ label, view, icon, isActive });
 
     const wrapper = document.createElement("div");

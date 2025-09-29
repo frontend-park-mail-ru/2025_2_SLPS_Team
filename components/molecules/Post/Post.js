@@ -1,11 +1,22 @@
 import { renderPostPhoto } from '../../atoms/PostPhoto/PostPhoto.js';
 import { renderIconButton } from '../../atoms/IconButton/IconButton.js';
-
-
+/**
+ * Рендерит пост с фотографиями, кнопками действий и возможностью разворачивания текста.
+ *
+ * @async
+ * @function renderPost
+ * @param {Object} postData - Данные поста.
+ * @param {string} postData.id - Уникальный идентификатор поста.
+ * @param {string} postData.author - Автор поста.
+ * @param {string} postData.text - Текст поста.
+ * @param {Array<string>|string} [postData.photos] - Массив путей к фотографиям или одна фотография (будет преобразована в массив).
+ * @param {string} [postData.imagePath] - Альтернативный путь к изображению, если `photos` не задан.
+ * @param {number} [postData.like_count=0] - Количество лайков.
+ * @returns {Promise<HTMLElement>} Promise, который разрешается в HTML-элемент поста.
+ *
+ */
 export async function renderPost(postData) {
-    const response = await fetch('./components/molecules/Post/Post.hbs');
-    const templateSource = await response.text();
-    const template = Handlebars.compile(templateSource);
+    const template = Handlebars.templates['Post.hbs'];
 
     const html = template(postData);
 
@@ -14,14 +25,17 @@ export async function renderPost(postData) {
 
     const postElement = wrapper.firstElementChild;
     const postHeader = postElement.querySelector(".post-header");
+    postData.photos = Array.isArray(postData.photos) 
+    ? postData.photos 
+    : postData.imagePath ? [postData.imagePath] : [];
     const photoElement = await renderPostPhoto(postData.photos)
     postHeader.insertAdjacentElement("afterend", photoElement);
 
     const postFooter = postElement.querySelector(".post-footer").querySelector('.post-actions-container');
 
-    const LikeButton = await renderIconButton("./asserts/IconButtons/LikeButton.svg",124);
-    const CommentButton = await renderIconButton("./asserts/IconButtons/CommentButton.svg",34);
-    const ShareButton = await renderIconButton("./asserts/IconButtons/ShareButton.svg",79);
+    const LikeButton = await renderIconButton("./asserts/IconButtons/LikeButton.svg",postData.likes);
+    const CommentButton = await renderIconButton("./asserts/IconButtons/CommentButton.svg",postData.comments);
+    const ShareButton = await renderIconButton("./asserts/IconButtons/ShareButton.svg",postData.reposts);
     postFooter.appendChild(LikeButton);
     postFooter.appendChild(CommentButton);
     postFooter.appendChild(ShareButton);

@@ -8,3 +8,10 @@
 @import url(./components/molecules/Menu/Menu.css);
 @import url(./components/organisms/Feed/Feed.css);
 @import url(./components/molecules/FeedSettings/FeedSettings.css);
+@import url(./components/atoms/FormInput/FormInput.css);
+@import url(./components//atoms/FormButtons/FormButton.css);
+@import url(./components/molecules/LoginForm/LoginForm.css);
+@import url(./styles/global.css);
+@import url(./Pages/LoginPage/LoginPage.css);
+@import url(./Pages/RegPage/RegPage.css);
+@import url(./components/molecules/RegForm/RegForm.css);

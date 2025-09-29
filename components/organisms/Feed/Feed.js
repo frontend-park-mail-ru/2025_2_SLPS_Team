@@ -1,9 +1,20 @@
 import { renderPost } from "../../molecules/Post/Post.js";
 
+/**
+ * Рендерит ленту постов.
+ *
+ * @async
+ * @function renderFeed
+ * @param {Object[]} posts - Массив объектов постов для отображения.
+ * @param {string} posts[].id - Уникальный идентификатор поста.
+ * @param {string} posts[].author - Автор поста.
+ * @param {string} posts[].text - Текст поста.
+ * @param {string|string[]} [posts[].photos] - Фото или массив фото, прикреплённых к посту.
+ * @param {number} [posts[].like_count] - Количество лайков у поста.
+ * @returns {Promise<HTMLElement>} DOM-элемент ленты, содержащий все посты.
+ */
 export async function renderFeed(posts){
-    const response = await fetch('./components/organisms/Feed/Feed.hbs');
-    const templateSource = await response.text();
-    const template = Handlebars.compile(templateSource);
+    const template = Handlebars.templates['Feed.hbs'];
     const html = template({icon: "./asserts/NewPostIcon.svg"});
 
     const wrapper = document.createElement("div");

@@ -5,10 +5,10 @@
   font-style: normal;
 }
 
-
 body{
     margin: 0;
     background-color: var(--base-background);
+    font-family: "Nunito Sans";
 }
 
 .main-container {
@@ -18,6 +18,17 @@ body{
   box-sizing: border-box;
   align-items: flex-start;
   margin: 0px calc(5%);
+}
+
+.feed-page{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    gap: 16px;
+    padding: 0 5%;
+    box-sizing: border-box;
+    align-items: flex-start;
+    margin: 0px calc(5%);
 }
 
 .header{

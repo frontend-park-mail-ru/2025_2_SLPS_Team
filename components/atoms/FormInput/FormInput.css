@@ -1,0 +1,91 @@
+.form-input {
+  position: relative;
+}
+
+.input-inner {
+  position: relative;
+}
+
+.input-field {
+    width: 300px;
+    height: 40px;
+    background-color: var(--base-white);
+    border: 1px solid var(--dark-gray);
+    border-radius: 8px;
+    padding: 0px 10px;
+
+    font-family: "Nunito Sans";
+    font-size: 14px;
+    color: var(--text-black);
+    transition: border-color 0.2s;
+}
+
+.input-field::placeholder{
+    color: var(--dark-gray);
+}
+
+.input-field:focus{
+    border-color: var(--base-purple);
+    outline: none;
+}
+
+.input-floating-label {
+  position: absolute;
+  top: -8px;
+  left: 10px;
+  background: var(--base-white);
+  padding: 0 3px;
+  font-family: "Nunito Sans";
+  font-size: 10px;
+  color: var(--base-purple);
+  display: none;
+}
+
+.input-field:focus + .input-floating-label,
+.input-field.invalid + .input-floating-label {
+  display: block;
+}
+
+.input-field:focus ~ .input-floating-label,
+.input-field.invalid ~ .input-floating-label {
+  display: block;
+}
+
+.input-field.invalid {
+  border-color: var(--base-red);
+}
+
+.input-field.invalid:focus {
+  border-color: var(--base-purple);
+}
+
+.input-field.invalid ~ .input-floating-label {
+  color:  var(--base-red);
+}
+
+.pwd-control {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.icon-eye {
+  width: 20px;
+  height: 20px;
+}
+
+.eye-closed {
+  display: none;
+}
+
+.pwd-control.show .eye-open {
+  display: none;
+}
+
+.pwd-control.show .eye-closed {
+  display: inline;
+}
