@@ -80,7 +80,6 @@ export default class RegistrationForm {
             value: this.savedValues?.confirmPassword || ""
         });
         await this.inputs.confirmPassword.render();
-
         if(this.emailError){
             this.validateStep1();
         }
@@ -288,7 +287,7 @@ export default class RegistrationForm {
         })
             .then(res => res.json())
             .then(data => {
-                if (data.Message === "User already exist") {
+                if (data.message === "User already exist") {
                     this.emailError = true;
                     this.currentStep = 1;
                     this.renderStep(true);

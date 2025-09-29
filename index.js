@@ -69,7 +69,6 @@ async function router() {
         return;
     }
     if (access === "auth-only" && !loggedIn) {
-        console.log("123112312")
         navigateTo("/register");
         return;
     }

@@ -58,6 +58,7 @@ export class FeedPage extends BasePage {
     }
 
     async render() {
+        console.log(Handlebars.templates)
         this.destroy();
 
         const template = Handlebars.templates['FeedPage.hbs'];
@@ -66,8 +67,8 @@ export class FeedPage extends BasePage {
         const mainContainer = wrapper.querySelector('.feed-page');
 
         const menuItems = [
-            { label: "Профиль", view: "profile", icon: "./asserts/MenuIcons/ProfileIcon.svg", isActive: true },
-            { label: "Лента", view: "feed", icon: "./asserts/MenuIcons/FeedIcon.svg" },
+            { label: "Профиль", view: "profile", icon: "/asserts/MenuIcons/ProfileIcon.svg", isActive: true },
+            { label: "Лента", view: "feed", icon: "/asserts/MenuIcons/FeedIcon.svg" },
             { label: "Сообщества", view: "community", icon: "/asserts/MenuIcons/FeedIcon.svg" },
             { label: "Месенджер", view: "messenger", icon: "/asserts/MenuIcons/MessengerIcon.svg" },
             { label: "Друзья", view: "friends", icon: "/asserts/MenuIcons/FriendsIcon.svg" }
@@ -85,7 +86,7 @@ export class FeedPage extends BasePage {
         this.posts = await getPosts(10, 1);
         console.log(this.posts)
         const feedElement = await renderFeed(this.posts.posts);
-        wrapper.appendChild(feedElement);
+        mainContainer.appendChild(feedElement);
 
         const settingsItems = [
             { label: "Рекомендации", view: "recommendations", isActive: true },

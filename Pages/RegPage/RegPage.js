@@ -4,7 +4,7 @@ export async function renderRegPage(container, options = {}) {
     const template = Handlebars.templates['RegPage.hbs'];
 
     const tempContainer = document.createElement("div");
-    const html = template({ logo: './asserts/logo.svg'});
+    const html = template({ logo: './asserts/Logo.svg'});
     container.innerHTML = html;
 
     const infoContainer = container.querySelector(".reg-form-info");

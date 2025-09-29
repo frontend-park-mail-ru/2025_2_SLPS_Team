@@ -11,7 +11,7 @@ export async function renderLoginPage(container, options = {}) {
         });
         await loginForm.render();
 
-        const html = template({ logo: './asserts/logo.svg'});
+        const html = template({ logo: './asserts/Logo.svg'});
 
         container.innerHTML = html;
 

@@ -26,9 +26,9 @@ app.use((req, res, next) => {
     res.setHeader(
         "Content-Security-Policy",
         "default-src 'self'; " +
-        "script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net; " +
+        "script-src 'self'; " +
         "style-src 'self'; object-src 'none';" +
-    "connect-src 'self' http://localhost:8080;"
+    "connect-src 'self' 185.86.146.77:8080;"
     );
     next()
 });
@@ -37,6 +37,6 @@ app.get(/\/(.*)/, (req, res) => {
     res.render("index")
 });
 
-app.listen(3000, () => {
+app.listen(80, () => {
     console.log("Server started on http://localhost:3000");
 });
