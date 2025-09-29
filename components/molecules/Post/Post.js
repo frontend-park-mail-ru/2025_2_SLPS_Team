@@ -3,9 +3,7 @@ import { renderIconButton } from '../../atoms/IconButton/IconButton.js';
 
 
 export async function renderPost(postData) {
-    const response = await fetch('./components/molecules/Post/Post.hbs');
-    const templateSource = await response.text();
-    const template = Handlebars.compile(templateSource);
+    const template = Handlebars.templates['Post.hbs'];
 
     const html = template(postData);
 

@@ -11,9 +11,7 @@ export default class LoginForm {
     }
 
     async render() {
-    const response = await fetch("../components/molecules/LoginForm/LoginFrom.hbs");
-        const templateSource = await response.text();
-        const template = Handlebars.compile(templateSource);
+        const template = Handlebars.templates['LoginFrom.hbs'];
         const html = template();
 
         const wrapper = document.createElement("div");

@@ -1,7 +1,5 @@
 export async function renderIconButton(icon, count, onClick){
-    const response = await fetch('./components/atoms/IconButton/IconButton.hbs');
-    const templateSource = await response.text();
-    const template = Handlebars.compile(templateSource);
+    const template = Handlebars.templates['IconButton.hbs'];
     const html = template({icon,count});
 
     const wrapper = document.createElement("div");

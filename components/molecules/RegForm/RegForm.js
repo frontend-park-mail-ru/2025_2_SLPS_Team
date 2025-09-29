@@ -14,9 +14,7 @@ export default class RegistrationForm {
     }
 
     async render() {
-        const response = await fetch("../../components/molecules/RegForm/RegFrom.hbs");
-        const templateSource = await response.text();
-        const template = Handlebars.compile(templateSource);
+        const template = Handlebars.templates['RegFrom.hbs'];
         const html = template();
 
         const wrapper = document.createElement("div");

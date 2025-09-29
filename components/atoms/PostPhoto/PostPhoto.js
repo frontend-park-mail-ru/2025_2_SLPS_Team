@@ -1,9 +1,7 @@
 import { renderNavButton } from "../NavButton/NavButton.js";
 
 export async function renderPostPhoto(photos) {
-    const response = await fetch('./components/atoms/PostPhoto/PostPhoto.hbs');
-    const templateSource = await response.text();
-    const template = Handlebars.compile(templateSource);
+    const template = Handlebars.templates['PostPhoto.hbs'];
     const html = template({ photos });
 
     const wrapper = document.createElement("div");
