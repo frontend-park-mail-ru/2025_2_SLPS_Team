@@ -1,0 +1,38 @@
+.nav-button {
+    pointer-events: auto;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    background: none;
+    cursor: pointer;
+    display: flex;
+    opacity: 0;
+    transition: opacity 0.2s;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    align-items: center;
+    justify-content: center;
+}
+
+.photo-buttons .nav-button .nav-arrow {
+    width: 30px;
+    height: 30px;
+}
+
+.nav-button:hover img {
+    filter: brightness(0.9);
+}
+
+.post-photo:hover .nav-button {
+  opacity: 1;
+}
+
+.nav-button.prev {
+  left: 10px;
+}
+
+.nav-button.next {
+  right: 10px;
+}

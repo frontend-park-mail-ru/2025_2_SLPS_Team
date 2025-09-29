@@ -1,0 +1,28 @@
+{
+  "name": "src",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "compile": "find . -name \"*.hbs\" -exec npx handlebars {} -f precompiled.js \\;",
+    "start": "npm run compile && node server.mjs",
+    "jsdoc": "jsdoc -c jsdoc.json"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^5.1.0",
+    "express-handlebars": "^8.0.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.36.0",
+    "eslint": "^9.36.0",
+    "globals": "^16.4.0",
+    "globstar": "^1.0.0",
+    "handlebars": "^4.7.8",
+    "minami": "^1.2.3",
+    "taffydb": "^2.7.3"
+  }
+}
