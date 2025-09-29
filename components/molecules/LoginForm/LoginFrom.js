@@ -2,7 +2,25 @@ import FormInput from "../../atoms/FormInput/FromInput.js";
 import { renderFormButton } from "../../atoms/FormButtons/FormButton.js";
 import CONFIG from '/config.js'
 
+
+/**
+ * Модуль `LoginForm` предоставляет класс для создания и управления формой входа.
+ * Использует Handlebars-шаблон `LoginForm.hbs`, а также компоненты `FormInput` и `renderFormButton`.
+ * @module LoginForm
+ */
+
+/**
+ * Класс, представляющий форму авторизации пользователя.
+ */ 
 export default class LoginForm {
+    /**
+     * Создаёт экземпляр LoginForm.
+     *
+     * @param {HTMLElement} container - Контейнер, в который будет отрендерена форма.
+     * @param {Object} [options={}] - Дополнительные опции.
+     * @param {Function} [options.onSubmit] - Колбэк, вызываемый при успешной отправке формы.
+     * @param {Function} [options.onReg] - Колбэк, вызываемый при нажатии кнопки регистрации.
+     */
     constructor(container, options = {}) {
         this.container = container;
         this.options = options;

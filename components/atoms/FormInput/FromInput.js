@@ -1,4 +1,23 @@
+/**
+ * @module FormInput
+ */
+/**
+ * Класс для создания input полей формы.
+ */
 export default class FormInput {
+    /**
+     * Создаёт новый input.
+     * @param {HTMLElement} container - Контейнер, куда будет добавлен input.
+     * @param {Object} config - Конфигурация input.
+     * @param {string} [config.type="text"] - Тип input (text, password и т.д.).
+     * @param {string} [config.placeholder=""] - Placeholder для input.
+     * @param {string} [config.autocomplete="off"] - Атрибут autocomplete.
+     * @param {number} [config.maxLength=256] - Максимальная длина текста.
+     * @param {boolean} [config.required=false] - Обязательность заполнения.
+     * @param {string} [config.value=""] - Начальное значение input.
+     * @param {string} [config.name] - Имя input, используется в getValue().
+     * @param {string} [config.validation] - Тип валидации, например "email".
+     */
     constructor(container, config) {
         this.container = container;
         this.config = {

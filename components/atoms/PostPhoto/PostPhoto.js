@@ -1,3 +1,15 @@
+/**
+ * Создаёт и возвращает HTML-элемент блока с фотографиями поста.
+ * Для навигации по фотографиям используются кнопки, созданные через `renderNavButton`.
+ *
+ * @async
+ * @param {Array<Object>} photos - Массив объектов фотографий. Каждый объект должен содержать данные, необходимые для шаблона `PostPhoto.hbs`.
+ * @returns {Promise<HTMLElement>} Promise, который разрешается в HTML-элемент блока с фотографиями.
+ *
+ * renderPostPhoto(photos).then(photoElement => {
+ *   document.body.appendChild(photoElement);
+ * });
+ */
 import { renderNavButton } from "../NavButton/NavButton.js";
 
 export async function renderPostPhoto(photos) {

@@ -3,6 +3,21 @@ import { renderFormButton } from "../../atoms/FormButtons/FormButton.js";
 import CONFIG from '/config.js'
 import {navigateTo} from "../../../index.js";
 
+/**
+ * Класс для рендеринга многошаговой формы регистрации.
+ *
+ * @class RegistrationForm
+ * @property {HTMLElement} container - DOM-элемент, в который рендерится форма.
+ * @property {Object} options - Опции и коллбеки формы.
+ * @property {Function} [options.onSubmit] - Коллбек, вызываемый при успешной регистрации.
+ * @property {Function} [options.onLog] - Коллбек, вызываемый при переходе к авторизации.
+ * @property {Function} [options.onStepChange] - Коллбек, вызываемый при смене шага регистрации.
+ * @property {HTMLFormElement|null} form - Ссылка на DOM-элемент формы.
+ * @property {Object.<string, FormInput>} inputs - Поля ввода, сгруппированные по имени.
+ * @property {number} currentStep - Текущий шаг регистрации (1, 2 или 3).
+ * @property {Object} savedValues - Сохранённые значения с предыдущих шагов.
+ * @property {boolean} emailError - Флаг ошибки email (например, если email занят).
+ */
 export default class RegistrationForm {
     constructor(container, options = {}) {
         this.container = container;

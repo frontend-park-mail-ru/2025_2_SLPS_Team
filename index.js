@@ -1,15 +1,10 @@
 import {FeedPage} from "./Pages/FeedPage/FeedPage.js";
-import LoginForm from "./components/molecules/LoginForm/LoginFrom.js"
 import {renderLoginPage} from "./Pages/LoginPage/LoginPage.js"
-import RegistrationForm from './components/molecules/RegForm/RegForm.js'
 import {renderRegPage} from "./Pages/RegPage/RegPage.js";
-import CONFIG from "./config.js";
+import CONFIG from '/config.js'
+
 
 document.addEventListener('DOMContentLoaded', router);
-
-function isAuthenticated() {
-    return localStorage.getItem("isAuth") === "true";
-}
 
 const routes = {
     "/": {
@@ -100,12 +95,12 @@ async function router() {
 }*/
 
 document.getElementById('logoutBTN').addEventListener('click', () => {
-    fetch(`${API_BASE_URL}/api/auth/logout`, {
+    fetch(`${CONFIG.API_BASE_URL}/api/auth/logout`, {
         method: 'POST',
         credentials: 'include',
     })
         .then(res => res.json())
-        .then(data => {
+        .then({
             //type SuccessResponse struct {
             // Success bool   `json:"success"`
             // Message string `json:"message"`
@@ -118,7 +113,7 @@ document.getElementById('logoutBTN').addEventListener('click', () => {
 });
 
 document.getElementById('loginBtn').addEventListener('click', () => {
-    fetch(`${API_BASE_URL}/api/auth/login`, {
+    fetch(`${CONFIG.API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -132,7 +127,7 @@ document.getElementById('loginBtn').addEventListener('click', () => {
         }),
     })
         .then(res => res.json())
-        .then(data => {
+        .then({
             //type SuccessResponse struct {
             // Success bool   `json:"success"`
             // Message string `json:"message"`
@@ -145,7 +140,7 @@ document.getElementById('loginBtn').addEventListener('click', () => {
 });
 
 document.getElementById('registerBtn').addEventListener('click', () => {
-    fetch(`${API_BASE_URL}/api/auth/register`, {
+    fetch(`${CONFIG.API_BASE_URL}/api/auth/register`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -161,7 +156,7 @@ document.getElementById('registerBtn').addEventListener('click', () => {
         }),
     })
         .then(res => res.json())
-        .then(data => {
+        .then({
             //type SuccessResponse struct {
             // Success bool   `json:"success"`
             // Message string `json:"message"`

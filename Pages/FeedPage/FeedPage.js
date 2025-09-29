@@ -38,7 +38,6 @@ const POSTS = [{
     comments: 3
 }];
 
-
 async function getPosts(limit = 10, page = 1) {
     try {
         const params = new URLSearchParams({ limit, page });
@@ -51,6 +50,15 @@ async function getPosts(limit = 10, page = 1) {
     }
 }
 
+/**
+ * Класс для отображения страницы ленты.
+ *
+ * @class FeedPage
+ * @extends BasePage
+ *
+ * @param {HTMLElement} rootElement - Корневой DOM-элемент, в который будет рендериться страница.
+ * @property {Object[]} posts - Массив постов, отображаемых в ленте.
+ */
 export class FeedPage extends BasePage {
     constructor(rootElement) {
         super(rootElement);
