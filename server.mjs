@@ -14,11 +14,6 @@ app.set("views", path.join(__dirname));
 
 app.use(express.static(path.join(__dirname)));
 
-const posts = [
-  { id: 1, text: "Первый пост", likes: 10, reposts: 2 },
-  { id: 2, text: "Второй пост", likes: 3, reposts: 0 },
-];
-
 app.get("/", (req, res) => {
   res.render("index");
 });
