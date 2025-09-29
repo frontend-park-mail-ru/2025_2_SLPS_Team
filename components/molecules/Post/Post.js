@@ -1,7 +1,20 @@
 import { renderPostPhoto } from '../../atoms/PostPhoto/PostPhoto.js';
 import { renderIconButton } from '../../atoms/IconButton/IconButton.js';
-
-
+/**
+ * Рендерит пост с фотографиями, кнопками действий и возможностью разворачивания текста.
+ *
+ * @async
+ * @function renderPost
+ * @param {Object} postData - Данные поста.
+ * @param {string} postData.id - Уникальный идентификатор поста.
+ * @param {string} postData.author - Автор поста.
+ * @param {string} postData.text - Текст поста.
+ * @param {Array<string>|string} [postData.photos] - Массив путей к фотографиям или одна фотография (будет преобразована в массив).
+ * @param {string} [postData.imagePath] - Альтернативный путь к изображению, если `photos` не задан.
+ * @param {number} [postData.like_count=0] - Количество лайков.
+ * @returns {Promise<HTMLElement>} Promise, который разрешается в HTML-элемент поста.
+ *
+ */
 export async function renderPost(postData) {
     const template = Handlebars.templates['Post.hbs'];
 

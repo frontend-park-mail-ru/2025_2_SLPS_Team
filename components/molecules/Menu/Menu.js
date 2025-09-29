@@ -1,5 +1,30 @@
 import { renderMenuItem } from '../../atoms/MenuItem/MenuItem.js';
 
+/**
+ * Рендерит боковое меню на основе массива элементов.
+ * Использует Handlebars-шаблон `Menu.hbs` и функцию {@link renderMenuItem}.
+ *
+ * @async
+ * @function renderMenu
+ * @param {Object} params - Параметры функции.
+ * @param {Array<Object>} params.items - Массив элементов меню.
+ * @param {string} params.items[].label - Отображаемый текст пункта меню.
+ * @param {string} params.items[].view - Идентификатор/ключ представления, связанный с пунктом меню.
+ * @param {string} [params.items[].icon] - Иконка пункта меню (путь или название).
+ * @param {boolean} [params.items[].isActive=false] - Флаг активности пункта.
+ * @param {Function} [params.items[].onSelect] - Колбэк, вызываемый при выборе пункта меню. Получает `view` как аргумент.
+ * @returns {Promise<HTMLElement>} Promise, который разрешается в корневой элемент меню (`wrapper`).
+ *
+ * @example
+ * const menu = await renderMenu({
+ *   items: [
+ *     { label: "Главная", view: "home", isActive: true, onSelect: (v) => console.log("Выбрано:", v) },
+ *     { label: "Профиль", view: "profile" },
+ *     { label: "Настройки", view: "settings" }
+ *   ]
+ * });
+ * document.body.appendChild(menu);
+ */
 export async function renderMenu({ items }) {
     const template = Handlebars.templates['Menu.hbs'];
 
