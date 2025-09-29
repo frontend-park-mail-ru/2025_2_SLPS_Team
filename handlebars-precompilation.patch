@@ -1,0 +1,251 @@
+diff --git a/Pages/LoginPage/LoginPage.js b/Pages/LoginPage/LoginPage.js
+index 5a22167..fdab4ad 100644
+--- a/Pages/LoginPage/LoginPage.js
++++ b/Pages/LoginPage/LoginPage.js
+@@ -2,9 +2,7 @@ import LoginForm from '../../components/molecules/LoginForm/LoginFrom.js';
+ 
+ export async function renderLoginPage(container, options = {}) {
+     try {
+-        const response = await fetch('./pages/LoginPage/LoginPage.hbs');
+-        const templateSource = await response.text();
+-        const template = Handlebars.compile(templateSource);
++        const template = Handlebars.templates['LoginPage.hbs'];
+ 
+         const tempContainer = document.createElement("div");
+         const loginForm = new LoginForm(tempContainer, {
+diff --git a/Pages/RegPage/RegPage.js b/Pages/RegPage/RegPage.js
+index 092a2cc..762b43f 100644
+--- a/Pages/RegPage/RegPage.js
++++ b/Pages/RegPage/RegPage.js
+@@ -1,9 +1,7 @@
+ import RegistrationForm from '../../components/molecules/RegForm/RegForm.js';
+ 
+ export async function renderRegPage(container, options = {}) {
+-    const response = await fetch('./pages/RegPage/RegPage.hbs');
+-    const templateSource = await response.text();
+-    const template = Handlebars.compile(templateSource);
++    const template = Handlebars.templates['RegPage.hbs'];
+ 
+     const tempContainer = document.createElement("div");
+     const html = template({ logo: './asserts/logo.svg'});
+diff --git a/components/atoms/FormButtons/FormButton.js b/components/atoms/FormButtons/FormButton.js
+index e095f37..58bc254 100644
+--- a/components/atoms/FormButtons/FormButton.js
++++ b/components/atoms/FormButtons/FormButton.js
+@@ -1,7 +1,5 @@
+ export async function renderFormButton(container, type, text, classType, onClick){
+-    const response = await fetch('./components/atoms/FormButtons/FormButton.hbs');
+-    const templateSource = await response.text();
+-    const template = Handlebars.compile(templateSource);
++    const template = Handlebars.templates['FormButton.hbs'];
+     const html = template({classType,text,type});
+ 
+     const wrapper = document.createElement("div");
+diff --git a/components/atoms/FormInput/FromInput.js b/components/atoms/FormInput/FromInput.js
+index 3fe017c..3353231 100644
+--- a/components/atoms/FormInput/FromInput.js
++++ b/components/atoms/FormInput/FromInput.js
+@@ -17,11 +17,7 @@ export default class FormInput {
+     }
+ 
+     async render() {
+-        const response = await fetch("./components/atoms/FormInput/FormInput.hbs");
+-        const templateSource = await response.text();
+-        const template = Handlebars.compile(templateSource);
+-
+-
++        const template = Handlebars.templates['FormInput.hbs'];
+         const html = template({
+             ...this.config,
+             isPassword: this.config.type === "password"
+diff --git a/components/atoms/IconButton/IconButton.js b/components/atoms/IconButton/IconButton.js
+index 164ed8f..8bef47e 100644
+--- a/components/atoms/IconButton/IconButton.js
++++ b/components/atoms/IconButton/IconButton.js
+@@ -1,7 +1,5 @@
+ export async function renderIconButton(icon, count, onClick){
+-    const response = await fetch('./components/atoms/IconButton/IconButton.hbs');
+-    const templateSource = await response.text();
+-    const template = Handlebars.compile(templateSource);
++    const template = Handlebars.templates['IconButton.hbs'];
+     const html = template({icon,count});
+ 
+     const wrapper = document.createElement("div");
+diff --git a/components/atoms/MenuItem/MenuItem.js b/components/atoms/MenuItem/MenuItem.js
+index acfc826..2791cd2 100644
+--- a/components/atoms/MenuItem/MenuItem.js
++++ b/components/atoms/MenuItem/MenuItem.js
+@@ -1,8 +1,5 @@
+ export async function renderMenuItem({ label, view, icon = null, isActive = false, onClick }) {
+-    const response = await fetch('./components/atoms/MenuItem/MenuItem.hbs');
+-    const templateSource = await response.text();
+-    const template = Handlebars.compile(templateSource);
+-
++    const template = Handlebars.templates['MenuItem.hbs'];
+     const html = template({ label, view, icon, isActive });
+ 
+     const wrapper = document.createElement("div");
+diff --git a/components/atoms/NavButton/NavButton.js b/components/atoms/NavButton/NavButton.js
+index 30fa092..5a68036 100644
+--- a/components/atoms/NavButton/NavButton.js
++++ b/components/atoms/NavButton/NavButton.js
+@@ -1,7 +1,5 @@
+ export async function renderNavButton({icon, position, onClick}){
+-    const response = await fetch('./components/atoms/NavButton/NavButton.hbs');
+-    const templateSource = await response.text();
+-    const template = Handlebars.compile(templateSource);
++    const template = Handlebars.templates['NavButton.hbs'];
+     const html = template({ icon, position });
+ 
+     const wrapper = document.createElement("div");
+diff --git a/components/atoms/PostPhoto/PostPhoto.js b/components/atoms/PostPhoto/PostPhoto.js
+index 5c3f396..ffad4df 100644
+--- a/components/atoms/PostPhoto/PostPhoto.js
++++ b/components/atoms/PostPhoto/PostPhoto.js
+@@ -1,9 +1,7 @@
+ import { renderNavButton } from "../NavButton/NavButton.js";
+ 
+ export async function renderPostPhoto(photos) {
+-    const response = await fetch('./components/atoms/PostPhoto/PostPhoto.hbs');
+-    const templateSource = await response.text();
+-    const template = Handlebars.compile(templateSource);
++    const template = Handlebars.templates['PostPhoto.hbs'];
+     const html = template({ photos });
+ 
+     const wrapper = document.createElement("div");
+diff --git a/components/molecules/LoginForm/LoginFrom.js b/components/molecules/LoginForm/LoginFrom.js
+index 99fbdec..c4868d7 100644
+--- a/components/molecules/LoginForm/LoginFrom.js
++++ b/components/molecules/LoginForm/LoginFrom.js
+@@ -11,9 +11,7 @@ export default class LoginForm {
+     }
+ 
+     async render() {
+-    const response = await fetch("../components/molecules/LoginForm/LoginFrom.hbs");
+-        const templateSource = await response.text();
+-        const template = Handlebars.compile(templateSource);
++        const template = Handlebars.templates['LoginFrom.hbs'];
+         const html = template();
+ 
+         const wrapper = document.createElement("div");
+diff --git a/components/molecules/Menu/Menu.js b/components/molecules/Menu/Menu.js
+index 6589bc3..dd7d7b5 100644
+--- a/components/molecules/Menu/Menu.js
++++ b/components/molecules/Menu/Menu.js
+@@ -1,9 +1,7 @@
+ import { renderMenuItem } from '../../atoms/MenuItem/MenuItem.js';
+ 
+ export async function renderMenu({ items, templatePath = "./components/molecules/Menu/Menu.hbs", containerSelector = ".menu-items-container" }) {
+-    const response = await fetch(templatePath);
+-    const templateSource = await response.text();
+-    const template = Handlebars.compile(templateSource);
++    const template = Handlebars.templates['Menu.hbs'];
+ 
+     const wrapper = document.createElement("div");
+     wrapper.innerHTML = template({});
+diff --git a/components/molecules/Post/Post.js b/components/molecules/Post/Post.js
+index d5476ee..35ef7c2 100644
+--- a/components/molecules/Post/Post.js
++++ b/components/molecules/Post/Post.js
+@@ -3,9 +3,7 @@ import { renderIconButton } from '../../atoms/IconButton/IconButton.js';
+ 
+ 
+ export async function renderPost(postData) {
+-    const response = await fetch('./components/molecules/Post/Post.hbs');
+-    const templateSource = await response.text();
+-    const template = Handlebars.compile(templateSource);
++    const template = Handlebars.templates['Post.hbs'];
+ 
+     const html = template(postData);
+ 
+diff --git a/components/molecules/RegForm/RegForm.js b/components/molecules/RegForm/RegForm.js
+index 01347b0..99d53c0 100644
+--- a/components/molecules/RegForm/RegForm.js
++++ b/components/molecules/RegForm/RegForm.js
+@@ -14,9 +14,7 @@ export default class RegistrationForm {
+     }
+ 
+     async render() {
+-        const response = await fetch("../../components/molecules/RegForm/RegFrom.hbs");
+-        const templateSource = await response.text();
+-        const template = Handlebars.compile(templateSource);
++        const template = Handlebars.templates['RegFrom.hbs'];
+         const html = template();
+ 
+         const wrapper = document.createElement("div");
+diff --git a/components/organisms/Feed/Feed.js b/components/organisms/Feed/Feed.js
+index 8f3886b..0222000 100644
+--- a/components/organisms/Feed/Feed.js
++++ b/components/organisms/Feed/Feed.js
+@@ -1,9 +1,7 @@
+ import { renderPost } from "../../molecules/Post/Post.js";
+ 
+ export async function renderFeed(posts){
+-    const response = await fetch('./components/organisms/Feed/Feed.hbs');
+-    const templateSource = await response.text();
+-    const template = Handlebars.compile(templateSource);
++    const template = Handlebars.templates['Feed.hbs'];
+     const html = template({icon: "./asserts/NewPostIcon.svg"});
+ 
+     const wrapper = document.createElement("div");
+diff --git a/index.hbs b/index.hbs
+index 6549572..71f40b6 100644
+--- a/index.hbs
++++ b/index.hbs
+@@ -8,5 +8,6 @@
+     </body>
+ </html>
+ 
+-<script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.min.js"></script>
+-<script type="module" src="./index.js"></script>
++<script defer src="handlebars/dist/handlebars.runtime.js"></script>
++<script defer src="precompiled.js"></script>
++<script defer type="module" src="index.js"></script>
+diff --git a/package-lock.json b/package-lock.json
+index c4762b3..998d34f 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -15,7 +15,8 @@
+       "devDependencies": {
+         "@eslint/js": "^9.36.0",
+         "eslint": "^9.36.0",
+-        "globals": "^16.4.0"
++        "globals": "^16.4.0",
++        "handlebars": "^4.7.8"
+       }
+     },
+     "node_modules/@eslint-community/eslint-utils": {
+@@ -1177,7 +1178,7 @@
+     },
+     "node_modules/handlebars": {
+       "version": "4.7.8",
+-      "resolved": "https://registry.npmjs.org/handlebars/-/handlebars-4.7.8.tgz",
++      "resolved": "https://verdaccio.devmail.ru/handlebars/-/handlebars-4.7.8.tgz",
+       "integrity": "sha512-vafaFqs8MZkRrSX7sFVUdo3ap/eNiLnb4IakshzvP56X5Nr1iGKAIqdX6tMlm6HcNRIkr6AxO5jFEoJzzpT8aQ==",
+       "license": "MIT",
+       "dependencies": {
+diff --git a/package.json b/package.json
+index 2eccb9d..c3e41a7 100644
+--- a/package.json
++++ b/package.json
+@@ -4,7 +4,9 @@
+   "description": "",
+   "main": "index.js",
+   "scripts": {
+-    "test": "echo \"Error: no test specified\" && exit 1"
++    "compile": "find . -name \"*.hbs\" -exec npx handlebars {} -f precompiled.js \\;",
++    "start": "npm run compile && node server.mjs",
++    "jsdoc": "jsdoc -c jsdoc.json"
+   },
+   "keywords": [],
+   "author": "",
+@@ -17,6 +19,8 @@
+   "devDependencies": {
+     "@eslint/js": "^9.36.0",
+     "eslint": "^9.36.0",
+-    "globals": "^16.4.0"
++    "globals": "^16.4.0",
++    "globstar": "^1.0.0",
++    "handlebars": "^4.7.8"
+   }
+ }

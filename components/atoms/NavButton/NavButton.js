@@ -1,7 +1,5 @@
 export async function renderNavButton({icon, position, onClick}){
-    const response = await fetch('./components/atoms/NavButton/NavButton.hbs');
-    const templateSource = await response.text();
-    const template = Handlebars.compile(templateSource);
+    const template = Handlebars.templates['NavButton.hbs'];
     const html = template({ icon, position });
 
     const wrapper = document.createElement("div");

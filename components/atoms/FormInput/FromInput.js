@@ -17,11 +17,7 @@ export default class FormInput {
     }
 
     async render() {
-        const response = await fetch("./components/atoms/FormInput/FormInput.hbs");
-        const templateSource = await response.text();
-        const template = Handlebars.compile(templateSource);
-
-
+        const template = Handlebars.templates['FormInput.hbs'];
         const html = template({
             ...this.config,
             isPassword: this.config.type === "password"

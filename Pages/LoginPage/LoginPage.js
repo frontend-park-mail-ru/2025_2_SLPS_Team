@@ -2,9 +2,7 @@ import LoginForm from '../../components/molecules/LoginForm/LoginFrom.js';
 
 export async function renderLoginPage(container, options = {}) {
     try {
-        const response = await fetch('./pages/LoginPage/LoginPage.hbs');
-        const templateSource = await response.text();
-        const template = Handlebars.compile(templateSource);
+        const template = Handlebars.templates['LoginPage.hbs'];
 
         const tempContainer = document.createElement("div");
         const loginForm = new LoginForm(tempContainer, {

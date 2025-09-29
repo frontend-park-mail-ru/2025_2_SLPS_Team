@@ -1,9 +1,7 @@
 import { renderPost } from "../../molecules/Post/Post.js";
 
 export async function renderFeed(posts){
-    const response = await fetch('./components/organisms/Feed/Feed.hbs');
-    const templateSource = await response.text();
-    const template = Handlebars.compile(templateSource);
+    const template = Handlebars.templates['Feed.hbs'];
     const html = template({icon: "./asserts/NewPostIcon.svg"});
 
     const wrapper = document.createElement("div");

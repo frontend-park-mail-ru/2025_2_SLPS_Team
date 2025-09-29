@@ -1,15 +1,23 @@
 import { renderMenuItem } from '../../atoms/MenuItem/MenuItem.js';
 
-export async function renderMenu({ items, templatePath = "./components/molecules/Menu/Menu.hbs", containerSelector = ".menu-items-container" }) {
-    const response = await fetch(templatePath);
-    const templateSource = await response.text();
-    const template = Handlebars.compile(templateSource);
+export async function renderMenu({ items }) {
+    const template = Handlebars.templates['Menu.hbs'];
 
     const wrapper = document.createElement("div");
     wrapper.innerHTML = template({});
-    const menuWrapper = wrapper.firstElementChild;
 
-    const itemsContainer = menuWrapper.querySelector(containerSelector);
+    const sidebarMenu = wrapper.querySelector(".sidebar-menu");
+    if (!sidebarMenu) throw new Error(".sidebar-menu не найден в шаблоне");
+
+    const menuContainer = document.createElement("div");
+    Object.assign(menuContainer.style, {
+        display: "flex",
+        flexDirection: "column",
+        gap: "6px",
+        width: "190px",
+        position: "fixed"
+    });
+
     const activeView = items.find(i => i.isActive)?.view || items[0].view;
 
     for (const item of items) {
@@ -19,14 +27,17 @@ export async function renderMenu({ items, templatePath = "./components/molecules
             onClick: async (view) => {
                 items.forEach(i => i.isActive = i.view === view);
 
-                const newMenu = await renderMenu({ items, templatePath, containerSelector });
-                menuWrapper.replaceWith(newMenu);
+                const newMenu = await renderMenu({ items });
+                sidebarMenu.replaceWith(newMenu.querySelector(".sidebar-menu"));
 
                 if (item.onSelect) item.onSelect(view);
             }
         });
-        itemsContainer.appendChild(menuItem);
+
+        menuContainer.appendChild(menuItem);
     }
 
-    return menuWrapper;
+    sidebarMenu.appendChild(menuContainer);
+
+    return wrapper;
 }

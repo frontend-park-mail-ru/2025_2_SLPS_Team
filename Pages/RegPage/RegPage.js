@@ -1,9 +1,7 @@
 import RegistrationForm from '../../components/molecules/RegForm/RegForm.js';
 
 export async function renderRegPage(container, options = {}) {
-    const response = await fetch('./pages/RegPage/RegPage.hbs');
-    const templateSource = await response.text();
-    const template = Handlebars.compile(templateSource);
+    const template = Handlebars.templates['RegPage.hbs'];
 
     const tempContainer = document.createElement("div");
     const html = template({ logo: './asserts/logo.svg'});

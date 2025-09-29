@@ -1,4 +1,4 @@
-import {FeedPage} from "./Pages/FeedPage.js";
+import {FeedPage} from "./Pages/FeedPage/FeedPage.js";
 import LoginForm from "./components/molecules/LoginForm/LoginFrom.js"
 import {renderLoginPage} from "./Pages/LoginPage/LoginPage.js"
 import RegistrationForm from './components/molecules/RegForm/RegForm.js'
