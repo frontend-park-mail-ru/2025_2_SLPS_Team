@@ -40,5 +40,5 @@ app.get(/\/(.*)/, (req, res) => {
 });
 
 app.listen(80, () => {
-    console.log("Server started on http://localhost:3000");
+    console.log(`Server started on ${Config.API_BASE_URL}`);
 });
