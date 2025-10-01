@@ -1,6 +1,6 @@
 import FormInput from "../../atoms/FormInput/FromInput.js";
 import { renderFormButton } from "../../atoms/FormButtons/FormButton.js";
-import CONFIG from '/config.js'
+import Config from '/config.mjs'
 import {navigateTo} from "../../../index.js";
 
 /**
@@ -287,7 +287,7 @@ export default class RegistrationForm {
             age: this.inputs.age.input.value.trim(),
             gender: this.form.querySelector('input[name="gender"]:checked')?.value || null,
         };
-        fetch(`${CONFIG.API_BASE_URL}/api/auth/register`, {
+        fetch(`${Config.API_BASE_URL}/api/auth/register`, {
             method: 'POST',
             credentials: 'include',
             headers: {

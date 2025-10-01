@@ -1,6 +1,6 @@
 import FormInput from "../../atoms/FormInput/FromInput.js";
 import { renderFormButton } from "../../atoms/FormButtons/FormButton.js";
-import CONFIG from '/config.js'
+import Config from '/config.mjs'
 
 
 /**
@@ -80,20 +80,20 @@ export default class LoginForm {
     handleSubmit() {
         const { email, password, rememberMe } = this.getValues();
         console.log(email,password,rememberMe);
-        fetch(`${CONFIG.API_BASE_URL}/api/auth/login`, {
+        fetch(`${Config.API_BASE_URL}/api/auth/login`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    username: email,
+                    email: email,
                     password: password
                 }),
             })
                 .then(res => res.json())
                 .then(data => {
-                    if (data.success) {
+                    if (data.code===200) {
                         console.log("Успешный вход");
                             if (this.options.onSubmit) {
                                 this.options.onSubmit({ email, password });

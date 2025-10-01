@@ -1,7 +1,7 @@
 import {FeedPage} from "./Pages/FeedPage/FeedPage.js";
 import {renderLoginPage} from "./Pages/LoginPage/LoginPage.js"
 import {renderRegPage} from "./Pages/RegPage/RegPage.js";
-import CONFIG from '/config.js'
+import Config from '/config.mjs'
 
 
 document.addEventListener('DOMContentLoaded', router);
@@ -37,7 +37,7 @@ export function navigateTo(url) {
 }
 
 async function isLoggedIn() {
-    const res = await fetch(`${CONFIG.API_BASE_URL}/api/auth/isloggedin`, {
+    const res = await fetch(`${Config.API_BASE_URL}/api/auth/isloggedin`, {
         method: 'GET',
         credentials: 'include',
     });
@@ -95,7 +95,7 @@ async function router() {
 }*/
 
 document.getElementById('logoutBTN').addEventListener('click', () => {
-    fetch(`${CONFIG.API_BASE_URL}/api/auth/logout`, {
+    fetch(`${Config.API_BASE_URL}/api/auth/logout`, {
         method: 'POST',
         credentials: 'include',
     })
@@ -113,7 +113,7 @@ document.getElementById('logoutBTN').addEventListener('click', () => {
 });
 
 document.getElementById('loginBtn').addEventListener('click', () => {
-    fetch(`${CONFIG.API_BASE_URL}/api/auth/login`, {
+    fetch(`${Config.API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -140,7 +140,7 @@ document.getElementById('loginBtn').addEventListener('click', () => {
 });
 
 document.getElementById('registerBtn').addEventListener('click', () => {
-    fetch(`${CONFIG.API_BASE_URL}/api/auth/register`, {
+    fetch(`${Config.API_BASE_URL}/api/auth/register`, {
         method: 'POST',
         credentials: 'include',
         headers: {

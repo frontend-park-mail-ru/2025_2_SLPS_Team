@@ -2,6 +2,8 @@ import express from "express";
 import {engine} from "express-handlebars";
 import path from "path";
 import {fileURLToPath} from "url";
+import Config from "./config.mjs";
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,7 +30,7 @@ app.use((req, res, next) => {
         "default-src 'self'; " +
         "script-src 'self'; " +
         "style-src 'self'; object-src 'none';" +
-    "connect-src 'self' 185.86.146.77:8080;"
+    `connect-src 'self' ${Config.API_BASE_URL};`
     );
     next()
 });
@@ -38,5 +40,5 @@ app.get(/\/(.*)/, (req, res) => {
 });
 
 app.listen(80, () => {
-    console.log("Server started on http://localhost:3000");
+    console.log(`Server started on ${Config.API_BASE_URL}`);
 });
