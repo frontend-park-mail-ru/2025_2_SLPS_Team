@@ -93,7 +93,7 @@ export default class LoginForm {
             })
                 .then(res => res.json())
                 .then(data => {
-                    if (data.success) {
+                    if (data.code===200) {
                         console.log("Успешный вход");
                             if (this.options.onSubmit) {
                                 this.options.onSubmit({ email, password });
