@@ -56,7 +56,7 @@
  */
 export async function renderFeed(posts){
     const template = Handlebars.templates['Feed.hbs'];
-    const html = template({icon: "./asserts/NewPostIcon.svg"});
+    const html = template({icon: "./public/NewPostIcon.svg"});
 
     const wrapper = document.createElement("div");
     wrapper.innerHTML = html.trim()
