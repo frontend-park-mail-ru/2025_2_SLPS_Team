@@ -265,7 +265,10 @@ export default class RegistrationForm {
             valid = false;
             this.emailError = false;
         }
-        if (!email.includes("@")) {
+        const emailRegex =
+            /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/u;
+
+        if (!emailRegex.test(email)) {
             this.inputs.email.showError("Введите корректный email");
             valid = false;
         }
@@ -307,7 +310,11 @@ export default class RegistrationForm {
 
         this.inputs.age.hideError();
 
-        if (isNaN(age) || age <= 0) {
+        if (
+        !/^\d+$/.test(age) ||
+        Number(age) < 14 || 
+        Number(age) > 120 
+        ) {
             this.inputs.age.showError("Введите корректный возраст");
             valid = false;
         }
