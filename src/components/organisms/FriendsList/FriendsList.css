@@ -1,0 +1,14 @@
+
+
+.friends-list__title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #333;
+}
+
+.friends-list__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    justify-items: center; /* Центрируем карточки по горизонтали */
+}

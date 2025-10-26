@@ -1,8 +1,6 @@
 import express from "express";
-import {engine} from "express-handlebars";
 import path from "path";
 import {fileURLToPath} from "url";
-import Config from "./config.mjs";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -10,11 +8,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-app.engine("hbs", engine({extname: ".hbs", defaultLayout: false}));
-app.set("view engine", "hbs");
-app.set("views", path.join(__dirname));
-
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, 'dist')));
 
 const distPath = path.join(__dirname, "");
 
@@ -28,17 +22,17 @@ app.use((req, res, next) => {
     res.setHeader(
         "Content-Security-Policy",
         "default-src 'self'; " +
-        "script-src 'self'; " +
+        "script-src 'self' https://cdn.jsdelivr.net; " +
         "style-src 'self'; object-src 'none';" +
-    `connect-src 'self' ${Config.API_BASE_URL};`
+    `connect-src 'self' ${process.env.API_BASE_URL};`
     );
     next()
 });
 
-app.get(/\/(.*)/, (req, res) => {
-    res.render("index")
+app.get(/.*/, (req, res) => {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-app.listen(80, () => {
-    console.log(`Server started on ${Config.API_BASE_URL}`);
+app.listen(3000, () => {
+    console.log(`Server started`);
 });

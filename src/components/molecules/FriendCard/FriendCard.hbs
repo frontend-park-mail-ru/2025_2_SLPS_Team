@@ -1,0 +1,42 @@
+<div class="friend-card">
+    <div class="friend-card__main-content">
+        <div class="friend-card__avatar">
+            <img src="../../../../public/testData/Avatar.jpg">
+        </div>
+        <div class="friend-card__info">
+            <div class="friend-card__name">{{name}}</div>
+            <div class="friend-card__age">{{age}} лет</div>
+        </div>
+    </div>
+    <div class="friend-card__actions">
+        {{#if isFriendsList}}
+        <div class="navbar-dropdown">
+            <div class="dropdown-button">
+                <img class="dropdown-button-icon" src="../../../../public/IconButtons/SettingButton.svg" alt="Menu">
+            </div>
+            <div class="dropdown-menu-sett">
+                <div class="dropdown-item" data-action="remove-friend">
+                    <img class="navbar-icon" src="../../../../public/globalImages/Trash.svg">
+                    Удалить из друзей
+                </div>
+                <div class="dropdown-item" data-action="block-user">
+                    <img class="navbar-icon" src="../../../../public/globalImages/blockuser.svg">
+                    Заблокировать
+                </div>
+            </div>
+        </div>
+        {{/if}}
+        
+        {{#if isSubscribersList}}
+        <button class="friend-card__btn friend-card__btn--add" data-action="add-friend">
+            Добавить в друзья
+        </button>
+        {{/if}}
+        
+        {{#if isBlockedList}}
+        <button class="friend-card__btn friend-card__btn--unblock" data-action="unblock-user">
+            Разблокировать
+        </button>
+        {{/if}}
+    </div>
+</div>

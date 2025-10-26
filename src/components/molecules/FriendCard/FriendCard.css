@@ -1,0 +1,211 @@
+
+
+.friend-card {
+    width: 100%; 
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px 12px 0;    
+    background: #FFFFFF;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+.friend-card__main-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.friend-card__avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #F0F0F0; /* Запасной фон если нет картинки */
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.friend-card__info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.friend-card__name {
+    font-family: "Nunito Sans", sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.2;
+    color: #333333;
+}
+
+.friend-card__age {
+    font-family: "Nunito Sans", sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.2;
+    color: #666666;
+}
+
+.friend-card__actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    position: relative; 
+    z-index: 1;
+}
+
+.friend-card__btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.friend-card__btn--danger {
+    color: #ff4444;
+}
+
+/* Стили для выпадающего меню */
+.navbar-dropdown {
+    position: relative;
+}
+
+.dropdown-button {
+    width: 32px;
+    height: 32px;
+    background: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+    z-index: 2; /* Кнопка над другими элементами */
+}
+
+.dropdown-button:hover {
+    background-color: #f5f5f5;
+}
+
+.dropdown-button-icon {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.2s ease;
+}
+
+.dropdown-button-icon--open {
+    transform: rotate(180deg);
+}
+
+.dropdown-menu-sett {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: var(--base-white);
+    border-radius: 8px;
+    display: none;
+    flex-direction: column;
+    min-width: 168px;
+    z-index: 2000; /* Высокий z-index чтобы меню было поверх всех элементов */
+    padding: 8px;
+    margin-top: 4px; /* Добавляем отступ от кнопки */
+}
+
+.dropdown-menu--open {
+    display: flex;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #333;
+    transition: all 0.2s ease;
+    font-family: "Nunito Sans", sans-serif;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+.dropdown-item[data-action="remove-friend"]:hover {
+    background: var(--light-border);
+    color: #333333;
+}
+
+.dropdown-item[data-action="block-user"]:hover {
+    background: var(--light-border);
+    color: #333333;
+}
+
+.navbar-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+/* Стили для кнопок подписчиков и заблокированных */
+.friend-card__btn--add {
+    color: var(--base-purple);
+    background: #F5F6F7;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 6px 12px;
+    font-size: 12px;
+    width: 150px;
+    height: 30px;
+    white-space: nowrap;
+}
+
+.friend-card__btn--add:hover {
+    background: var(--light-border);
+    color: var(--base-purple);
+}
+
+.friend-card__btn--unblock {
+    color: var(--base-red);
+    background: #F5F6F7;;
+    cursor: pointer;
+    width: 150px;
+    height: 30px;
+    transition: all 0.2s ease;
+    padding: 6px 12px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.friend-card__btn--unblock:hover {
+    background: var(--light-border);
+    color: var(--base-red);
+}
+
+.friend-card {
+    z-index: 1;
+}
+
+.friend-card:hover {
+    z-index: 10; 
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .dropdown-menu-sett {
+        min-width: 150px;
+        right: -10px;
+    }
+    
+    .dropdown-item {
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+}
