@@ -1,0 +1,148 @@
+.edit-profile-modal{
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(23, 23, 23, 0.35);
+    backdrop-filter:brightness(0.9); 
+    -webkit-backdrop-filter: brightness(0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.modal-container{
+    width: fit-content;
+    height: 480px;
+    background-color: var(--base-white);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    gap: 16px;
+    position: relative;
+}
+
+.edit-close{
+    position: absolute;
+    top: 16px;
+    right: 16px; 
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+}
+
+.user-name{
+    display: flex;
+    gap: 16px;
+}
+
+.bth-day{
+    width: 56px;
+}
+
+.bth-month,
+.bth-year{
+    width: 86px;
+}
+
+.bth-container{
+    display: flex;
+    gap: 6px;
+}
+
+.details-info{
+    display: flex;
+    gap: 16px;
+}
+
+.gender-container{
+    width: 240px;
+}
+
+.bth-header{
+    font-family: inherit;
+    font-size: 16px;
+    color: var(--dark-gray);
+}
+
+.about-user{
+    width: 100%;
+}
+
+.avatar-upload {
+  position: relative;
+  display: inline-block;
+  width: 80px;
+  height: 80px;
+}
+
+.avatar-upload__input {
+  display: none;
+}
+
+.avatar-upload__preview {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.avatar-upload__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatar-upload__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+.avatar-upload__preview:hover .avatar-upload__overlay {
+  opacity: 1;
+}
+
+.avatar-upload__icon {
+  width: 32px;
+  height: 32px;
+  z-index: 2;
+}
+
+.user-name{
+    font-family: inherit;
+    font-size: 20px;
+}
+
+.edit-header{
+    display: flex;
+    align-items: center;
+    font-family: inherit;
+    font-size: 20px;
+    gap: 22px;
+}
+
+.edit-avatar-menu{
+    position: absolute;
+    margin-top: -21px;
+    margin-left: 25px;
+    z-index: 3;
+}
+
+.form-actions-container{
+    display: flex;
+    position: absolute;
+    bottom: 0;
+    margin: 16px;
+    right: 0;
+    gap: 16px;
+}

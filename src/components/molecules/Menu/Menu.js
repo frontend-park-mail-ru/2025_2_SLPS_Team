@@ -26,10 +26,10 @@ import MenuTemplate from './Menu.hbs';
  * });
  * document.body.appendChild(menu);
  */
-export async function renderMenu({ items }) {
+export async function renderMenu({ items, onNavigate }) {
     const template = MenuTemplate;
 
-    const wrapper = document.createElement("div");
+    const wrapper = document.createElement("div"); 
     wrapper.innerHTML = template({});
 
     const sidebarMenu = wrapper.querySelector(".sidebar-menu");
@@ -44,19 +44,23 @@ export async function renderMenu({ items }) {
         position: "fixed"
     });
 
-    const activeView = items.find(i => i.isActive)?.view || items[0].view;
+    const activeView = items.find(i => i.isActive)?.view || window.location.pathname;
 
     for (const item of items) {
         const menuItem = await renderMenuItem({
             ...item,
             isActive: item.view === activeView,
-            onClick: async (view) => {
-                items.forEach(i => i.isActive = i.view === view);
+            onClick: () => {
+                items.forEach(i => i.isActive = i.view === item.view);
 
-                const newMenu = await renderMenu({ items });
-                sidebarMenu.replaceWith(newMenu.querySelector(".sidebar-menu"));
+                const allItems = menuContainer.querySelectorAll('.menu-item');
+                allItems.forEach(i => i.classList.remove('active'));
+                const clickedItem = Array.from(allItems).find(el =>
+                    el.querySelector('.menu-item-label')?.textContent === item.label
+                );
+                clickedItem?.classList.add('active');
 
-                if (item.onSelect) item.onSelect(view);
+                onNavigate?.(item.view);
             }
         });
 
@@ -64,6 +68,5 @@ export async function renderMenu({ items }) {
     }
 
     sidebarMenu.appendChild(menuContainer);
-
     return wrapper;
 }

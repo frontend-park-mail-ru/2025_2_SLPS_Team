@@ -1,5 +1,6 @@
 import { renderPost } from "../../molecules/Post/Post.js";
 import FeedTemplate from './Feed.hbs'
+import {CreatePostForm} from '../CreatePost/CreatePost.js';
 
 /**
  * Рендерит ленту постов.
@@ -26,5 +27,14 @@ export async function renderFeed(posts){
     for(const postData of posts){
         FeedElement.appendChild(await renderPost(postData));
     }
+
+    const newPostButton = wrapper.querySelector('.feed-post-button');
+    const NewPostModal = new CreatePostForm(document.body);
+    if(newPostButton){
+        newPostButton.addEventListener('click', () => {
+            NewPostModal.open();
+        });
+    }
+    
     return FeedElement;
 }

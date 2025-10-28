@@ -1,0 +1,41 @@
+.messenger-page {
+    position: fixed;
+    top: 80px;
+    bottom: 20px;
+    display: flex;
+    box-sizing: border-box;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+
+.chats-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0px;
+    width: 330px;
+    height: 100%;
+
+    background-color: var(--base-white);
+    border-radius: 14px;
+    padding: 12px;
+    box-sizing: border-box;
+}
+
+.chat-block{
+    width: 570px;
+    height: 100%;
+    background-color: var(--base-white);
+    border-radius: 14px;
+}
+
+
+.chats-sreach-container{
+    padding-bottom: 12px;
+}
+
+.chat-items-block {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}

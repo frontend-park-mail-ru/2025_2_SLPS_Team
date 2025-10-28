@@ -1,0 +1,77 @@
+.message-container{
+    width: 100%;
+    display: flex;
+    padding-top: 4px;
+}
+
+.message {
+    max-width: 45%;
+    display: flex;
+    padding: 6px 8px;
+    align-items: flex-end;
+    gap: 4px;
+    border-radius: 10px;
+    background-color: var(--light-gray);
+    opacity: 0;
+    animation: messageLeft 0.25s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    will-change: transform, opacity;
+}
+
+.message.my-message {
+    background-color: var(--light-purple);
+    margin-left: auto;
+    opacity: 0;
+    animation: messageRight 0.25s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes messageLeft {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes messageRight {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.last-in-group .message {
+    border-bottom-right-radius: 0px;
+}
+
+.last-not-mine .message {
+    border-bottom-left-radius: 0px;
+}
+
+.no-anim .message {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+}
+
+.message-text {
+    color: var(--text-black);
+    font-family: 'Nunito Sans';
+    font-size: 15px;
+}
+
+.messege-time {
+    font-family: inherit;
+    font-size: 10px;
+}
+
+.is-read-icon {
+    width: 16px;
+    height: 16px;
+}

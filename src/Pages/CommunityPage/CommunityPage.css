@@ -1,0 +1,31 @@
+.community-page {
+    position: fixed;
+    top: 80px;
+    bottom: 20px;
+    display: flex;
+    box-sizing: border-box;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.community-page-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    height: 100%;
+    background-color: var(--base-white);
+    border-radius: 14px;
+    padding: 12px;
+    box-sizing: border-box;
+    width: 800px;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+    font-size: 20px;
+    color: var(--dark-gray);
+}
+
+.community-page-image {
+    width: fit-content;
+    height: fit-content;
+}

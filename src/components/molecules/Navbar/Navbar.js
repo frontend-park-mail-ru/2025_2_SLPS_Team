@@ -1,12 +1,12 @@
 import NavbarTemplate from './Navbar.hbs';
+import DropDown from '../../atoms/dropDown/dropDown.js';
+import { wrap } from 'gsap';
 
 export async function renderNavbar() {
     const template = NavbarTemplate;
     const html = template({ logo: '/public/globalImages/Logo.svg',
         profilePhoto: '/public/testData/Avatar.jpg',
         dropdownIcon: '/public/globalImages/DropdownIcon.svg',
-        profileIcon: '/public/NavbarDropdown/SmallProfileIcon.svg',
-        logoutIcon: '/public/NavbarDropdown/logoutIcon.svg',
         serachIcon: '/public/globalImages/SearchIcon.svg'
         });
 
@@ -14,19 +14,33 @@ export async function renderNavbar() {
     wrapper.innerHTML = html.trim();
 
     const button = wrapper.querySelector('.dropdown-button');
-    const menu = wrapper.querySelector('.dropdown-menu');
-    const buttonIcon = wrapper.querySelector('.dropdown-button-icon')
+    const buttonIcon = wrapper.querySelector('.dropdown-button-icon');
+    const profileActionsConatiner = wrapper.querySelector('.navbar-profile-actions');
+    const profileActions = new DropDown(profileActionsConatiner, {
+        values: [
+            { label: 'Профиль', icon: '/public/NavbarDropdown/SmallProfileIcon.svg', onClick: () => {
+                console.log('Профиль')
+                buttonIcon.classList.remove('dropdown-button-icon--open');
+            } },
+            { label: 'Выход', icon: '/public/NavbarDropdown/logoutIcon.svg', onClick: () => {
+                console.log('Выход')
+                buttonIcon.classList.remove('dropdown-button-icon--open');
+            } }
+        ]
+    });
+
+    await profileActions.render();
 
     button.addEventListener('click', (e) => {
         e.stopPropagation();
-        menu.classList.toggle('dropdown-menu--open');
-        buttonIcon.classList.toggle('dropdown-button-icon--open')
+        profileActions.toggle();
+        buttonIcon.classList.toggle('dropdown-button-icon--open');
     });
 
     document.addEventListener('click', (e) => {
         if (!wrapper.contains(e.target)) {
-            menu.classList.remove('dropdown-menu--open');
-            buttonIcon.classList.remove('dropdown-button-icon--open')
+            profileActions.hide();
+            buttonIcon.classList.remove('dropdown-button-icon--open');
         }
     });
 

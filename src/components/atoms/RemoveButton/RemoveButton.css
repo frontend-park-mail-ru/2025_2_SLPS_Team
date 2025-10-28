@@ -1,0 +1,42 @@
+.remove-button{
+    display: flex;
+    align-items: center;
+    padding: 6px 6px;
+    background-color: var(--base-white);
+    border-radius: 10px;
+    gap: 6px;
+    width: 20px;
+    overflow: hidden;
+    transition: all 0.4s ease 0.1s;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.remove-button:hover {
+    width: 92px;
+}
+
+.remove-button-text{
+    font-size: 16px;
+    font-family: inherit;
+    color: var(--base-red);
+    opacity: 0;
+    transition: opacity ease 0.3s;
+    white-space: nowrap;
+}
+
+.remove-button:hover .remove-button-text {
+    opacity: 1;
+}
+
+.remove-button-icon{
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.remove-button:hover .remove-button-text {
+    opacity: 1;
+    width: fit-content;
+}

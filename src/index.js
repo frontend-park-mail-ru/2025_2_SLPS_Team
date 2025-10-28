@@ -1,23 +1,26 @@
 import {FeedPage} from "./Pages/FeedPage/FeedPage.js";
-import {renderLoginPage} from "./Pages/LoginPage/LoginPage.js"
+import { ProfilePage } from "./Pages/ProfilePage/ProfilePage.js";
+import { MessengerPage } from "./Pages/MassengerPage/MassengerPage.js";
+import { LayoutManager } from "./Pages/LayoutManager.js";
+import { CommunityPage } from "./Pages/CommunityPage/CommunityPage.js";
 import {renderRegPage} from "./Pages/RegPage/RegPage.js";
+import {renderLoginPage} from "./Pages/LoginPage/LoginPage.js";
 import './index.css';
 
 
+const layout = new LayoutManager(document.body, navigateTo);
 
 document.addEventListener('DOMContentLoaded', router);
 
 const routes = {
     "/": {
-        renderFunc: async () => {
-            const feedPage = new FeedPage(document.body);
-            await feedPage.render();
-        },
+        renderFunc: async () => layout.renderPage(FeedPage),
         access: "auth-only",
         title: "Лента"
     },
     "/login": {
         renderFunc: async () => {
+            document.body.innerHTML = '';
             await renderLoginPage(document.body, {
                 onSubmit: () => navigateTo("/"),
                 onReg: () => navigateTo("/register")
@@ -28,11 +31,30 @@ const routes = {
     },
     "/register": {
         renderFunc: async () => {
-            await renderRegPage(document.body, {onSubmit: () => navigateTo("/"), onLog: () => navigateTo("/login")});
+            document.body.innerHTML = '';
+            await renderRegPage(document.body, {
+                onSubmit: () => navigateTo("/"),
+                onLog: () => navigateTo("/login")
+            });
         },
         access: "guest-only",
         title: "Регистарция"
     },
+    "/profile": {
+        renderFunc: async () => layout.renderPage(ProfilePage),
+        access: "auth-only",
+        title: "Регистарция"
+    },
+    "/messanger": {
+        renderFunc: async () => layout.renderPage(MessengerPage),
+        access: "auth-only",
+        title: "Мессенджер"
+    },
+    "/community": {
+        renderFunc: async () => layout.renderPage(CommunityPage),
+        access: "auth-only",
+        title: "Сообщества"
+    }
 };
 
 export function navigateTo(url) {

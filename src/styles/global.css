@@ -31,11 +31,16 @@ body{
     gap: 16px;
     box-sizing: border-box;
     align-items: flex-start;
-    margin: 70px calc(10%);
 }
 
 .header{
   height: 60px;
   width: 100%;
   color: var(--base-white);
+}
+
+.layout-wrapper {
+  margin: 70px calc(10%);
+  display: flex;
+  gap: 16px;
 }

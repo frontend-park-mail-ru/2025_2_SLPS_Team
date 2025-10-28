@@ -6,7 +6,8 @@
   "scripts": {
     "build": "webpack --mode production",
     "start": "node server.mjs",
-    "jsdoc": "jsdoc -c jsdoc.json"
+    "jsdoc": "jsdoc -c jsdoc.json",
+    "mock-ws": "node mock-web-socket/ws-server.mjs"
   },
   "keywords": [],
   "author": "",
@@ -17,7 +18,8 @@
     "express": "^5.1.0",
     "express-handlebars": "^8.0.3",
     "gsap": "^3.13.0",
-    "http-proxy-middleware": "^3.0.5"
+    "http-proxy-middleware": "^3.0.5",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "@babel/core": "^7.28.4",

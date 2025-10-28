@@ -32,8 +32,6 @@ export class FeedPage extends BasePage {
     }
 
     async render() {
-        const navbarElement = await renderNavbar();
-        document.body.appendChild(navbarElement);
         const existingWrapper = document.getElementById('feed-wrapper');
         if (existingWrapper) {
             existingWrapper.remove();
@@ -43,16 +41,6 @@ export class FeedPage extends BasePage {
         wrapper.id = 'feed-wrapper';
         wrapper.innerHTML = FeedPageTemplate();
         const mainContainer = wrapper.querySelector('.feed-page');
-
-        const menuItems = [
-            { label: "Профиль", view: "profile", icon: "/public/MenuIcons/ProfileIcon.svg", isActive: true },
-            { label: "Лента", view: "feed", icon: "/public/MenuIcons/FeedIcon.svg" },
-            { label: "Сообщества", view: "community", icon: "/public/MenuIcons/FeedIcon.svg" },
-            { label: "Месенджер", view: "messenger", icon: "/public/MenuIcons/MessengerIcon.svg" },
-            { label: "Друзья", view: "friends", icon: "/public/MenuIcons/FriendsIcon.svg" }
-        ];
-        const menuElement = await renderMenu({ items: menuItems });
-        mainContainer.appendChild(menuElement);
 
         this.posts = await getPosts(10, 1);
         const feedElement = await renderFeed(this.posts.posts);
