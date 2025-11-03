@@ -9,7 +9,7 @@
 @import url(./components/organisms/Feed/Feed.css);
 @import url(./components/molecules/FeedSettings/FeedSettings.css);
 @import url(./components/atoms/FormInput/FormInput.css);
-@import url(./components//atoms/FormButtons/FormButton.css);
+@import url(./components//atoms/FormButtons/FormButtons.css);
 @import url(./components/molecules/LoginForm/LoginForm.css);
 @import url(./styles/global.css);
 @import url(./Pages/LoginPage/LoginPage.css);
@@ -35,3 +35,5 @@
 @import url(./components/molecules/MessageInput/MessageInput.css);
 @import url(./components/molecules/SearchInput/SearchInput.css);
 @import url(./Pages/CommunityPage/CommunityPage.css);
+@import url(./components/molecules/ModalConfirm/ModalConfirm.css);
+@import url(./components/molecules/Notification/Notification.css);

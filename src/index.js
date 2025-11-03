@@ -5,6 +5,7 @@ import { LayoutManager } from "./Pages/LayoutManager.js";
 import { CommunityPage } from "./Pages/CommunityPage/CommunityPage.js";
 import {renderRegPage} from "./Pages/RegPage/RegPage.js";
 import {renderLoginPage} from "./Pages/LoginPage/LoginPage.js";
+import { FriendsPage } from "./Pages/FriendsPage/FriendsPage.js";
 import './index.css';
 
 
@@ -43,7 +44,7 @@ const routes = {
     "/profile": {
         renderFunc: async () => layout.renderPage(ProfilePage),
         access: "auth-only",
-        title: "Регистарция"
+        title: "Профиль"
     },
     "/messanger": {
         renderFunc: async () => layout.renderPage(MessengerPage),
@@ -54,6 +55,11 @@ const routes = {
         renderFunc: async () => layout.renderPage(CommunityPage),
         access: "auth-only",
         title: "Сообщества"
+    },
+    "/friends": {
+        renderFunc: async () => layout.renderPage(FriendsPage),
+        access: "auth-only",
+        title: "Друзья"
     }
 };
 

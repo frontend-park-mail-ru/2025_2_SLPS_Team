@@ -14,6 +14,7 @@
     background-color: var(--base-white);
     border: none;
     border-radius: 14px;
+    cursor: pointer;
 }
 
 .button-content{

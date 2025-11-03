@@ -1,5 +1,6 @@
 import { renderNavbar } from '../components/molecules/Navbar/Navbar.js';
 import { renderMenu } from '../components/molecules/Menu/Menu.js';
+import { NotificationManager } from '../components/organisms/NotificationsBlock/NotificationsManager.js';
 
 export class LayoutManager {
     constructor(rootElement, navigateTo) {
@@ -9,6 +10,7 @@ export class LayoutManager {
         this.content = null;
         this.initialized = false;
         this.navigateTo = navigateTo;
+        this.NotificationManager = new NotificationManager();
     }
 
     async init() {
@@ -41,6 +43,7 @@ export class LayoutManager {
         this.root.innerHTML = '';
         this.root.appendChild(this.navbar);
         this.root.appendChild(layoutWrapper);
+        this.NotificationManager.init();
 
         this.initialized = true;
     }

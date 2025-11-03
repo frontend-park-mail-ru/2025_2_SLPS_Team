@@ -1,4 +1,4 @@
-import FormButtonTemplate from './FormButton.hbs';
+import FormButtonTemplate from './FormButtons.hbs';
 
 /**
  * Рендерит кнопку формы в указанный контейнер

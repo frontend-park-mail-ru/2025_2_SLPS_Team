@@ -12,7 +12,7 @@ export default class DropDown {
         this.isVisible = false;
     }
 
-    async render() {
+    render() {
         const html = dropDownTemplate({ ...this.config });
 
         const wrapper = document.createElement("div");

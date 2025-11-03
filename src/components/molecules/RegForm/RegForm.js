@@ -1,5 +1,5 @@
 import FormInput from "../../atoms/FormInput/FromInput.js";
-import { renderFormButton } from "../../atoms/FormButtons/FormButton.js";
+import { renderFormButton } from "../../atoms/FormButtons/FormButtons.js";
 import RegFormTemplate from './RegForm.hbs'
 import { gsap } from "gsap";
 

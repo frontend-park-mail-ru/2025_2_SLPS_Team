@@ -1,4 +1,4 @@
-.base-button{
+.base-button {
     font-size: 16px;
     font-family: inherit;
     font-weight: 300;
@@ -7,15 +7,49 @@
     cursor: pointer;
 }
 
-.base-button.primary{
+.base-button.big {
+    width: 100%;
+    height: 36px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.base-button.primary {
     border: none;
     background: var(--base-purple);
     color: var(--base-white);
 }
 
-.base-button.default{
+.base-button.default {
     border: 1px solid var(--base-purple);
     background: var(--base-white);
     color: var(--base-purple);
     font-weight: 400;
 }
+
+
+.base-button.normal {
+    width: fit-content;
+    height: fit-content;
+    padding: 4px 8px;
+    background-color: var(--light-gray);
+    border: none;
+    font-size: 14px;
+    border-radius: 6px;
+    color: var(--base-purple);
+    font-weight: 400;
+}
+
+.base-button.normal.red {
+    color: var(--base-red);
+}
+
+.base-button.normal:hover{
+    background-color: var(--base-gray);
+}
+
+.base-button.normal.red:hover{
+    background-color: var(--base-gray);
+}
+
+

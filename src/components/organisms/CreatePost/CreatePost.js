@@ -1,6 +1,9 @@
 import CreatePostTemplate from './CreatePost.hbs';
 import {ImageInput} from '../../molecules/ImageInput/ImageInput.js'
 import BaseButton from '../../atoms/BaseButton/BaseButton.js';
+import { NotificationManager } from '../NotificationsBlock/NotificationsManager.js';
+
+const notifier = new NotificationManager();
 
 export class CreatePostForm {
     constructor(rootElement, profileData) {
@@ -39,6 +42,7 @@ export class CreatePostForm {
             onClick: () => {
                 this.saveData();
                 this.close();
+                notifier.show('Пост создан', "Ваш новый пост опубликован, вы можете посмотреть его в профиле", 'success');
             }
         });
         await Savebutton.render();

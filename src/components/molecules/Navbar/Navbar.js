@@ -29,7 +29,7 @@ export async function renderNavbar() {
         ]
     });
 
-    await profileActions.render();
+    profileActions.render();
 
     button.addEventListener('click', (e) => {
         e.stopPropagation();
