@@ -1,0 +1,154 @@
+.input-image-wrapper{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.input-image__container {
+    position: relative;
+    width: 100%;
+    height: 480px;
+    overflow: hidden;
+    border-radius: 10px;
+}
+
+.border-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.input-image__container:hover{
+    background-color: var(--light-gray);
+}
+
+.input-image__container.hidden{
+    border: 1px solid var(--light-border);
+}
+
+.input-image__container.drag-over {
+    background-color: var(--accent-purple);
+}
+
+.input-image__input{
+    display: none;
+}
+
+.input-image__custom{
+    display: flex;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+
+}
+
+.input-image__icon{
+    width: 100px;
+    height: 100px;
+}
+
+.input-image__text{
+    font-family: inherit;
+    font-size: 20px;
+    color: var(--dark-gray);
+}
+
+.input-image__button{
+    display: flex;
+    align-items: center;
+    padding: 4px 14px;
+    border-radius: 6px;
+    background-color: var(--base-white);
+    color: var(--base-purple);
+    font-family: inherit;
+    font-size: 16px;
+}
+
+.add-new-image__button{
+    display: flex;
+    background-color: var(--light-gray);
+    border: none;
+    font-size: 16px;
+    font-family: inherit;
+    padding: 2px 6px;
+    color: var(--base-purple);
+    width: fit-content;
+    align-items: center;
+    border-radius: 6px;
+    margin-left: auto;
+    cursor: pointer;
+}
+
+.add-new-image__button:hover{
+    background-color: var(--base-gray);
+}
+
+.add-image-icon{
+    width: 24px;
+    height: 24px;
+}
+
+.image-input-wrapper{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+
+
+.input-image__preview {
+    display: none;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: var(--base-white);
+}
+
+.input-image__preview.active {
+    display: block;
+}
+
+.input-image__original.active {
+    display: none;
+}
+
+.input-image__preview:hover .nav-button {
+  opacity: 1;
+}
+
+.slide{
+    display: flex;
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.slide-image{
+    width: 550px;
+    height: 480px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.slider-track{
+    display: flex;
+    height: 100%;
+    transition: transform 0.5s ease-in-out;
+    will-change: transform;
+}
+
+
+.remove-button-container{
+    position: absolute;
+    margin: 12px;
+    right: 0;
+}

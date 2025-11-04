@@ -1,0 +1,18 @@
+<div class="baseinput">
+  <div class="baseinput-header">{{header}}</div>
+
+  {{#if isBig}}
+    <textarea 
+      class="baseinput-field big"
+      placeholder="{{placeholder}}"
+      maxlength="{{maxLength}}"
+    >{{value}}</textarea>
+  {{else}}
+    <input 
+      class="baseinput-field"
+      placeholder="{{placeholder}}"
+      maxlength="{{maxLength}}"
+      value="{{value}}"
+    />
+  {{/if}}
+</div>

@@ -1,0 +1,9 @@
+<div class="message-container">
+    <div class="message {{#if isMine}}my-message{{/if}}">
+        <div class="message-text">{{text}}</div>
+        <div class="messege-time">{{time}}</div>
+        {{#if isMine}}
+            <img class="is-read-icon" src="/public/ChatIcons/IsReadIcon.svg">
+        {{/if}}
+    </div>
+</div>

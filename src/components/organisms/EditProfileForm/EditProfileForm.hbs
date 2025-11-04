@@ -1,0 +1,32 @@
+<div class="edit-profile-modal">
+    <div class="modal-container">
+        <img class="edit-close" src="./public/globalImages/CancelIcon.svg">
+        <div class="edit-header">
+            <div class="avatar-upload">
+                <input type="file" id="avatarInput" class="avatar-upload__input" accept="image/*">
+                <div class="avatar-upload__preview">
+                    <img src="{{AvatarUrl}}" alt="Avatar" class="avatar-upload__image">
+                    <div class="avatar-upload__overlay">
+                    <img src="./public/globalImages/EditAvatar.svg" alt="Upload" class="avatar-upload__icon">
+                    </div>
+                </div>
+                <div class="edit-avatar-menu"></div>
+            </div>
+            <div>{{profileData.full_name}}</div>
+        </div>
+        <div class="user-name"></div>
+        <div class="about-user"></div>
+        <div class="details-info">
+            <div class="bth-block">
+            <div class="bth-header">Дата рождения</div>
+            <div class="bth-container">
+                <div class="bth-day"></div>
+                <div class="bth-month"></div>
+                <div class="bth-year"></div>
+            </div>
+            </div>
+            <div class="gender-container"></div>
+        </div>
+        <div class="form-actions-container"></div>
+    </div>
+</div>

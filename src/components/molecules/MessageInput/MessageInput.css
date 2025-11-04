@@ -1,0 +1,66 @@
+.message-input-container { 
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+}
+
+.input-message {
+    width: 100%;
+    min-height: 36px;
+    height: 37px;
+    max-height: 120px;
+    padding: 8px 40px 8px 12px;
+    border: none;
+    background-color: var(--light-gray);
+    border-radius: 10px;
+    box-sizing: border-box;
+    border: 1px solid transparent;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    resize: none;
+    overflow-y: auto;
+    line-height: 1.4;
+    font-size: 15px;
+    font-family: 'Nunito Sans';
+    color: var(--text-black);
+    vertical-align: middle;
+    align-items: flex-end;
+}
+
+.input-message:focus{
+    outline: none;
+}
+
+
+.input-message::placeholder {
+    font-family: 'Nunito Sans';
+    font-size: 15px;
+    color: var(--dark-gray);
+    line-height: 1.4;
+}
+
+.input-message::-webkit-scrollbar {
+    display: none;
+}
+
+.message-send-btn{
+    position: absolute;
+    right: 10px;
+    bottom: 18px;
+    transform: translateY(50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.message-send-btn img {
+  width: 24px;
+  height: 24px;
+}
+
+.message-send-btn img:hover{
+    filter: brightness(0.9);
+}

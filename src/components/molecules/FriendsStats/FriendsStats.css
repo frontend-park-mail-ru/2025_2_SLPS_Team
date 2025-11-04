@@ -1,0 +1,64 @@
+.friends-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 38px;
+}
+
+.friends-stats__item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 6px;
+    border: none;
+    border-radius: 8px;
+    background: var(--base-white);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    height: 38px;
+    box-sizing: border-box;
+    border: none;
+    text-align: left;
+}
+
+.friends-stats__item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 6px;
+    border: none;
+    border-radius: 8px;
+    background: var(--base-white);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    height: 38px;
+    box-sizing: border-box;
+    border: none;
+    text-align: left;
+}
+
+.friends-stats__item--active,
+.friends-stats__item--active:hover {
+    background-color: var(--accent-purple) !important;
+    color: var(--base-white);
+}
+
+
+.friends-stats__item:hover {
+    background-color: var(--base-gray);
+}
+
+.friends-stats__label {
+    font-size: 14px;
+    color: var(--text-black);
+    font-weight: 500;
+    font-family: 'Nunito Sans';
+}
+
+.friends-stats__count {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--dark-gray);
+}

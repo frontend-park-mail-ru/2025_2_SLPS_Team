@@ -1,0 +1,224 @@
+.friends-page {
+    position: fixed;
+    top: 80px;
+    bottom: 20px;
+    display: flex;
+    box-sizing: border-box;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+
+.friends-page__content {
+  order: 2;
+  flex: 1;
+  background-color: var(--base-white);
+  border-radius: 14px;
+  border: none;
+  padding: 16px 12px 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 600px;
+  height: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.friends-page__content::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+}
+
+
+.friends-page__sidebar {
+  order: 3;
+  width: 330px;
+  height: 120px;
+  background-color: var(--base-white);
+  border-radius: 14px;
+  border: none;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+
+
+.friends-page__title {
+    font-family: 'Nunito Sans';
+    font-weight: 450;
+    font-size: 20px;
+    color: var(--text-black);
+}
+
+/* Поиск */
+.search-block input {
+  width: 100%;
+  padding: 10px 15px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  background: #fafafa;
+  font-size: 14px;
+}
+
+
+
+.friend-card__actions button {
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  transition: 0.2s;
+}
+
+.friend-card__actions .remove {
+  color: #e63946;
+  border-color: #e63946;
+}
+
+.friend-card__actions .remove:hover {
+  background: var(--light-border);
+  color: var(--base-gray);
+}
+
+.friend-card__actions .block {
+  color: var(--base-gray);
+  border-color: var(--base-gray);
+}
+
+.friend-card__actions .block:hover {
+  background: var(--base-gray);
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .friends-page {
+    flex-direction: column;
+  }
+
+  .friends-page__menu,
+  .friends-page__sidebar {
+    width: 100%;
+  }
+
+  .friends-page__content {
+    padding: 15px;
+  }
+}
+
+.search-input-container{
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+.search-input {
+    width: 100%;
+    height: 34px;
+    padding-left: 36px;
+    background: var(--light-border);
+    border-radius: 8px;
+    font-size: 16px;
+    border: 1px solid transparent;
+    transition: border 0.2s;
+}
+.search-input{
+    width: 602px;
+    height: 34px;
+    background: var(--light-border);
+    border: none;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+}
+.navbar-input-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    pointer-events: none;
+}
+.dropdownf-button{
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dropdownf-button-icon {
+    width: 24px;
+    height: 24px;
+    transition: transform 0.3s 
+    cubic-bezier(0.72, 0.34, 0.37, 0.93);
+}
+.dropdownf-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: var(--base-white);
+    border: 1px solid var(--base-white);
+    border-radius: 8px;
+    display: none;
+    flex-direction: column;
+    min-width: 160px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    z-index: 2000;
+    padding: 8px;
+}
+
+
+.friends-list__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+}
+
+
+/* Стили для выпадающего меню поиска */
+.search-settings {
+    position: relative;
+}
+
+.search-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: var(--base-white);
+    border: 1px solid #E0E0E0;
+    border-radius: 8px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    padding: 0;
+    width: 178px;
+    height: 185px;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-5px);
+    transition: all 0.2s ease;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.search-dropdown-menu--open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdownf-button--open .dropdownf-button-icon {
+    transform: rotate(90deg);
+}
