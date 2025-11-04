@@ -1,20 +1,15 @@
-# Используем Node.js 20
 FROM node:20
 
-# Создаем рабочую директорию
 WORKDIR /app
 
-# Копируем package.json и package-lock.json
 COPY package*.json ./
 
-# Устанавливаем зависимости
-RUN npm install --production
+RUN npm install
 
-# Копируем весь проект
 COPY . .
 
-# Указываем порт
-EXPOSE 3000
 RUN npm run build
-# Запускаем сервер напрямую через Node.js
+
+EXPOSE 3000
+
 CMD ["npm", "start"]
