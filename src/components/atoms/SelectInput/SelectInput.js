@@ -93,7 +93,7 @@ export default class SelectInput {
         option.classList.add("active");
 
         const checkIcon = document.createElement("img");
-        checkIcon.src = "./public/globalImages/SelectIcon.svg";
+        checkIcon.src = "/public/globalImages/SelectIcon.svg";
         checkIcon.className = "active-icon";
         option.appendChild(checkIcon);
 

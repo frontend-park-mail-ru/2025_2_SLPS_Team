@@ -58,6 +58,6 @@ export default class BaseInput {
     }
 
     getValue() {
-        return { [this.config.name]: this.input.value };
+        return this.input.value;
     }
 }

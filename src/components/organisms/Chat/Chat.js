@@ -6,23 +6,38 @@ import { MessageInput } from '../../molecules/MessageInput/MessageInput.js';
 import { wsService } from '../../../services/WebSocketService.js';
 
 
-async function getChatMessages(chatId) {
-    const response = await fetch(`${process.env.API_BASE_URL}/api/chat/${chatId}`);
+async function getChatMessages(chatId, limit = 20, offset = 0) {
+    const response = await fetch(`${process.env.API_BASE_URL}/api/chats/${chatId}/messages?limit=${limit}&offset=${offset}`);
     if (!response.ok) {
         throw new Error(`Ошибка запроса: ${response.status}`);
     }
     const data = await response.json();
-    return data.messages;
+
+    const messages = data.messages.map(msg => ({
+        id: msg.id,
+        text: msg.text,
+        created_at: msg.createdAt,
+        User: {
+            id: msg.authorID,
+            full_name: data.authors[msg.authorID].fullName,
+            avatar: data.authors[msg.authorID].avatarPath
+        }
+    }));
+
+    return messages;
 }
 
 
+
 export class Chat{
-    constructor(rootElement, chatInfo, myUserId) {
+    constructor(rootElement, chatInfo, myUserId, myUserName, myUserAvatar) {
         this.rootElement = rootElement;
         this.chatInfo = chatInfo;
+        this.myUserId = myUserId;
+        this.myUserName = myUserName;
+        this.myUserAvatar = myUserAvatar;
         this.messages = null;
         this.chatHeader = null;
-        this.myUserId = myUserId;
         this.inputMes = null;
         this.messagesContainer = null;
         this.scrollButton = null;
@@ -129,8 +144,8 @@ export class Chat{
                 chatId: this.chatInfo.id,
                 User: {
                     id: this.myUserId,
-                    full_name: 'Павловский Роман',
-                    avatar: '/public/testData/Avatar.jpg'
+                    full_name: this.myUserName,
+                    avatar: this.myUserAvatar
                 }
             };
             wsService.send('message', message);

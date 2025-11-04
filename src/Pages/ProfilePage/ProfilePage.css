@@ -133,7 +133,9 @@
     font-family: inherit;
 }
 
-.edit-open{
+.edit-open,
+.add-friend-btn,
+.message-btn {
     width: fit-content;
     height: fit-content;
     padding: 4px 8px;
@@ -144,9 +146,46 @@
     color: var(--base-purple);
     margin-left: auto;
     margin-top: 5px;
+    cursor: pointer;
+}
+
+.edit-open:hover,
+.add-friend-btn:hover,
+.message-btn:hover { 
+    background-color: var(--base-gray);
 }
 
 .profile-down-container{
     display: flex;
     gap: 16px;
+}
+
+.request-text {
+    width: fit-content;
+    height: fit-content;
+    padding: 4px 8px;
+    border: none;
+    font-size: 14px;
+    color: var(--base-purple);
+    margin-left: auto;
+    margin-top: 5px;
+    background: none;
+}
+
+.unblock-user-btn {
+        width: fit-content;
+    height: fit-content;
+    padding: 4px 8px;
+    background-color: var(--light-gray);
+    border: none;
+    font-size: 14px;
+    border-radius: 6px;
+    color: var(--base-red);
+    margin-left: auto;
+    margin-top: 5px;
+    cursor: pointer;
+}
+
+.unblock-user-btn:hover {
+    background-color: var(--base-gray);
 }

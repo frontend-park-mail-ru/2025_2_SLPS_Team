@@ -9,6 +9,10 @@
                     <div class="community-name">{{groupName}}</div>
                 </div>
             {{/if}}
+            {{#if isOwner}}
+                <img class="post-details-actions-container" src="/public/globalImages/MorePointsIcon.svg">
+                <div class="post-actions-menu"></div>
+            {{/if}}
         </div>
         <div class="post-text-container">
             <div class="post-text js-post-text">{{text}}</div>

@@ -3,18 +3,19 @@ import MessengerPageTemplate from './MassengerPage.hbs'
 import { ChatItem } from '../../components/molecules/ChatItem/ChatItem.js';
 import { Chat } from '../../components/organisms/Chat/Chat.js';
 import { SearchInput } from '../../components/molecules/SearchInput/SearchInput.js';
+import { EventBus } from '../../services/EventBus.js';
 
 import { wsService } from '../../services/WebSocketService.js';
 import { gsap } from "gsap";
 
 
 async function getChatsData() {
-    const response = await fetch(`${process.env.API_BASE_URL}/api/chats/`);
+    const response = await fetch(`${process.env.API_BASE_URL}/api/chats/?limit=20&offset=0`);
     if (!response.ok) {
         throw new Error(`Ошибка запроса: ${response.status}`);
     }
     const data = await response.json();
-    return data.chats;
+    return data; 
 }
 
 async function fetchCurrentUserId() {
@@ -23,7 +24,6 @@ async function fetchCurrentUserId() {
     const data = await response.json();
     return data.userId;
 }
-
 
 
 export class MessengerPage extends BasePage {
@@ -78,14 +78,42 @@ export class MessengerPage extends BasePage {
             console.log(message);
             this.UpdateChat(message.chatId);
         });
+
+        EventBus.on('openChat', async ({ userId }) => {
+            try {
+                console.log('aaaa');
+                const response = await fetch(`${process.env.API_BASE_URL}/api/chats/user/${userId}`);
+                if (!response.ok) throw new Error(`Ошибка при получении/создании чата: ${response.status}`);
+
+                const data = await response.json();
+                const chatId = data.chatID;
+
+                let chatData = this.chats.find(c => c.id === chatId);
+
+                if (chatData) {
+                    await this.OpenChat(chatData);
+                } else {
+                    console.error('Не удалось получить данные чата');
+                }
+            } catch (err) {
+                console.error('Ошибка открытия чата:', err);
+            }
+        });
+
     }
 
     async OpenChat(chatData) {
         this.chatWrapper = this.wrapper.querySelector('.chat-block');
         this.chatWrapper.innerHTML = '';
-        this.openChat = new Chat(this.chatWrapper, chatData, this.myUserId);
+
+        const profile = await this.fetchCurrentUserProfile();
+        const fullName = `${profile.firstName} ${profile.lastName}`;
+        const avatar = profile.avatarPath;
+
+        this.openChat = new Chat(this.chatWrapper, chatData, this.myUserId, fullName, avatar);
         this.openChat.render();
     }
+
 
 
     UpdateChat(chatId) {
@@ -115,6 +143,11 @@ export class MessengerPage extends BasePage {
         chatItem.updateCounter()
     }
 
-
+    async fetchCurrentUserProfile() {
+        const response = await fetch(`${process.env.API_BASE_URL}/api/profile/${this.myUserId}`);
+        if (!response.ok) throw new Error(`Ошибка запроса: ${response.status}`);
+        const data = await response.json();
+        return data;
+    }
 
 }

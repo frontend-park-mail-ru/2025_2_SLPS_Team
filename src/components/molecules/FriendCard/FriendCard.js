@@ -11,7 +11,7 @@ import './FriendCard.css';
 
 export function renderFriendCard(context = {}) {
     const {
-        id,
+        userID,
         name = 'Имя пользователя',
         age = 0,
         avatarSrc = null,
@@ -24,7 +24,7 @@ export function renderFriendCard(context = {}) {
 
     const wrapper = document.createElement('div');
     wrapper.innerHTML = FriendCardTemplate({
-        id,
+        userID,
         avatarSrc,
         name,
         age,
@@ -42,8 +42,13 @@ export function renderFriendCard(context = {}) {
                     console.log('Удаление из друзей')
                     const blockConfirm = new ModalConfirm(
                         "Подтвердите действие",
-                        "Вы уверены что хотите удалить пользователя Павловский Роман из друзей?",
-                        () => {notifier.show('Пользователь удален', "Вы удалили пользователя Павлвоский Роман из друзей", "error")}
+                        `Вы уверены что хотите удалить пользователя ${name} из друзей?`,
+                        async () => {
+                            const info = await deleteFriend(userID);
+                            if (info.ok){
+                                notifier.show('Пользователь удален', `Вы удалили пользователя ${name} из друзей`, "error")
+                            }
+                        }
                     );
                     blockConfirm.open();
                 } },
@@ -52,7 +57,10 @@ export function renderFriendCard(context = {}) {
                     const blockConfirm = new ModalConfirm(
                         "Подтвердите действие",
                         "Вы уверены что хотите заблокировать пользователя Павловский Роман?",
-                        () => {notifier.show('Пользователь заблокирован', 'Вы заблокировали пользователя Павловский Роман', 'error')}
+                        () => {
+                            console.log('Тут нужно обратиться к ручке для того что бы заблокировать пользователя');
+                            notifier.show('Пользователь заблокирован', `Вы заблокировали пользователя ${name}`, 'error');
+                        }
                     );
                     blockConfirm.open();
                 } }
@@ -77,10 +85,13 @@ export function renderFriendCard(context = {}) {
         const NotSavebutton = new BaseButton(buttonContainer, {
             text: "Добавить в друзья",
             style: "normal",
-            onClick: (e) => {
+            onClick: async (e) => {
                 e.stopPropagation();
-                console.log('Добавление пользователся в друзья');
-                notifier.show("Друг добавлен", "Вы добавили пользователя Павловский Роман в друзья", "success");
+                const request = await addFriend(userID);
+                if (request.ok) {
+                    console.log(request)
+                    notifier.show("Друг добавлен", `Вы добавили пользователя ${name} в друзья`, "success");
+                }
             }
         });
         NotSavebutton.render();
@@ -105,4 +116,27 @@ export function renderFriendCard(context = {}) {
     }
 
     return card;
+}
+
+
+async function deleteFriend(userID) {
+    const res = await fetch(`${process.env.API_BASE_URL}/api/friends/${userID}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    });
+
+    return res; 
+}
+
+async function addFriend(userID) {
+    const res = await fetch(`${process.env.API_BASE_URL}/api/friends/${userID}/accept`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    });
+
+    return res; 
 }

@@ -3,6 +3,9 @@ import BaseInput from '../../atoms/BaseInput/BaseInput.js';
 import SelectInput from '../../atoms/SelectInput/SelectInput.js';
 import DropDown from '../../atoms/dropDown/dropDown.js';
 import BaseButton from '../../atoms/BaseButton/BaseButton.js';
+import { NotificationManager } from '../NotificationsBlock/NotificationsManager.js';
+
+const notifier = new NotificationManager();
 
 export class EditProfileForm {
     constructor(rootElement, profileData) {
@@ -11,7 +14,7 @@ export class EditProfileForm {
         this.wrapper = null;
         this.inputs = {};
         this.editAvatarMenu = null;
-        this.defaultAvatar = './public/globalImages/backgroud.png';
+        this.defaultAvatar = '/public/globalImages/backgroud.png';
         this.hasCustomAvatar = !!profileData.avatar;
     }
 
@@ -29,7 +32,7 @@ export class EditProfileForm {
             closeBtn.addEventListener('click', () => this.close());
         }
 
-        const splitName = this.profileData.full_name.split(" ");
+        const splitName = this.profileData.fullName.split(" ");
 
         this.inputs.name = new BaseInput(this.wrapper.querySelector('.user-name'), {
             header: "Имя",
@@ -55,7 +58,7 @@ export class EditProfileForm {
             type: "text",
             placeholder: "Расскажите о себе",
             required: true,
-            value: this.profileData.about_myself,
+            value: this.profileData.aboutMyself,
         });
         await this.inputs.aboutUser.render();
 
@@ -107,11 +110,13 @@ export class EditProfileForm {
         await this.inputs.bthYear.render();
 
         const genderValue = this.profileData.gender;
+        console.log(this.profileData.gender);
+        console.log(this.profileData);
 
         this.inputs.gender = new SelectInput(this.wrapper.querySelector('.gender-container'), {
             header: "Пол",
             values: [
-                { label: "Мужской", value: "Мужской", active: genderValue === "Муской"},
+                { label: "Мужской", value: "Мужской", active: genderValue === "Мужской"},
                 { label: "Женский", value: "Женский", active: genderValue === "Женский"},
             ]
         })
@@ -223,9 +228,41 @@ export class EditProfileForm {
         }
     }
 
-    async saveData (){
-        console.log('Полечение данных из формы и отправка запроса на сохранение')
-    }
+async saveData() {
+    try {
+        const fullName = `${String(this.inputs.secondName.getValue() || '').trim()} ${String(this.inputs.name.getValue() || '').trim()}`;
+        const aboutMyself = String(this.inputs.aboutUser.getValue() || '').trim();
+        const year = Number(this.inputs.bthYear.getValue());
+        const monthNames = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+        const month = monthNames.indexOf(this.inputs.bthMonth.getValue());
+        const day = Number(this.inputs.bthDay.getValue());
 
+        const dob = new Date(year, month, day).toISOString();
+        const gender = this.inputs.gender.getValue();
+
+        const profileData = { fullName, aboutMyself, dob, gender };
+
+        const formData = new FormData();
+        formData.append('profile', JSON.stringify(profileData));
+
+        const avatarFile = this.inputs.Imageinput.files[0];
+        if (avatarFile) formData.append('avatar', avatarFile);
+
+        const res = await fetch(`${process.env.API_BASE_URL}/api/profile`, {
+            method: 'PUT',
+            body: formData,
+            credentials: 'include',
+        });
+
+        if (!res.ok) throw new Error(`Ошибка ${res.status}`);
+
+        const data = await res.json();
+        notifier.show('Изменения сохранены', "Изменения в вашем профиле успешно сохранены", 'success');
+
+    } catch (error) {
+        console.error(error);
+        notifier.show('Изменения не сохранены', "Что-то пошло не так, попробуйте позже", 'error');
+    }
+}
 
 }

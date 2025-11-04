@@ -1,6 +1,13 @@
 import { renderPostPhoto } from '../../atoms/PostPhoto/PostPhoto.js';
 import { renderIconButton } from '../../atoms/IconButton/IconButton.js';
 import PostTemplate from './Post.hbs'
+import { authService } from '../../../services/AuthService.js';
+import DropDown from '../../atoms/dropDown/dropDown.js';
+import { ModalConfirm } from '../ModalConfirm/ModalConfirm.js';
+import { NotificationManager } from '../../organisms/NotificationsBlock/NotificationsManager.js';
+import { CreatePostForm } from '../../organisms/CreatePost/CreatePost.js';
+
+const notifier = new NotificationManager();
 
 /**
  * Рендерит пост с фотографиями, кнопками действий и возможностью разворачивания текста.
@@ -19,8 +26,13 @@ import PostTemplate from './Post.hbs'
  */
 export async function renderPost(postData) {
     const template = PostTemplate;
+    const isOwner = Number(authService.getUserId()) === postData.authorID;
+    const templateData = {
+        ...postData,
+        isOwner: isOwner
+    };
 
-    const html = template(postData);
+    const html = template(templateData);
 
     const wrapper = document.createElement("div");
     wrapper.innerHTML = html.trim()
@@ -35,9 +47,9 @@ export async function renderPost(postData) {
 
     const postFooter = postElement.querySelector(".post-footer").querySelector('.post-actions-container');
 
-    const LikeButton = await renderIconButton("./public/IconButtons/LikeButton.svg",postData.likes);
-    const CommentButton = await renderIconButton("./public/IconButtons/CommentButton.svg",postData.comments);
-    const ShareButton = await renderIconButton("./public/IconButtons/ShareButton.svg",postData.reposts);
+    const LikeButton = await renderIconButton("/public/IconButtons/LikeButton.svg",postData.likes);
+    const CommentButton = await renderIconButton("/public/IconButtons/CommentButton.svg",postData.comments);
+    const ShareButton = await renderIconButton("/public/IconButtons/ShareButton.svg",postData.reposts);
     postFooter.appendChild(LikeButton);
     postFooter.appendChild(CommentButton);
     postFooter.appendChild(ShareButton);
@@ -54,6 +66,64 @@ export async function renderPost(postData) {
         btn.textContent = "Показать ещё";
     }
     });
+
+    if (isOwner) {
+        const moreActionsBtn = postElement.querySelector('.post-details-actions-container');
+        const postActionsMenu = postElement.querySelector('.post-actions-menu');
+        const postActions = new DropDown(postActionsMenu, {
+            values: [
+                { label: 'Удалить пост', icon: '/public/globalImages/DeleteImg.svg', onClick: () => {
+                    console.log('Удаление поста')
+                    const blockConfirm = new ModalConfirm(
+                        "Подтвердите действие",
+                        `Вы уверены что хотите удалить пост?`,
+                        async () => {
+                            const request = await PostDelete(postData.id);
+                            if (request.ok){
+                                notifier.show('Пост удален', `Ваш пост успешно удален`, "error")
+                            }
+                        }
+                    );
+                    blockConfirm.open();
+                } },
+                { label: 'Редактировать', icon: '/public/globalImages/EditIcon.svg', onClick: () => {
+                    console.log('Тут открываем форму редактирования поста')
+                    const editPostFrom = new CreatePostForm(document.body, authService.getUserId(), 'edit', postData);
+                    editPostFrom.open();
+                } }
+            ]
+        });
+
+        postActions.render();
+
+        moreActionsBtn.addEventListener('mouseenter', () => postActions.show());
+        postActions.wrapper.addEventListener('mouseenter', () => postActions.show());
+
+        moreActionsBtn.addEventListener('mouseleave', () => {
+            setTimeout(() => {
+                if (!postActions.wrapper.matches(':hover')) postActions.hide();
+            }, 0);
+        });
+        postActions.wrapper.addEventListener('mouseleave', () => postActions.hide());
+    }
     
     return postElement
 }
+
+
+async function PostDelete(postId) {
+    try {
+        const res = await fetch(`${process.env.API_BASE_URL}/api/posts/${postId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+        });
+
+        return res;
+    } catch (error) {
+        notifier.show("Ошибка", "Не удалось удалить пост", 'error');
+    }
+}
+
