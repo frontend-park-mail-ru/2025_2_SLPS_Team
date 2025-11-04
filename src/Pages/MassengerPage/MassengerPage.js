@@ -144,7 +144,7 @@ export class MessengerPage extends BasePage {
     }
 
     async fetchCurrentUserProfile() {
-        const response = await fetch(`${process.env.API_BASE_URL}/api/profile/${this.myUserId}`);
+        const response = await fetch(`${process.env.API_BASE_URL}/api/profile/${this.myUserId}`, {credentials: "include"});
         if (!response.ok) throw new Error(`Ошибка запроса: ${response.status}`);
         const data = await response.json();
         return data;

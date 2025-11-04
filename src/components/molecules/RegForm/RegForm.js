@@ -321,14 +321,20 @@ export default class RegistrationForm {
 
         return valid;
     }
-
     handleSubmit() {
+        const age = parseInt(this.inputs.age.input.value.trim(), 10);
+        const currentYear = new Date().getFullYear();
+        const birthYear = currentYear - age;
+        const dob = new Date(Date.UTC(birthYear, 0, 1, 0, 0, 0)).toISOString();
+
+
         const data = {
             email: this.inputs.email.input.value.trim(),
             password: this.inputs.password.input.value.trim(),
-            username: this.inputs.firstName.input.value.trim() + this.inputs.lastName.input.value.trim(),
+            firstName: this.inputs.firstName.input.value.trim(),
+            lastName: this.inputs.lastName.input.value.trim(),
             confirmpassword: this.inputs.confirmPassword.input.value.trim(),
-            age: this.inputs.age.input.value.trim(),
+            dob: dob,
             gender: this.form.querySelector('input[name="gender"]:checked')?.value || null,
         };
         fetch(`${process.env.API_BASE_URL}/api/auth/register`, {
@@ -338,10 +344,12 @@ export default class RegistrationForm {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                username: data.username,
+                firstName: data.firstName,
+                lastName: data.lastName,
                 email: data.email,
                 password: data.password,
-                confirm_password: data.confirmpassword,
+                confirmPassword: data.confirmpassword,
+                dob: dob,
             }),
         })
             .then(res => res.json())

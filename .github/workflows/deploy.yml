@@ -53,5 +53,5 @@ jobs:
             docker run -d \
               --name myapp_front \
               --restart unless-stopped \
-              -p 3000:3000 \
+              -p 80:80 \
               ${{ secrets.DOCKER_USERNAME }}/myapp_front:latest

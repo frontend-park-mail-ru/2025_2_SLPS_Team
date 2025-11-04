@@ -17,12 +17,16 @@ class AuthService {
             method: 'GET',
             credentials: 'include',
         });
-        const data = await res.json();
 
-        this.isLoggedIn = !!data.isloggedin;
-        this.userId = data.userId || null;
-        console.log(this.userId);
-        return this.isLoggedIn;
+        if (res.ok) {
+            const data = await res.json();
+            console.log(data)
+            console.log(data.userID)
+            this.userId = data.userID;
+            console.log(this.userID)
+            return true;
+        }
+        return false
     }
 
     getUserId() {

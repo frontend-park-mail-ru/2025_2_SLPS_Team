@@ -16,7 +16,7 @@ const notifier = new NotificationManager();
 async function getPosts(limit = 10, page = 1) {
     try {
         const params = new URLSearchParams({ limit, page });
-        const res = await fetch(`${process.env.API_BASE_URL}/api/posts?${params.toString()}`);
+        const res = await fetch(`${process.env.API_BASE_URL}/api/posts?${params.toString()}`, {credentials: "include"});
         if (!res.ok) throw new Error("Ошибка HTTP " + res.status);
         return await res.json();
     } catch (err) {
@@ -25,7 +25,7 @@ async function getPosts(limit = 10, page = 1) {
 }
 
 async function getProfileData(userId) {
-    const response = await fetch(`${process.env.API_BASE_URL}/api/profile/${userId}`);
+    const response = await fetch(`${process.env.API_BASE_URL}/api/profile/${userId}`, {credentials: "include"});
     if (!response.ok) {
         throw new Error(`Ошибка запроса: ${response.status}`);
     }
@@ -33,15 +33,21 @@ async function getProfileData(userId) {
     return data;
 }
 
+// async function getFriendsData(userId) {
+//     const response = await fetch(`${process.env.API_BASE_URL}/api/friends/${userId}/count`);
+//     if (!response.ok) {
+//         throw new Error(`Ошибка запроса: ${response.status}`);
+//     }
+//     const data = await response.json();
+//     return data;
+// }
 async function getFriendsData(userId) {
-    const response = await fetch(`${process.env.API_BASE_URL}/api/friends/${userId}/count`);
-    if (!response.ok) {
-        throw new Error(`Ошибка запроса: ${response.status}`);
-    }
-    const data = await response.json();
-    return data;
+    return {
+        count_friends: 12,
+        count_followers: 34,
+        count_follows: 56
+    };
 }
-
 export async function getFriendsStatus(userId) {
     const response = await fetch(`${process.env.API_BASE_URL}/api/friends/${userId}/status`, {
         method: 'GET',
@@ -123,7 +129,7 @@ export class ProfilePage extends BasePage {
         });
 
         this.posts = await getPosts(10, 1);
-        const feedElement = await renderFeed(this.posts.posts);
+        const feedElement = await renderFeed(this.posts);
         const feedContainer = this.wrapper.querySelector('.profile-feed-container')
         feedContainer.appendChild(feedElement);
 

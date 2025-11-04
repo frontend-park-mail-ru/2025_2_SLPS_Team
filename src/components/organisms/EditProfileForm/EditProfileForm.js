@@ -230,7 +230,8 @@ export class EditProfileForm {
 
 async saveData() {
     try {
-        const fullName = `${String(this.inputs.secondName.getValue() || '').trim()} ${String(this.inputs.name.getValue() || '').trim()}`;
+        const firstName= String(this.inputs.secondName.getValue() || '').trim();
+        const lastName = String(this.inputs.name.getValue() || '').trim();
         const aboutMyself = String(this.inputs.aboutUser.getValue() || '').trim();
         const year = Number(this.inputs.bthYear.getValue());
         const monthNames = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
@@ -240,7 +241,7 @@ async saveData() {
         const dob = new Date(year, month, day).toISOString();
         const gender = this.inputs.gender.getValue();
 
-        const profileData = { fullName, aboutMyself, dob, gender };
+        const profileData = { firstName,lastName, aboutMyself, dob, gender };
 
         const formData = new FormData();
         formData.append('profile', JSON.stringify(profileData));

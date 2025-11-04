@@ -110,9 +110,10 @@ export class CreatePostForm {
 
             console.log(formData);
 
-            const res = await fetch(`${process.env.API_BASE_URL}/posts`, {
+            const res = await fetch(`${process.env.API_BASE_URL}/api/posts`, {
                 method: 'POST',
                 body: formData,
+                credentials: "include",
             });
 
             if (res.ok) {

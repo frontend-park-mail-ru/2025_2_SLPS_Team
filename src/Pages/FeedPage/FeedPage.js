@@ -8,7 +8,7 @@ import FeedPageTemplate from './FeedPage.hbs';
 async function getPosts(limit = 10, page = 1) {
     try {
         const params = new URLSearchParams({ limit, page });
-        const res = await fetch(`${process.env.API_BASE_URL}/api/posts?${params.toString()}`);
+        const res = await fetch(`${process.env.API_BASE_URL}/api/posts?${params.toString()}`,{credentials: 'include'});
         if (!res.ok) throw new Error("Ошибка HTTP " + res.status);
         return await res.json();
     } catch (err) {
@@ -43,7 +43,9 @@ export class FeedPage extends BasePage {
         const mainContainer = wrapper.querySelector('.feed-page');
 
         this.posts = await getPosts(10, 1);
-        const feedElement = await renderFeed(this.posts.posts);
+        console.log(this.posts.posts)
+        console.log(this.posts)
+        const feedElement = await renderFeed(this.posts);
         mainContainer.appendChild(feedElement);
 
         const settingsItems = [

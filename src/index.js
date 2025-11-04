@@ -105,7 +105,7 @@ async function router() {
 
     const access = route.access;
     const loggedIn = await authService.checkAuth();
-
+    console.log(loggedIn)
     if (access === "guest-only" && loggedIn) {
         navigateTo("/");
         return;
