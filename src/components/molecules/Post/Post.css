@@ -16,8 +16,10 @@
 
 .post-header {
     display: flex;
-    flex-direction: column;
     width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
 }
 
 .community-info{
@@ -103,3 +105,13 @@
     margin: 0px 22px;
 }
 
+.post-details-actions-container {
+    width: 24px;
+    height: 24px;
+}
+
+.post-actions-menu {
+    position: absolute;
+    right: 0;
+    top: 28px;
+}

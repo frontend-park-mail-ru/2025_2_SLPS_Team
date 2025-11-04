@@ -4,20 +4,35 @@
         <img class="header-image" src="/public/globalImages/backgroud.png">
         <div class="profile-header-content">
             <img class="profile-avatar"
-                src="{{#if user.avatar}}
-                        {{user.avatar}}
+                src="{{#if user.avatarPath}}
+                        {{user.avatarPath}}
                     {{else}}
                         {{user.defaultAvatar}}
                     {{/if}}"
             >
             <div class="user-info-container">
-                <div class="user-name">{{user.full_name}}</div>
+                <div class="user-name">{{user.fullName}}</div>
                 <div class="user-info">
                     {{user.age}} лет
                     <button class="profile-toggle-btn">Подробнее</button>
                 </div>
             </div>
-            <button class="edit-open">Редактировать Профиль</button>
+            {{#if user.isOwner}}
+                <div class="edit-open">Редактировать Профиль</div>
+            {{else}}
+                {{#if showCancelRequest}}
+                    <div class="request-text">Заявка отправлена</div>
+                {{/if}}
+                {{#if showMessage}}
+                    <div class="message-btn">Написать сообщение</div>
+                {{/if}}
+                {{#if showAddFriend}}
+                    <div class="add-friend-btn">Добавить в друзья</div>
+                {{/if}}
+                {{#if showBlocked}}
+                    <div class="unblock-user-btn">Разблокировать Пользователя</div>
+                {{/if}}
+            {{/if}}
         </div>
 
         <div class="profile-extra">
@@ -27,7 +42,7 @@
             </div>
             <div class="about-user">
                 <div class="text-header">О себе</div>
-                <div class="about-text">{{user.about_myself}}</div>
+                <div class="about-text">{{user.aboutMyself}}</div>
             </div>
             <div class="user-counts-info">
                 <a class="text-accent"> {{friends.count_friends}} <div class="base-text">друзей</div></a>

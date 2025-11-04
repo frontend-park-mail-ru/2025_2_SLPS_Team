@@ -54,10 +54,10 @@ export class LayoutManager {
         }
     }
 
-    async renderPage(PageClass) {
+    async renderPage(PageClass, params = {}) {
         await this.init();
         this.clearContent();
-        const pageInstance = new PageClass(this.content);
+        const pageInstance = new PageClass(this.content, params);
         await pageInstance.render();
     }
 }

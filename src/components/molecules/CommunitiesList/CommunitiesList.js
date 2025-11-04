@@ -1,10 +1,10 @@
 import CommunitiesListTemplate from './CommunitiesList.hbs';
 
 const communities = [
-    { id: 1, name: "Fast Foode Music", avatar: "./public/testData/groupim.jpg" },
-    { id: 2, name: "VK Education", avatar: "./public/testData/groupim2.jpg" },
-    { id: 3, name: "Fast Foode Music", avatar: "./public/testData/groupim.jpg" },
-    { id: 4, name: "VK Education", avatar: "./public/testData/groupim2.jpg" },
+    { id: 1, name: "Fast Foode Music", avatar: "/public/testData/groupim.jpg" },
+    { id: 2, name: "VK Education", avatar: "/public/testData/groupim2.jpg" },
+    { id: 3, name: "Fast Foode Music", avatar: "/public/testData/groupim.jpg" },
+    { id: 4, name: "VK Education", avatar: "/public/testData/groupim2.jpg" },
 ];
 
 export async function renderCommunitiesList() {

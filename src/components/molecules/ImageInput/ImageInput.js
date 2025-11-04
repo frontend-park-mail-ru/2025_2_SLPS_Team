@@ -91,15 +91,23 @@ export class ImageInput {
 
     async displayCarousel() {
         this.sliderTrack.innerHTML = '';
-        
+
         for (let i = 0; i < this.selectedFiles.length; i++) {
             const slide = document.createElement('div');
             slide.className = 'slide';
-            
+
             const img = document.createElement('img');
-            img.src = URL.createObjectURL(this.selectedFiles[i]);
+
+            const file = this.selectedFiles[i];
+            if (file instanceof File) {
+                img.src = URL.createObjectURL(file);
+            } else if (file.url) {
+                img.src = file.url;
+            } else {
+                continue;
+            }
+
             img.className = 'slide-image';
-            
             slide.appendChild(img);
 
             const removeBtn = await renderRemoveButton(() => {
@@ -109,17 +117,19 @@ export class ImageInput {
             const removeBtnContainer = document.createElement('div');
             removeBtnContainer.className = 'remove-button-container';
             removeBtnContainer.appendChild(removeBtn);
-            
+
             slide.appendChild(removeBtnContainer);
-            
             this.sliderTrack.appendChild(slide);
         }
-        
+
+        this.inputContainer.classList.add('hidden');
         this.originalLabel.classList.add('active');
         this.preview.classList.add('active');
+
         this.updateCarouselPosition();
         this.updateNavigation();
     }
+
 
     removeImage(index) {
         this.selectedFiles.splice(index, 1);
@@ -184,4 +194,16 @@ export class ImageInput {
     getImages() {
         return this.selectedFiles;
     }
+
+    async displayExistingImages(photos) {
+        if (!Array.isArray(photos) || photos.length === 0) return;
+
+        this.selectedFiles = [
+            ...this.selectedFiles,
+            ...photos.map(url => ({ url, isExisting: true }))
+        ];
+        this.currentIndex = this.selectedFiles.length - 1;
+        this.displayCarousel();
+    }
+
 }

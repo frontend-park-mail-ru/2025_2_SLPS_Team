@@ -2,14 +2,14 @@
     <div class="select-header">{{header}}</div>
   <div class="select-control">
     <input class="select-input" placeholder="{{placeholder}}" readonly>
-    <img class="select-arrow" src="./public/globalImages/DropdownIcon.svg">
+    <img class="select-arrow" src="/public/globalImages/DropdownIcon.svg">
   </div>
   <ul class="select-list">
     {{#each values}}
       <li class="select-option{{#if active}} active{{/if}}" data-value="{{this.value}}">
         {{this.label}}
         {{#if active}}
-          <img class="active-icon" src="./public/globalImages/SelectIcon.svg">
+          <img class="active-icon" src="/public/globalImages/SelectIcon.svg">
         {{/if}}
       </li>
     {{/each}}
