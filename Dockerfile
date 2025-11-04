@@ -8,13 +8,13 @@ WORKDIR /app
 COPY package*.json ./
 
 # Устанавливаем зависимости
-RUN npm install
+RUN npm install --production
 
-# Копируем исходники
+# Копируем весь проект
 COPY . .
 
-# Открываем порт (по необходимости)
-EXPOSE 80
+# Указываем порт
+EXPOSE 3000
 
-# Запускаем команду start
-CMD ["npm", "start"]
+# Запускаем сервер напрямую через Node.js
+CMD ["node", "server.mjs"]
