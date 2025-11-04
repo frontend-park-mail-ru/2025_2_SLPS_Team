@@ -82,7 +82,6 @@ async function router() {
 
     let route = null;
     let params = {};
-    
     for (const [routePath, routeConfig] of Object.entries(routes)) {
         if (routePath === path) {
             route = routeConfig;

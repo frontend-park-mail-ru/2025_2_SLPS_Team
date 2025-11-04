@@ -15,7 +15,7 @@ export class ChatHeader {
         tempDiv.innerHTML = ChatHeaderTemplate(this.profileData);
         this.wrapper = tempDiv.firstElementChild;
 
-        this.avatar = new UserPhotoItem(this.wrapper.querySelector('.profile-avatar-container'), this.profileData.avatarPath);
+        this.avatar = new UserPhotoItem(this.wrapper.querySelector('.profile-avatar-container'), `${process.env.API_BASE_URL}/uploads/${this.profileData.avatarPath}`);
         this.avatar.render();
         
         this.rootElement.appendChild(this.wrapper);
