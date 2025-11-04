@@ -1,7 +1,7 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
-
+import dotenv from 'dotenv';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -32,6 +32,8 @@ app.get(/.*/, (req, res) => {
     res.sendFile(path.resolve(__dirname, "dist", "index.html"));
 });
 
-app.listen(3000, () => {
+app.listen(80, () => {
+    dotenv.config();
+    console.log(process.env.API_BASE_URL)
     console.log("Server started at http://localhost:3000");
 });

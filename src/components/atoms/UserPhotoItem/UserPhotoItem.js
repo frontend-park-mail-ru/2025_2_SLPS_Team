@@ -9,7 +9,7 @@ export class UserPhotoItem {
 
     render() {
         const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = UserPhotoItemTemplate({ photoPath: this.photoPath });
+        tempDiv.innerHTML = UserPhotoItemTemplate({ photoPath: `${process.env.API_BASE_URL}/uploads/${this.photoPath}` });
         this.wrapper = tempDiv.firstElementChild;
         this.rootElement.appendChild(this.wrapper);
     }
