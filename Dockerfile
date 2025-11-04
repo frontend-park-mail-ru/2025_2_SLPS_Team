@@ -15,6 +15,6 @@ COPY . .
 
 # Указываем порт
 EXPOSE 3000
-
+RUN npm run build
 # Запускаем сервер напрямую через Node.js
-CMD ["node", "server.mjs"]
+CMD ["npm", "start"]
