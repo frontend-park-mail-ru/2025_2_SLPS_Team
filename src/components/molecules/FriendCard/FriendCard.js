@@ -20,7 +20,7 @@ export function renderFriendCard(context = {}) {
 
     const isFriendsList = listType === 'friends';
     const isSubscribersList = listType === 'subscribers';
-    const isBlockedList = listType === 'blocked';
+    const isPossibleList = listType === 'possible';
 
     const wrapper = document.createElement('div');
     wrapper.innerHTML = FriendCardTemplate({
@@ -96,23 +96,23 @@ export function renderFriendCard(context = {}) {
         });
         NotSavebutton.render();
         
-    } else if (isBlockedList) {
+    } else if (isPossibleList) {
         const buttonContainer = wrapper.querySelector('.freind-buttons-container');
-        const Unblockedbutton = new BaseButton(buttonContainer, {
-            text: "Разблокировать",
-            style: "normal red",
-            onClick: (e) => {
+        
+        const addPossibleButton = new BaseButton(buttonContainer, {
+            text: "Добавить в друзья",
+            style: "normal",
+            onClick: async (e) => {
                 e.stopPropagation();
-                console.log('Разблокируем позьзователя');
-                const blockConfirm = new ModalConfirm(
-                    "Подтвердите действие",
-                    "Вы уверены что хотите разблокировать пользователя Павловский Роман?",
-                    () => {notifier.show('Пользователь разблокирован', "Вы разблокировали пользователя Павловский Роман", "success")}
-                );
-                blockConfirm.open();
+                const request = await sendFriendRequest(userID);
+                if (request.ok) {
+                    notifier.show("Заявка отправлена", `Вы отправили заявку пользователю ${name}`, "success");
+                    e.target.disabled = true;
+                    e.target.textContent = "Заявка отправлена";
+                }
             }
         });
-        Unblockedbutton.render();
+        addPossibleButton.render();
     }
 
     return card;
@@ -137,6 +137,17 @@ async function addFriend(userID) {
             "Content-Type": "application/json"
         }
     });
+
+async function sendFriendRequest(userID) {
+    const res = await fetch(`${process.env.API_BASE_URL}/friends/${userID}`, {
+        method: "POST",
+        headers: { 
+            "Content-Type": "application/json" 
+        }
+    });
+
+    return res;
+}
 
     return res; 
 }

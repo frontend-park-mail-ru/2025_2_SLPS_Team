@@ -37,10 +37,26 @@ async function getFriendsData(page = 1, limit = 20) {
         };
     }));
 
+    const possibleRes = await fetch(`${process.env.API_BASE_URL}/friends/users/all?page=${page}&limit=${limit}`);
+    const possibleData = await possibleRes.json();
+
+    const possible = await Promise.all((possibleData || []).map(async (user) => {
+        const profileRes = await fetch(`${process.env.API_BASE_URL}/api/profile/${user.userID}`);
+        const profileData = await profileRes.json();
+
+        return {
+            userID: user.userID,
+            name: user.fullName,
+            avatarPath: user.avatarPath || null,
+            age: profileData.dob ? calculateAge(profileData.dob) : null,
+            type: 'possible'
+        };
+    }));
+
     return {
         friends,
         subscribers,
-        blocked: []
+        possible
     };
 }
 
@@ -56,11 +72,11 @@ function calculateAge(dobString) {
 export class FriendsPage extends BasePage {
     constructor(rootElement) {
         super(rootElement);
-        this.currentListType = 'friends'; // 'friends', 'subscribers', 'blocked'
+        this.currentListType = 'friends'; // 'friends', 'subscribers', 'possible'
         this.friendsData = {
             friends: [],
             subscribers: [],
-            blocked: []
+            possible: []
         };
     }
 
@@ -83,7 +99,7 @@ export class FriendsPage extends BasePage {
         const friendsStats = renderFriendsStats({
             friendsCount: this.friendsData.friends.length,
             subscribersCount: this.friendsData.subscribers.length,
-            blockedCount: this.friendsData.blocked.length,
+            possibleCount: this.friendsData.possible.length,
             currentType: this.currentListType
         });
 

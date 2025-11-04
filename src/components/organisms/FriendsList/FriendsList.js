@@ -11,8 +11,8 @@ export function renderFriendsList(context = {}) {
     let title = 'Ваши друзья';
     if (listType === 'subscribers') {
         title = 'Подписчики';
-    } else if (listType === 'blocked') {
-        title = 'Заблокированные пользователи';
+    } else if (listType === 'possible') {
+        title = 'Возможные друзья';
     }
     
     listElement.innerHTML = FriendsListTemplate();
