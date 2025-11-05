@@ -6,21 +6,27 @@ import './FriendsPage.css';
 
 async function getFriendsData(page = 1, limit = 20) {
     const requestsRes = await fetch(`${process.env.API_BASE_URL}/api/friends/requests?page=${page}`, {credentials: 'include'});
+
     const requestsData = await requestsRes.json();
-    const requests = requestsData.requests || [];
+    const requests = Array.isArray(requestsData) ? requestsData : (requestsData.requests || []);
 
     const subscribers = await Promise.all(requests.map(async (req) => {
-        const profileRes = await fetch(`${process.env.API_BASE_URL}/api/profile/${req.userID}`, {credentials: 'include'});
-        const profileData = await profileRes.json();
+    const friend = req.friend;
 
-        return {
-            id: req.userID,
-            name: `${req.firstName} ${req.lastName}`,
-            age: profileData.dob ? calculateAge(profileData.dob) : null,
-            avatarSrc: req.avatarPath || null,
-            type: 'subscriber'
-        };
+    const profileRes = await fetch(`${process.env.API_BASE_URL}/api/profile/${friend.userID}`, {
+        credentials: 'include'
+    });
+    const profileData = await profileRes.json();
+
+    return {
+        id: friend.userID,
+        name: friend.fullName,
+        age: profileData.dob ? calculateAge(profileData.dob) : null,
+        avatarSrc: friend.avatarPath || null,
+        type: 'subscriber'
+    };
     }));
+
 
     const friendsRes = await fetch(`${process.env.API_BASE_URL}/api/friends?page=${page}`, { credentials: 'include' });
     const friendsData = await friendsRes.json();
