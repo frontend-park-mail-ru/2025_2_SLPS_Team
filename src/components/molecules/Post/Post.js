@@ -35,6 +35,7 @@ export async function renderPost(postData) {
         communityAvatar: `${process.env.API_BASE_URL}${postData.author.avatarPath}` || '/public/testData/Avatar.jpg',
         groupName: postData.author.fullName,
     };
+    console.log(postData.author.avatarPath);
 
     const html = template(templateData);
 
