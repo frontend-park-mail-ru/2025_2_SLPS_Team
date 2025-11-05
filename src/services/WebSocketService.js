@@ -63,4 +63,4 @@ class WebSocketService {
     }
 }
 
-export const wsService = new WebSocketService(`${process.WS_URL}`);
+export const wsService = new WebSocketService(process.WS_URL || "ws://localhost:8080/api/ws");

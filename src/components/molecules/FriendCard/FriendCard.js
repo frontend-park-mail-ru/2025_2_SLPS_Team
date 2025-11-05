@@ -124,7 +124,8 @@ async function deleteFriend(userID) {
         method: "DELETE",
         headers: {
             "Content-Type": "application/json"
-        }
+        },
+        credentials: 'include'
     });
 
     return res; 
@@ -135,7 +136,8 @@ async function addFriend(userID) {
         method: "PUT",
         headers: {
             "Content-Type": "application/json"
-        }
+        },
+        credentials: 'include'
     });
 
     return res; 
@@ -145,7 +147,8 @@ async function sendFriendRequest(userID) {
         method: "POST",
         headers: { 
             "Content-Type": "application/json" 
-        }
+        },
+        credentials: 'include'
     });
 
     return res;
