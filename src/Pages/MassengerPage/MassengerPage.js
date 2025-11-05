@@ -88,13 +88,8 @@ export class MessengerPage extends BasePage {
                 const data = await response.json();
                 const chatId = data.chatID;
 
-                let chatData = this.chats.find(c => c.id === chatId);
+                await this.OpenChat(chatId);
 
-                if (chatData) {
-                    await this.OpenChat(chatData);
-                } else {
-                    console.error('Не удалось получить данные чата');
-                }
             } catch (err) {
                 console.error('Ошибка открытия чата:', err);
             }
@@ -106,11 +101,7 @@ export class MessengerPage extends BasePage {
         this.chatWrapper = this.wrapper.querySelector('.chat-block');
         this.chatWrapper.innerHTML = '';
 
-        const profile = await this.fetchCurrentUserProfile();
-        const fullName = `${profile.firstName} ${profile.lastName}`;
-        const avatar = profile.avatarPath;
-
-        this.openChat = new Chat(this.chatWrapper, chatData, this.myUserId, fullName, avatar);
+        this.openChat = new Chat(this.chatWrapper, chatData, this.myUserId);
         this.openChat.render();
     }
 
@@ -141,13 +132,6 @@ export class MessengerPage extends BasePage {
         });
 
         chatItem.updateCounter()
-    }
-
-    async fetchCurrentUserProfile() {
-        const response = await fetch(`${process.env.API_BASE_URL}/api/profile/${this.myUserId}`, {credentials: "include"});
-        if (!response.ok) throw new Error(`Ошибка запроса: ${response.status}`);
-        const data = await response.json();
-        return data;
     }
 
 }

@@ -7,7 +7,7 @@ import { wsService } from '../../../services/WebSocketService.js';
 
 
 async function getChatMessages(chatId, limit = 20, offset = 0) {
-    const response = await fetch(`${process.env.API_BASE_URL}/api/chats/${chatId}/messages?limit=${limit}&offset=${offset}`);
+    const response = await fetch(`${process.env.API_BASE_URL}/api/chats/${chatId}/messages?page${1}`);
     if (!response.ok) {
         throw new Error(`Ошибка запроса: ${response.status}`);
     }
@@ -30,12 +30,10 @@ async function getChatMessages(chatId, limit = 20, offset = 0) {
 
 
 export class Chat{
-    constructor(rootElement, chatInfo, myUserId, myUserName, myUserAvatar) {
+    constructor(rootElement, chatInfo, myUserId) {
         this.rootElement = rootElement;
         this.chatInfo = chatInfo;
         this.myUserId = myUserId;
-        this.myUserName = myUserName;
-        this.myUserAvatar = myUserAvatar;
         this.messages = null;
         this.chatHeader = null;
         this.inputMes = null;
@@ -144,8 +142,8 @@ export class Chat{
                 chatId: this.chatInfo.id,
                 User: {
                     id: this.myUserId,
-                    full_name: this.myUserName,
-                    avatar: this.myUserAvatar
+                    full_name: this.chatInfo.full_name,
+                    avatar: this.chatInfo.avatar
                 }
             };
             wsService.send('message', message);

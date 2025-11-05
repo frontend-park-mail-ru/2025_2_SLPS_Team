@@ -3,6 +3,7 @@ import DropDown from '../../atoms/dropDown/dropDown.js';
 import BaseButton from '../../atoms/BaseButton/BaseButton.js';
 import { ModalConfirm } from '../ModalConfirm/ModalConfirm.js';
 import { NotificationManager } from '../../organisms/NotificationsBlock/NotificationsManager.js';
+import { authService } from '../../../services/AuthService.js';
 
 const notifier = new NotificationManager();
 
@@ -123,7 +124,8 @@ async function deleteFriend(userID) {
     const res = await fetch(`${process.env.API_BASE_URL}/api/friends/${userID}`, {
         method: "DELETE",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "X-CSRF-Token": authService.getCsrfToken(),
         },
         credentials: 'include'
     });
@@ -135,7 +137,8 @@ async function addFriend(userID) {
     const res = await fetch(`${process.env.API_BASE_URL}/api/friends/${userID}/accept`, {
         method: "PUT",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "X-CSRF-Token": authService.getCsrfToken(),
         },
         credentials: 'include'
     });
@@ -143,10 +146,11 @@ async function addFriend(userID) {
     return res; 
 }
 async function sendFriendRequest(userID) {
-    const res = await fetch(`${process.env.API_BASE_URL}/friends/${userID}`, {
+    const res = await fetch(`${process.env.API_BASE_URL}/api/friends/${userID}`, {
         method: "POST",
         headers: { 
-            "Content-Type": "application/json" 
+            "Content-Type": "application/json" ,
+            "X-CSRF-Token": authService.getCsrfToken(),
         },
         credentials: 'include'
     });

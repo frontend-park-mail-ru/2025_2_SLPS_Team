@@ -117,6 +117,7 @@ async function PostDelete(postId) {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
+                "X-CSRF-Token": authService.getCsrfToken(),
             },
             credentials: 'include',
         });

@@ -199,7 +199,7 @@ export class ProfilePage extends BasePage {
         if (messageBtn) {
             messageBtn.addEventListener('click', async () => {
                 try {
-                    const response = await fetch(`${process.env.API_BASE_URL}/api/chats/user/${this.userId}`);
+                    const response = await fetch(`${process.env.API_BASE_URL}/api/chats/user/${this.userId}`, {credentials: 'include'});
                     const data = await response.json();
                     const userId = this.userId;
 
