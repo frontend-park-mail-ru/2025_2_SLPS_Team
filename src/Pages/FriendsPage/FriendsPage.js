@@ -22,20 +22,20 @@ async function getFriendsData(page = 1, limit = 20) {
         };
     }));
 
-    const friendsRes = await fetch(`${process.env.API_BASE_URL}/api/friends?page=${page}`,{credentials: 'include'});
+    const friendsRes = await fetch(`${process.env.API_BASE_URL}/api/friends?page=${page}`, { credentials: 'include' });
     const friendsData = await friendsRes.json();
 
-    const friends = await Promise.all((friendsData.friends || []).map(async (friend) => {
-        const profileRes = await fetch(`${process.env.API_BASE_URL}/api/profile/${friend.userID}`,{credentials: 'include'});
+    const friends = await Promise.all((friendsData || []).map(async (friend) => {
+        const profileRes = await fetch(`${process.env.API_BASE_URL}/api/profile/${friend.userID}`, { credentials: 'include' });
         const profileData = await profileRes.json();
-        console.log(friend.fullName);
+
         return {
             userID: friend.userID,
-            name: `${friend.fullName}`,
+            name: friend.fullName,
             avatarPath: friend.avatarPath || null,
             age: profileData.dob ? calculateAge(profileData.dob) : null
         };
-    }));
+}));
 
     const possibleRes = await fetch(`${process.env.API_BASE_URL}/api/friends/users/all?page=${page}`,{credentials: 'include'});
     const possibleData = await possibleRes.json();
@@ -87,8 +87,16 @@ export class FriendsPage extends BasePage {
         const wrapper = document.createElement('div');
         wrapper.id = 'page-wrapper';
         
+        let title = 'Ваши друзья';
+            if (this.currentListType === 'subscribers') {
+                title = 'Подписчики';
+            } else if (this.currentListType === 'possible') {
+                title = 'Возможные друзья';
+            }
+    
+
         const pageElement = document.createElement('div');
-        pageElement.innerHTML = FriendsPageTemplate();
+        pageElement.innerHTML = FriendsPageTemplate({title});
         const friendsPage = pageElement.firstElementChild;
         
         const contentContainer = friendsPage.querySelector('.friends-page__content');
