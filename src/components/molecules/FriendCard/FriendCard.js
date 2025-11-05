@@ -8,6 +8,7 @@ import { authService } from '../../../services/AuthService.js';
 const notifier = new NotificationManager();
 
 import './FriendCard.css';
+import { navigateTo } from '../../../index.js';
 
 
 export function renderFriendCard(context = {}) {
@@ -34,6 +35,8 @@ export function renderFriendCard(context = {}) {
     });
     
     const card = wrapper.firstElementChild;
+
+    card.querySelector('.friend-card__main-content').addEventListener('click', () => {navigateTo(`/profile/${userID}`)})
 
     if (isFriendsList) {
         const dropButton = wrapper.querySelector('.fiend-actions-button');
