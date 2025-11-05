@@ -148,7 +148,7 @@ export class Chat{
         };
 
         try {
-            const response = await fetch(`${process.env.API_BASE_URL}/api/chats/${chatID}/messages`, {
+            const response = await fetch(`${process.env.API_BASE_URL}/api/chats/${chatID}/message`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
