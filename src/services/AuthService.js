@@ -32,6 +32,13 @@ class AuthService {
     getUserId() {
         return this.userId;
     }
+
+    getCsrfToken(name = 'CSRF_token') {
+        return document.cookie
+            .split('; ')
+            .find(row => row.startsWith(`${name}=`))
+            ?.split('=')[1] || null;
+    }
 }
 
 export const authService = new AuthService();
