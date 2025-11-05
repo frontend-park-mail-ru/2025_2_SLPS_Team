@@ -26,10 +26,13 @@ const notifier = new NotificationManager();
  */
 export async function renderPost(postData) {
     const template = PostTemplate;
-    const isOwner = Number(authService.getUserId()) === postData.authorID;
+    const isOwner = Number(authService.getUserId()) === postData.post.authorID;
+    console.log(postData.post.authorID)
     const templateData = {
         ...postData,
-        isOwner: isOwner
+        isOwner: isOwner,
+        communityAvatar: `${process.env.API_BASE_URL}${post.author.avatarPath}` || '/public/testData/Avatar.jpg',
+        groupName: post.author.fullName,
     };
 
     const html = template(templateData);
