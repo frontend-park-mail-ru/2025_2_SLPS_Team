@@ -4,9 +4,11 @@ import { ChatItem } from '../../components/molecules/ChatItem/ChatItem.js';
 import { Chat } from '../../components/organisms/Chat/Chat.js';
 import { SearchInput } from '../../components/molecules/SearchInput/SearchInput.js';
 import { EventBus } from '../../services/EventBus.js';
+import { authService } from '../../services/AuthService.js';
 
 import { wsService } from '../../services/WebSocketService.js';
 import { gsap } from "gsap";
+import { authService } from '../../services/AuthService.js';
 
 
 async function getChatsData() {
@@ -43,7 +45,7 @@ export class MessengerPage extends BasePage {
         this.chats = await getChatsData();
         console.log(this.chats);
 
-        this.myUserId = await fetchCurrentUserId();
+        this.myUserId = await authService.getUserId();
         console.log(this.myUserId);
 
         this.wrapper = document.createElement('div');
@@ -101,7 +103,11 @@ export class MessengerPage extends BasePage {
         this.chatWrapper = this.wrapper.querySelector('.chat-block');
         this.chatWrapper.innerHTML = '';
 
-        this.openChat = new Chat(this.chatWrapper, chatData, this.myUserId);
+        const profile = await this.fetchCurrentUserProfile();
+        const fullName = `${profile.firstName} ${profile.lastName}`;
+        const avatar = profile.avatarPath;
+
+        this.openChat = new Chat(this.chatWrapper, chatData, this.myUserId, fullName, avatar);
         this.openChat.render();
     }
 
@@ -132,6 +138,14 @@ export class MessengerPage extends BasePage {
         });
 
         chatItem.updateCounter()
+    }
+
+
+    async fetchCurrentUserProfile() {
+        const response = await fetch(`${process.env.API_BASE_URL}/api/profile/${this.myUserId}`, {credentials: "include"});
+        if (!response.ok) throw new Error(`Ошибка запроса: ${response.status}`);
+        const data = await response.json();
+        return data;
     }
 
 }

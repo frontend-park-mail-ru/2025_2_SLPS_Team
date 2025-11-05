@@ -30,10 +30,12 @@ async function getChatMessages(chatId, limit = 20, offset = 0) {
 
 
 export class Chat{
-    constructor(rootElement, chatInfo, myUserId) {
+    constructor(rootElement, chatInfo, myUserId, myUserName, myUserAvatar) {
         this.rootElement = rootElement;
         this.chatInfo = chatInfo;
         this.myUserId = myUserId;
+        this.myUserName = myUserName;
+        this.myUserAvatar = myUserAvatar;
         this.messages = null;
         this.chatHeader = null;
         this.inputMes = null;
@@ -142,8 +144,8 @@ export class Chat{
                 chatId: this.chatInfo.id,
                 User: {
                     id: this.myUserId,
-                    full_name: this.chatInfo.full_name,
-                    avatar: this.chatInfo.avatar
+                    full_name: this.myUserName,
+                    avatar: this.myUserAvatar
                 }
             };
             wsService.send('message', message);
