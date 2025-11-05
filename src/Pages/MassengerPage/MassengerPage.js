@@ -88,8 +88,8 @@ export class MessengerPage extends BasePage {
                 const data = await response.json();
                 const chatId = data.chatID;
 
-                await this.openChat(chatId);
-                
+                await this.OpenChat(chatId);
+
             } catch (err) {
                 console.error('Ошибка открытия чата:', err);
             }
