@@ -87,14 +87,26 @@ export class Chat{
 
         this.inputMes.sendButton.addEventListener('click', (e) => {this.sendEvent(e);});
 
-        wsService.on('message', (data) => {
-            console.log(data);
-            const messageData = data;
-            const message = new Message(this.messagesContainer, messageData, false, false, true);
-            message.render();
+        wsService.on('new_message', (data) => {
+            console.log('[WS] Новое сообщение:', data);
 
+            const messageData = {
+                id: data.id,
+                text: data.lastMessage.text,
+                created_at: data.createdAt,
+                User: {
+                    id: data.authorID,
+                    full_name: data.fullName || 'Unknown',
+                    avatar: data.avatarPath || ''
+                }
+            };
+
+            const isMine = messageData.User.id === this.myUserId;
+
+            new Message(this.messagesContainer, messageData, isMine, true, true).render();
             this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
         });
+
 
         this.addScrollButton();
 

@@ -25,8 +25,8 @@ class WebSocketService {
         this.ws.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
-                if (data.type) {
-                    this.emit(data.type, data.payload);
+                if (data.Type) {
+                    this.emit(data.Type, data.Data);
                 } else {
                     this.emit('message', data);
                 }
