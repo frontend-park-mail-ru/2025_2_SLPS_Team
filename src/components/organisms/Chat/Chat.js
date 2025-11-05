@@ -8,7 +8,7 @@ import { wsService } from '../../../services/WebSocketService.js';
 
 async function getChatMessages(chatId, limit = 20, offset = 0) {
     console.log(chatId);
-    const response = await fetch(`${process.env.API_BASE_URL}/api/chats/${chatId}/messages?page${1}`);
+    const response = await fetch(`${process.env.API_BASE_URL}/api/chats/${chatId}/messages?page${1}`, {credentials: 'include'});
     if (!response.ok) {
         throw new Error(`Ошибка запроса: ${response.status}`);
     }
