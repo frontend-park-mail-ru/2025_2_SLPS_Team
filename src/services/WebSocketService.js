@@ -24,17 +24,18 @@ class WebSocketService {
 
         this.ws.onmessage = (event) => {
             try {
-                const data = JSON.parse(event.data);
+                const raw = event.data;
+                const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+
                 if (data.Type) {
                     this.emit(data.Type, data.Data);
                 } else {
                     this.emit('message', data);
                 }
             } catch (e) {
-                console.error('[WS] Invalid message format:', event.data);
+                console.error('[WS] Invalid message format:', event.data, e);
             }
         };
-
 
         this.ws.onclose = () => {
             console.warn('[WS] Connection closed. Reconnecting...');
