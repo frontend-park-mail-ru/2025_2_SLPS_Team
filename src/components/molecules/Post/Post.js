@@ -25,14 +25,15 @@ const notifier = new NotificationManager();
  *
  */
 export async function renderPost(postData) {
+    console.log(postData)
     const template = PostTemplate;
     const isOwner = Number(authService.getUserId()) === postData.post.authorID;
     console.log(postData.post.authorID)
     const templateData = {
         ...postData,
         isOwner: isOwner,
-        communityAvatar: `${process.env.API_BASE_URL}${post.author.avatarPath}` || '/public/testData/Avatar.jpg',
-        groupName: post.author.fullName,
+        communityAvatar: `${process.env.API_BASE_URL}${postData.post.author.avatarPath}` || '/public/testData/Avatar.jpg',
+        groupName: postData.post.author.fullName,
     };
 
     const html = template(templateData);
@@ -42,7 +43,7 @@ export async function renderPost(postData) {
 
     const postElement = wrapper.firstElementChild;
     const postHeader = postElement.querySelector(".post-header");
-    postData.photos = Array.isArray(postData.photos) 
+    postData.photos = Array.isArray(postData.post.photos) 
     ? postData.photos 
     : postData.imagePath ? [postData.imagePath] : [];
     const photoElement = await renderPostPhoto(postData.photos)
