@@ -72,4 +72,6 @@ class WebSocketService {
     }
 }
 
-export const wsService = new WebSocketService("ws://localhost:8080/api/ws");
+const ws = new WebSocket("ws://localhost:8080/api/ws", {
+  credentials: 'include'
+});
