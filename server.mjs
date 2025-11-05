@@ -20,7 +20,7 @@ app.use((req, res, next) => {
         "default-src 'self'; " +
         "script-src 'self' https://cdn.jsdelivr.net; " +
         "style-src 'self'; object-src 'none'; " +
-        `connect-src 'self' ${process.env.API_BASE_URL || 'http://localhost:8080'} ${process.WS_URL}`  +
+        `connect-src 'self' ${process.env.API_BASE_URL || 'http://localhost:8080'} ${process.env.WS_URL}`  +
         `img-src 'self' ${process.env.API_BASE_URL || 'http://localhost:8080'} blob: data:;`
     );
     next();
