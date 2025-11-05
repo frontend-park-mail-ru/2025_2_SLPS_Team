@@ -125,43 +125,49 @@ export class CreatePostForm {
         }
     }
 
-async updatePost() {
-    try {
-        const textInput = this.wrapper.querySelector('.post-text__input');
-        const text = textInput?.value?.trim();
+    async updatePost() {
+        try {
+            const textInput = this.wrapper.querySelector('.post-text__input');
+            const text = textInput?.value?.trim();
 
-        const formData = new FormData();
-        formData.append('text', text);
+            const formData = new FormData();
+            formData.append('text', text);
 
-        if (this.input && this.input.selectedFiles && this.input.selectedFiles.length > 0) {
-            for (let file of this.input.selectedFiles) {
-                if (file instanceof File) {
-                    formData.append('attachments', file);
-                } else if (file.url) {
-                    const response = await fetch(file.url);
-                    const blob = await response.blob();
-                    const filename = file.url.split('/').pop();
-                    const newFile = new File([blob], filename, { type: blob.type });
-                    formData.append('attachments', newFile);
+            if (this.input && this.input.selectedFiles && this.input.selectedFiles.length > 0) {
+                for (let file of this.input.selectedFiles) {
+                    if (file instanceof File) {
+                        formData.append('attachments', file);
+                    } else if (file.url) {
+                        let fileUrl = file.url;
+                        if (!fileUrl.includes('/api/')) {
+                            fileUrl = fileUrl.replace('/uploads/', '/api/uploads/');
+                        }
+
+                        const response = await fetch(fileUrl);
+                        const blob = await response.blob();
+                        const filename = fileUrl.split('/').pop();
+                        const newFile = new File([blob], filename, { type: blob.type });
+                        formData.append('attachments', newFile);
+                    }
                 }
             }
+
+            const res = await fetch(`${process.env.API_BASE_URL}/api/posts/${this.postData.id}`, {
+                method: 'PUT',
+                body: formData,
+                credentials: 'include',
+            });
+
+            if (!res.ok) throw new Error(`Ошибка ${res.status}`);
+
+            const data = await res.json();
+            notifier.show('Пост изменён', 'Изменения успешно сохранены', 'success');
+
+        } catch (error) {
+            console.error(error);
+            notifier.show('Ошибка', 'Не удалось изменить пост. Попробуйте снова.', 'error');
         }
-
-        const res = await fetch(`${process.env.API_BASE_URL}/posts/${this.postData.id}`, {
-            method: 'PUT',
-            body: formData,
-            credentials: 'include',
-        });
-
-        if (!res.ok) throw new Error(`Ошибка ${res.status}`);
-
-        const data = await res.json();
-        notifier.show('Пост изменён', 'Изменения успешно сохранены', 'success');
-
-    } catch (error) {
-        console.error(error);
-        notifier.show('Ошибка', 'Не удалось изменить пост. Попробуйте снова.', 'error');
     }
-}
+
 
 }
