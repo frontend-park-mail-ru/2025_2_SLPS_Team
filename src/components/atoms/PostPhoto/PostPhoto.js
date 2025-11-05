@@ -16,9 +16,7 @@ import { renderNavButton } from "../NavButton/NavButton.js";
 
 export async function renderPostPhoto(photos) {
     console.log(photos);
-    const photosWithFullPath = photos.map(photo => ({
-        path: `${process.env.API_BASE_URL}/uploads/${photo}`
-    }));
+    const photosWithFullPath = photos.map(photo => `${process.env.API_BASE_URL}/uploads/${photo}`);
 
     const template = PostPhotoTemplate;
     const html = template({ photos: photosWithFullPath });
