@@ -30,6 +30,7 @@ export function renderFriendCard(context = {}) {
         name,
         age,
         isFriendsList,
+        isSubscribersList,
     });
     
     const card = wrapper.firstElementChild;
@@ -83,19 +84,30 @@ export function renderFriendCard(context = {}) {
     } else if (isSubscribersList) {
         const buttonContainer = wrapper.querySelector('.freind-buttons-container');
         
-        const NotSavebutton = new BaseButton(buttonContainer, {
-            text: "Добавить в друзья",
-            style: "normal",
-            onClick: async (e) => {
-                e.stopPropagation();
-                const request = await addFriend(userID);
-                if (request.ok) {
-                    console.log(request)
-                    notifier.show("Друг добавлен", `Вы добавили пользователя ${name} в друзья`, "success");
-                }
+    const NotSavebutton = new BaseButton(buttonContainer, {
+        text: "Принять заявку",
+        style: "normal",
+        onClick: async (e) => {
+            e.stopPropagation();
+
+            e.target.disabled = true;
+
+            const request = await addFriend(userID);
+
+            if (request.ok) {
+                notifier.show("Друг добавлен", `Вы добавили пользователя ${name} в друзья`, "success");
+
+                const textElement = document.createElement('span');
+                textElement.classList.add('friend-status-text');
+                textElement.textContent = 'В друзьях';
+
+                e.target.replaceWith(textElement);
+            } else {
+                e.target.disabled = false;
             }
-        });
-        NotSavebutton.render();
+        }
+    });
+    NotSavebutton.render();
         
     } else if (isPossibleList) {
         const buttonContainer = wrapper.querySelector('.freind-buttons-container');

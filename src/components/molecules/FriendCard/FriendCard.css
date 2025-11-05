@@ -76,3 +76,16 @@
     height: 24px;
     cursor: pointer;
 }
+
+
+.friend-status-text {
+    width: fit-content;
+    height: fit-content;
+    padding: 4px 8px;
+    background: none;
+    border: none;
+    font-size: 14px;
+    border-radius: 6px;
+    color: var(--base-purple);
+    font-weight: 400;
+}
