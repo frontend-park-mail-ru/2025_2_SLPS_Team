@@ -69,8 +69,8 @@ export class MessengerPage extends BasePage {
                 }
                 this.activeChatItem = chatItem;
                 chatItem.makeActive();
-                
-                await this.OpenChat(chatData);
+                console.log(chatData);
+                await this.OpenChat(chatData.id);
             });
         });
 
