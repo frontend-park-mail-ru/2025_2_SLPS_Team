@@ -5,7 +5,7 @@ import { renderFriendsList } from '../../components/organisms/FriendsList/Friend
 import './FriendsPage.css';
 
 async function getFriendsData(page = 1, limit = 20) {
-    const requestsRes = await fetch(`${process.env.API_BASE_URL}/friends/requests?page=${page}&limit=${limit}`);
+    const requestsRes = await fetch(`${process.env.API_BASE_URL}/friends/requests?page=${page}`);
     const requestsData = await requestsRes.json();
     const requests = requestsData.requests || [];
 
@@ -22,7 +22,7 @@ async function getFriendsData(page = 1, limit = 20) {
         };
     }));
 
-    const friendsRes = await fetch(`${process.env.API_BASE_URL}/friends?page=${page}&limit=${limit}`);
+    const friendsRes = await fetch(`${process.env.API_BASE_URL}/friends?page=${page}`);
     const friendsData = await friendsRes.json();
 
     const friends = await Promise.all((friendsData.friends || []).map(async (friend) => {
@@ -37,7 +37,7 @@ async function getFriendsData(page = 1, limit = 20) {
         };
     }));
 
-    const possibleRes = await fetch(`${process.env.API_BASE_URL}/friends/users/all?page=${page}&limit=${limit}`);
+    const possibleRes = await fetch(`${process.env.API_BASE_URL}/friends/users/all?page=${page}`);
     const possibleData = await possibleRes.json();
 
     const possible = await Promise.all((possibleData || []).map(async (user) => {

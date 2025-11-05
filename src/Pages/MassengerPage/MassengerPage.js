@@ -10,7 +10,7 @@ import { gsap } from "gsap";
 
 
 async function getChatsData() {
-    const response = await fetch(`${process.env.API_BASE_URL}/api/chats/?limit=20&offset=0`);
+    const response = await fetch(`${process.env.API_BASE_URL}/api/chats/?page=${1}`);
     if (!response.ok) {
         throw new Error(`Ошибка запроса: ${response.status}`);
     }

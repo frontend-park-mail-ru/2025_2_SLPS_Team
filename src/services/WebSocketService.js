@@ -63,4 +63,6 @@ class WebSocketService {
     }
 }
 
-export const wsService = new WebSocketService('ws://localhost:3002');
+export const wsService = new WebSocketService(
+    `${process.env.API_BASE_URL.replace(/^http/, 'ws')}/api/ws`
+);
