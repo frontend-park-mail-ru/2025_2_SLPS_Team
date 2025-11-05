@@ -5,12 +5,12 @@ import { renderFriendsList } from '../../components/organisms/FriendsList/Friend
 import './FriendsPage.css';
 
 async function getFriendsData(page = 1, limit = 20) {
-    const requestsRes = await fetch(`${process.env.API_BASE_URL}/api/friends/requests?page=${page}`);
+    const requestsRes = await fetch(`${process.env.API_BASE_URL}/api/friends/requests?page=${page}`, {credentials: 'include'});
     const requestsData = await requestsRes.json();
     const requests = requestsData.requests || [];
 
     const subscribers = await Promise.all(requests.map(async (req) => {
-        const profileRes = await fetch(`${process.env.API_BASE_URL}/api/profile/${req.userID}`);
+        const profileRes = await fetch(`${process.env.API_BASE_URL}/api/profile/${req.userID}`, {credentials: 'include'});
         const profileData = await profileRes.json();
 
         return {
@@ -22,11 +22,11 @@ async function getFriendsData(page = 1, limit = 20) {
         };
     }));
 
-    const friendsRes = await fetch(`${process.env.API_BASE_URL}/api/friends?page=${page}`);
+    const friendsRes = await fetch(`${process.env.API_BASE_URL}/api/friends?page=${page}`,{credentials: 'include'});
     const friendsData = await friendsRes.json();
 
     const friends = await Promise.all((friendsData.friends || []).map(async (friend) => {
-        const profileRes = await fetch(`${process.env.API_BASE_URL}/api/profile/${friend.userID}`);
+        const profileRes = await fetch(`${process.env.API_BASE_URL}/api/profile/${friend.userID}`,{credentials: 'include'});
         const profileData = await profileRes.json();
         console.log(friend.fullName);
         return {
@@ -37,11 +37,11 @@ async function getFriendsData(page = 1, limit = 20) {
         };
     }));
 
-    const possibleRes = await fetch(`${process.env.API_BASE_URL}/api/friends/users/all?page=${page}`);
+    const possibleRes = await fetch(`${process.env.API_BASE_URL}/api/friends/users/all?page=${page}`,{credentials: 'include'});
     const possibleData = await possibleRes.json();
 
     const possible = await Promise.all((possibleData || []).map(async (user) => {
-        const profileRes = await fetch(`${process.env.API_BASE_URL}/api/profile/${user.userID}`);
+        const profileRes = await fetch(`${process.env.API_BASE_URL}/api/profile/${user.userID}`, {credentials: 'include'});
         const profileData = await profileRes.json();
 
         return {
