@@ -63,6 +63,4 @@ class WebSocketService {
     }
 }
 
-export const wsService = new WebSocketService(
-    `${process.env.API_BASE_URL.replace(/^http/, 'ws')}/api/ws`
-);
+export const wsService = new WebSocketService(`${process.WS_URL}`);

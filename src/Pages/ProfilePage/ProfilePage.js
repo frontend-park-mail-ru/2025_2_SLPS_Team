@@ -53,7 +53,8 @@ export async function getFriendsStatus(userId) {
         method: 'GET',
         headers: {
             'Accept': 'application/json'
-        }
+        },
+        credentials: 'include'
     });
 
     const data = await response.json();
@@ -104,7 +105,7 @@ export class ProfilePage extends BasePage {
         }
 
         const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
-        
+
         const templateData = {
             user: {
                 ...this.profileData,
