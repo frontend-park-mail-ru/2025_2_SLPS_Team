@@ -19,7 +19,7 @@ async function getFriendsData(page = 1, limit = 20) {
         const profileData = await profileRes.json();
 
         return {
-            id: req.userID,
+            userID: req.userID,
             name: req.fullName,
             age: profileData.dob ? calculateAge(profileData.dob) : null,
             avatarSrc: req.avatarPath || null,
