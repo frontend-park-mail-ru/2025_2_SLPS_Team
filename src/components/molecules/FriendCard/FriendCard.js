@@ -149,16 +149,20 @@ async function deleteFriend(userID) {
 }
 
 async function addFriend(userID) {
-    const res = await fetch(`${process.env.API_BASE_URL}/api/friends/${userID}/accept`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-Token": authService.getCsrfToken(),
-        },
-        credentials: 'include'
-    });
+    try {
+        const res = await fetch(`${process.env.API_BASE_URL}/api/friends/${userID}/accept`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-Token": authService.getCsrfToken(),
+            },
+            credentials: 'include'
+        });
 
-    return res; 
+        return res; 
+    } catch {
+        notifier.show('Ошибка', "Вы уже в друзьях с этим пользователем", 'error');
+    }
 }
 async function sendFriendRequest(userID) {
     const res = await fetch(`${process.env.API_BASE_URL}/api/friends/${userID}`, {
