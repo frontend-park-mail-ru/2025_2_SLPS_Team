@@ -14,9 +14,14 @@ import PostPhotoTemplate from './PostPhoto.hbs';
  */
 import { renderNavButton } from "../NavButton/NavButton.js";
 
-export async function renderPostPhoto(photos) {
+export async function renderPostPhoto(photos) {ё
+    const photosWithFullPath = photos.map(photo => ({
+        ...photo,
+        path: `${process.env.API_BASE_URL}${photo.path}`
+    }));
+
     const template = PostPhotoTemplate;
-    const html = template({ photos });
+    const html = template({ photos: photosWithFullPath });
 
     const wrapper = document.createElement("div");
     wrapper.innerHTML = html.trim();
