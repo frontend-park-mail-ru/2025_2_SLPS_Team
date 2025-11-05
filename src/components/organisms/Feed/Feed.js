@@ -33,7 +33,8 @@ export async function renderFeed(posts, isOwner=true){
     const newPostButton = wrapper.querySelector('.feed-post-button');
 
     if (!isOwner && newPostButton) {
-        newPostButton.style.display = 'none';
+        newPostButton.style.visibility = 'hidden';
+        newPostButton.style.pointerEvents = 'none';
     }
 
     if (isOwner && newPostButton) {
