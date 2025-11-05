@@ -15,7 +15,7 @@ import {CreatePostForm} from '../CreatePost/CreatePost.js';
  * @param {number} [posts[].like_count] - Количество лайков у поста.
  * @returns {Promise<HTMLElement>} DOM-элемент ленты, содержащий все посты.
  */
-export async function renderFeed(posts){
+export async function renderFeed(posts, isOwner=true){
     const template = FeedTemplate;
     const html = template({icon: "/public/globalImages/NewPostIcon.svg"});
 
@@ -30,9 +30,12 @@ export async function renderFeed(posts){
         FeedElement.appendChild(await renderPost(postData));
     }
 
-    const newPostButton = wrapper.querySelector('.feed-post-button');
-    const NewPostModal = new CreatePostForm(document.body);
-    if(newPostButton){
+    if (!isOwner && newPostButton) {
+        newPostButton.style.display = 'none';
+    }
+
+    if (isOwner && newPostButton) {
+        const NewPostModal = new CreatePostForm(document.body);
         newPostButton.addEventListener('click', () => {
             NewPostModal.open();
         });
