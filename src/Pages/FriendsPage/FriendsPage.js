@@ -11,20 +11,20 @@ async function getFriendsData(page = 1, limit = 20) {
     const requests = Array.isArray(requestsData) ? requestsData : (requestsData.requests || []);
 
     const subscribers = await Promise.all(requests.map(async (req) => {
-    const friend = req.friend;
+        console.log(req)
 
-    const profileRes = await fetch(`${process.env.API_BASE_URL}/api/profile/${friend.userID}`, {
-        credentials: 'include'
-    });
-    const profileData = await profileRes.json();
+        const profileRes = await fetch(`${process.env.API_BASE_URL}/api/profile/${req.userID}`, {
+            credentials: 'include'
+        });
+        const profileData = await profileRes.json();
 
-    return {
-        id: friend.userID,
-        name: friend.fullName,
-        age: profileData.dob ? calculateAge(profileData.dob) : null,
-        avatarSrc: friend.avatarPath || null,
-        type: 'subscriber'
-    };
+        return {
+            id: req.userID,
+            name: req.fullName,
+            age: profileData.dob ? calculateAge(profileData.dob) : null,
+            avatarSrc: req.avatarPath || null,
+            type: 'subscriber'
+        };
     }));
 
 
