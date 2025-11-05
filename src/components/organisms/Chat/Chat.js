@@ -93,7 +93,7 @@ export class Chat{
             const messageData = {
                 id: data.id,
                 text: data.lastMessage.text,
-                created_at: data.createdAt,
+                created_at: data.lastMessage.createdAt,
                 User: {
                     id: data.authorID,
                     full_name: data.fullName || 'Unknown',
@@ -103,7 +103,7 @@ export class Chat{
 
             const isMine = messageData.User.id === this.myUserId;
 
-            new Message(this.messagesContainer, messageData, isMine, true, true).render();
+            new Message(this.messagesContainer, messageData, isMine, true, true).render(true);
             this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
         });
 
@@ -184,7 +184,7 @@ export class Chat{
                 }
             };
 
-            new Message(this.messagesContainer, message, true).render();
+            new Message(this.messagesContainer, message, true).render(true);
             this.inputMes.clear();
 
         } catch (err) {

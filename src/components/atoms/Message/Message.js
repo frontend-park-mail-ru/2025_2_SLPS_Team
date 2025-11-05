@@ -10,7 +10,7 @@ export class Message {
         this.withAnimation = withAnimation;
     }
 
-    render() {
+    render(status = false) {
         const tempDiv = document.createElement('div');
 
         tempDiv.innerHTML = MessageTemplate({
@@ -32,8 +32,11 @@ export class Message {
                 this.wrapper.classList.add('last-not-mine');
             }
         }
-
-        this.rootElement.appendChild(this.wrapper);
+        if (status){
+            this.rootElement.prepend(this.wrapper);
+        } else {
+            this.rootElement.appendChild(this.wrapper);
+        }
     }
 
 
