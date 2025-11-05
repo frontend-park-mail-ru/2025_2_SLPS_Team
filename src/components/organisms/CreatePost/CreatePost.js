@@ -147,7 +147,7 @@ export class CreatePostForm {
                 }
             }
 
-            const res = await fetch(`${process.env.API_BASE_URL}/api/posts/${this.postData.id}`, {
+            const res = await fetch(`${process.env.API_BASE_URL}/api/posts/${this.postData.post.id}`, {
                 method: 'PUT',
                 body: formData,
                 credentials: 'include',
