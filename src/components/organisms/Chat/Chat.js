@@ -47,6 +47,7 @@ export class Chat{
 
     async render() {
         const wrapper = document.createElement('div');
+        console.log(this.chatInfo)
         wrapper.innerHTML = ChatTemplate(this.chatInfo);
 
         const mainContainer = wrapper.querySelector('.chat-container');

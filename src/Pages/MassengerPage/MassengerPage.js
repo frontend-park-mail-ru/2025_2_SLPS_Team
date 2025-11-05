@@ -8,7 +8,6 @@ import { authService } from '../../services/AuthService.js';
 
 import { wsService } from '../../services/WebSocketService.js';
 import { gsap } from "gsap";
-import { authService } from '../../services/AuthService.js';
 
 
 async function getChatsData() {
@@ -106,7 +105,7 @@ export class MessengerPage extends BasePage {
         const profile = await this.fetchCurrentUserProfile();
         const fullName = `${profile.firstName} ${profile.lastName}`;
         const avatar = profile.avatarPath;
-
+        console.log(chatData)
         this.openChat = new Chat(this.chatWrapper, chatData, this.myUserId, fullName, avatar);
         this.openChat.render();
     }
