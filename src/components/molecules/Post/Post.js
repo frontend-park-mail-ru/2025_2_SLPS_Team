@@ -32,8 +32,8 @@ export async function renderPost(postData) {
     const templateData = {
         ...postData,
         isOwner: isOwner,
-        communityAvatar: `${process.env.API_BASE_URL}${postData.post.author.avatarPath}` || '/public/testData/Avatar.jpg',
-        groupName: postData.post.author.fullName,
+        communityAvatar: `${process.env.API_BASE_URL}${postData.author.avatarPath}` || '/public/testData/Avatar.jpg',
+        groupName: postData.author.fullName,
     };
 
     const html = template(templateData);
@@ -46,7 +46,7 @@ export async function renderPost(postData) {
     postData.photos = Array.isArray(postData.post.photos) 
     ? postData.photos 
     : postData.imagePath ? [postData.imagePath] : [];
-    const photoElement = await renderPostPhoto(postData.photos)
+    const photoElement = await renderPostPhoto(postData.post.photos)
     postHeader.insertAdjacentElement("afterend", photoElement);
 
     const postFooter = postElement.querySelector(".post-footer").querySelector('.post-actions-container');
