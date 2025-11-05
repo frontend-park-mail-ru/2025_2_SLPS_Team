@@ -165,14 +165,18 @@ async function addFriend(userID) {
     }
 }
 async function sendFriendRequest(userID) {
-    const res = await fetch(`${process.env.API_BASE_URL}/api/friends/${userID}`, {
-        method: "POST",
-        headers: { 
-            "Content-Type": "application/json" ,
-            "X-CSRF-Token": authService.getCsrfToken(),
-        },
-        credentials: 'include'
-    });
+    try {
+        const res = await fetch(`${process.env.API_BASE_URL}/api/friends/${userID}`, {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json" ,
+                "X-CSRF-Token": authService.getCsrfToken(),
+            },
+            credentials: 'include'
+        });
 
-    return res;
+        return res;
+    } catch {
+        notifier.show('Ошибка', "Вы уже в друзьях с этим пользователем", 'error');
+    }
 }
