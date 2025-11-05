@@ -159,6 +159,10 @@ async function addFriend(userID) {
             credentials: 'include'
         });
 
+        if(!res.ok){
+            notifier.show('Ошибка', "Вы уже в друзьях с этим пользователем", 'error');
+        }
+
         return res; 
     } catch {
         notifier.show('Ошибка', "Вы уже в друзьях с этим пользователем", 'error');
@@ -175,6 +179,9 @@ async function sendFriendRequest(userID) {
             credentials: 'include'
         });
 
+        if(!res.ok){
+            notifier.show('Ошибка', "Вы уже в друзьях с этим пользователем", 'error');
+        }
         return res;
     } catch {
         notifier.show('Ошибка', "Вы уже в друзьях с этим пользователем", 'error');
