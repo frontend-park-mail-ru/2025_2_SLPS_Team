@@ -19,7 +19,7 @@ async function getChatsData() {
 }
 
 async function fetchCurrentUserId() {
-    const response = await fetch(`${process.env.API_BASE_URL}/api/auth/isloggedin`);
+    const response = await fetch(`${process.env.API_BASE_URL}/api/auth/isloggedin`, {credentials: 'include'});
     if (!response.ok) throw new Error(`Ошибка запроса: ${response.status}`);
     const data = await response.json();
     return data.userId;
