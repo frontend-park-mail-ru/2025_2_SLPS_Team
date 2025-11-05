@@ -1,3 +1,7 @@
+import dotenv from 'dotenv';
+
+dotenv.config();
+
 class WebSocketService {
     static instance = null;
 
@@ -63,4 +67,4 @@ class WebSocketService {
     }
 }
 
-export const wsService = new WebSocketService(process.WS_URL || "ws://localhost:8080/api/ws");
+export const wsService = new WebSocketService(process.env.WS_URL || "ws://localhost:8080/api/ws");
