@@ -82,7 +82,7 @@ export class MessengerPage extends BasePage {
         EventBus.on('openChat', async ({ userId }) => {
             try {
                 console.log('aaaa');
-                const response = await fetch(`${process.env.API_BASE_URL}/api/chats/user/${userId}`);
+                const response = await fetch(`${process.env.API_BASE_URL}/api/chats/user/${userId}`, {credentials: 'include'});
                 if (!response.ok) throw new Error(`Ошибка при получении/создании чата: ${response.status}`);
 
                 const data = await response.json();
