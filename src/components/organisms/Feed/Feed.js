@@ -15,7 +15,7 @@ import {CreatePostForm} from '../CreatePost/CreatePost.js';
  * @param {number} [posts[].like_count] - Количество лайков у поста.
  * @returns {Promise<HTMLElement>} DOM-элемент ленты, содержащий все посты.
  */
-export async function renderFeed(posts, isOw){
+export async function renderFeed(posts, isOwner=true){
     const template = FeedTemplate;
     const html = template({icon: "/public/globalImages/NewPostIcon.svg"});
 
