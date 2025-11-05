@@ -198,10 +198,16 @@ export class ImageInput {
     async displayExistingImages(photos) {
         if (!Array.isArray(photos) || photos.length === 0) return;
 
+        const photosWithFullPath = photos.map(photo => ({
+            url: `${process.env.API_BASE_URL}/uploads/${photo}`,
+            isExisting: true
+        }));
+
         this.selectedFiles = [
             ...this.selectedFiles,
-            ...photos.map(url => ({ url, isExisting: true }))
+            ...photosWithFullPath
         ];
+
         this.currentIndex = this.selectedFiles.length - 1;
         this.displayCarousel();
     }

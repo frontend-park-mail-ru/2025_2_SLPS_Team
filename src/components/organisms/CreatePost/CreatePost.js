@@ -26,14 +26,14 @@ export class CreatePostForm {
         } 
 
         if (this.mode === "edit" && this.postData) {
-            textInput.value = this.postData.text || "";
+            textInput.value = this.postData.post.text || "";
 
             const inputContainer = this.wrapper.querySelector('.input-image__block');
             this.input = new ImageInput(inputContainer);
             this.input.render();
 
-            if (this.postData.photos && this.postData.photos.length > 0) {
-                this.input.displayExistingImages(this.postData.photos);
+            if (this.postData.post.photos && this.postData.post.photos.length > 0) {
+                this.input.displayExistingImages(this.postData.post.photos);
             }
         } else {
             const inputContainer = this.wrapper.querySelector('.input-image__block');

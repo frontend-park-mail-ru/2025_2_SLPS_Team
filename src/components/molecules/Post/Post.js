@@ -34,6 +34,7 @@ export async function renderPost(postData) {
         isOwner: isOwner,
         communityAvatar: `${process.env.API_BASE_URL}/uploads/${postData.author.avatarPath}` || '/public/testData/Avatar.jpg',
         groupName: postData.author.fullName,
+        text: postData.post.text,
     };
     console.log(postData.author.avatarPath);
 
