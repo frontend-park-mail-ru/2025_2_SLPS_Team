@@ -137,23 +137,48 @@ export class Chat{
     }
 
 
-    sendEvent(e) {
+    async sendEvent(e) {
         e.preventDefault();
         const text = this.inputMes.getValue();
-        if (text) {
+        if (!text) return;
+
+        const chatID = this.chatInfo;
+        const messageBody = {
+            text
+        };
+
+        try {
+            const response = await fetch(`${process.env.API_BASE_URL}/api/chats/${chatID}/messages`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(messageBody)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Ошибка отправки: ${response.status}`);
+            }
+
+            const data = await response.json();
             const message = {
+                id: data.id,
                 text,
                 created_at: new Date().toISOString(),
-                chatId: this.chatInfo,
                 User: {
                     id: this.myUserId,
                     full_name: this.myUserName,
                     avatar: this.myUserAvatar
                 }
             };
-            wsService.send('message', message);
+
             new Message(this.messagesContainer, message, true).render();
             this.inputMes.clear();
+
+        } catch (err) {
+            console.error('Ошибка при отправке сообщения:', err);
         }
     }
+
 }
