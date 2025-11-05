@@ -43,8 +43,6 @@ export class FeedPage extends BasePage {
         const mainContainer = wrapper.querySelector('.feed-page');
 
         this.posts = await getPosts(10, 1);
-        console.log(this.posts.posts)
-        console.log(this.posts)
         const feedElement = await renderFeed(this.posts);
         mainContainer.appendChild(feedElement);
 

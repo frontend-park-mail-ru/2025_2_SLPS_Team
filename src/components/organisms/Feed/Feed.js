@@ -24,7 +24,9 @@ export async function renderFeed(posts){
 
     const FeedElement = wrapper.firstElementChild;
 
-    for(const postData of posts){
+    const safePosts = Array.isArray(posts) ? posts : [];
+
+    for(const postData of safePosts){
         FeedElement.appendChild(await renderPost(postData));
     }
 
