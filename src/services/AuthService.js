@@ -39,6 +39,23 @@ class AuthService {
             .find(row => row.startsWith(`${name}=`))
             ?.split('=')[1] || null;
     }
+
+    async logout() {
+        const res = await fetch(`${process.env.API_BASE_URL}/api/auth/logout`, {
+            method: 'POST',
+            credentials: 'include',
+        });
+
+        if (!res.ok) {
+            console.error(`Ошибка разлогина: ${res.status}`);
+            return false;
+        }
+        this.userId = null;
+        this.isLoggedIn = false;
+
+        console.log('Пользователь разлогинен');
+        return true;
+    }
 }
 
 export const authService = new AuthService();

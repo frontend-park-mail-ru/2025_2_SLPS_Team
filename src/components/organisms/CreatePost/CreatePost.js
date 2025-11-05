@@ -138,14 +138,9 @@ export class CreatePostForm {
                     if (file instanceof File) {
                         formData.append('attachments', file);
                     } else if (file.url) {
-                        let fileUrl = file.url;
-                        if (!fileUrl.includes('/api/')) {
-                            fileUrl = fileUrl.replace('/uploads/', '/api/uploads/');
-                        }
-
-                        const response = await fetch(fileUrl);
+                        const response = await fetch(file.url);
                         const blob = await response.blob();
-                        const filename = fileUrl.split('/').pop();
+                        const filename = file.url.split('/').pop();
                         const newFile = new File([blob], filename, { type: blob.type });
                         formData.append('attachments', newFile);
                     }
@@ -168,6 +163,5 @@ export class CreatePostForm {
             notifier.show('Ошибка', 'Не удалось изменить пост. Попробуйте снова.', 'error');
         }
     }
-
 
 }

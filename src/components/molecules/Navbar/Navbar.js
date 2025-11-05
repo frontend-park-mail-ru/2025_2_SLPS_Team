@@ -1,6 +1,8 @@
 import NavbarTemplate from './Navbar.hbs';
 import DropDown from '../../atoms/dropDown/dropDown.js';
 import { wrap } from 'gsap';
+import { navigateTo } from '../../../index.js';
+import { authService } from '../../../services/AuthService.js';
 
 export async function renderNavbar() {
     const template = NavbarTemplate;
@@ -20,10 +22,12 @@ export async function renderNavbar() {
         values: [
             { label: 'Профиль', icon: '/public/NavbarDropdown/SmallProfileIcon.svg', onClick: () => {
                 console.log('Профиль')
+                navigateTo('/profile')
                 buttonIcon.classList.remove('dropdown-button-icon--open');
             } },
-            { label: 'Выход', icon: '/public/NavbarDropdown/logoutIcon.svg', onClick: () => {
-                console.log('Выход')
+            { label: 'Выход', icon: '/public/NavbarDropdown/logoutIcon.svg', onClick: async () => {
+                await authService.logout();
+                navigateTo('/')
                 buttonIcon.classList.remove('dropdown-button-icon--open');
             } }
         ]
