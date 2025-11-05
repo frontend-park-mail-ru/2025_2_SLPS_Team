@@ -170,7 +170,8 @@ export class ProfilePage extends BasePage {
             try {
                 const response = await fetch(`${process.env.API_BASE_URL}/api/friends/${this.userId}`, { 
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
 
                 });
 
