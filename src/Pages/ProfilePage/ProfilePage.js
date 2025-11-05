@@ -133,7 +133,7 @@ export class ProfilePage extends BasePage {
         });
 
         this.posts = await getPosts(10, 1);
-        const feedElement = null;
+        let feedElement = null;
         if(!this.isOwner){
             feedElement = await renderFeed(this.posts, false);
         } else {
