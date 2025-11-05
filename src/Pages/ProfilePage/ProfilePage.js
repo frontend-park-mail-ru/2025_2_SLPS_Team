@@ -103,6 +103,8 @@ export class ProfilePage extends BasePage {
             this.friendsStatus = await getFriendsStatus(this.userId);
         }
 
+        const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
+        
         const templateData = {
             user: {
                 ...this.profileData,
@@ -111,6 +113,7 @@ export class ProfilePage extends BasePage {
                 age,
                 defaultAvatar: this.defaultAvatar,
                 isOwner: this.isOwner,
+                avatarPath: `${baseUrl}${this.profileData.avatarPath}`
             },
             showCancelRequest: this.friendsStatus === 'pending',
             showMessage: this.friendsStatus === 'accepted',
@@ -167,6 +170,7 @@ export class ProfilePage extends BasePage {
                 const response = await fetch(`${process.env.API_BASE_URL}/api/friends/${this.userId}`, { 
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' }
+
                 });
 
                 if (!response.ok) {
