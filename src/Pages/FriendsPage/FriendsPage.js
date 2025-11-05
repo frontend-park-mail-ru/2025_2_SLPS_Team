@@ -154,7 +154,7 @@ export class FriendsPage extends BasePage {
         const newStats = renderFriendsStats({
             friendsCount: this.friendsData.friends.length,
             subscribersCount: this.friendsData.subscribers.length,
-            blockedCount: this.friendsData.blocked.length,
+            possibleCount: this.friendsData.possible.length,
             currentType: this.currentListType
         });
         sidebarContainer.appendChild(newStats);

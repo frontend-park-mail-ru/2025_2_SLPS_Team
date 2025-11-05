@@ -5,7 +5,7 @@ export function renderFriendsStats(context = {}) {
     const {
         friendsCount = 0,
         subscribersCount = 0,
-        blockedCount = 0,
+        possibleCount = 0,
         currentType = 'friends'
     } = context;
 
@@ -13,17 +13,17 @@ export function renderFriendsStats(context = {}) {
     wrapper.innerHTML = FriendsStatsTemplate({
         friendsCount,
         subscribersCount,
-        blockedCount,
+        possibleCount,
         currentType
     });
-    
+
     const statsElement = wrapper.firstElementChild;
-    
+
     // Добавляем активный класс программно
     const activeButton = statsElement.querySelector(`[data-type="${currentType}"]`);
     if (activeButton) {
         activeButton.classList.add('friends-stats__item--active');
     }
-    
+
     return statsElement;
 }
