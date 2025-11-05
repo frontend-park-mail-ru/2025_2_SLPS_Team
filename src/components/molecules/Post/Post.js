@@ -32,7 +32,7 @@ export async function renderPost(postData) {
     const templateData = {
         ...postData,
         isOwner: isOwner,
-        communityAvatar: `${process.env.API_BASE_URL}${postData.author.avatarPath}` || '/public/testData/Avatar.jpg',
+        communityAvatar: `${process.env.API_BASE_URL}/uploads/${postData.author.avatarPath}` || '/public/testData/Avatar.jpg',
         groupName: postData.author.fullName,
     };
     console.log(postData.author.avatarPath);
@@ -83,7 +83,7 @@ export async function renderPost(postData) {
                         "Подтвердите действие",
                         `Вы уверены что хотите удалить пост?`,
                         async () => {
-                            const request = await PostDelete(postData.id);
+                            const request = await PostDelete(postData.post.id);
                             if (request.ok){
                                 notifier.show('Пост удален', `Ваш пост успешно удален`, "error")
                             }
