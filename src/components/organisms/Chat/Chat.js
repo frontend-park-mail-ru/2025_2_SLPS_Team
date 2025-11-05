@@ -14,20 +14,19 @@ async function getChatMessages(chatId, limit = 20, offset = 0) {
     }
     const data = await response.json();
 
-    const messages = (data.messages || []).map(msg => ({
+    const messages = (data.Messages || []).map(msg => ({
         id: msg.id,
         text: msg.text,
         created_at: msg.createdAt,
         User: {
             id: msg.authorID,
-            full_name: data.authors?.[msg.authorID]?.fullName || 'Unknown',
-            avatar: data.authors?.[msg.authorID]?.avatarPath || ''
+            full_name: data.Authors?.[msg.authorID]?.fullName || '',
+            avatar: data.Authors?.[msg.authorID]?.avatarPath || ''
         }
     }));
 
     return messages;
 }
-
 
 
 export class Chat{
