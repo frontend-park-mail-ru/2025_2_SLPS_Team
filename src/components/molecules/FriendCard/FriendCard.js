@@ -138,6 +138,8 @@ async function addFriend(userID) {
         }
     });
 
+    return res; 
+}
 async function sendFriendRequest(userID) {
     const res = await fetch(`${process.env.API_BASE_URL}/friends/${userID}`, {
         method: "POST",
@@ -147,7 +149,4 @@ async function sendFriendRequest(userID) {
     });
 
     return res;
-}
-
-    return res; 
 }
