@@ -75,10 +75,6 @@ export class MessengerPage extends BasePage {
         });
 
         this.rootElement.appendChild(this.wrapper);
-        wsService.on('new_message', (message) => {
-            console.log(message);
-            this.UpdateChat(message.Data.id);
-        });
 
         EventBus.on('openChat', async ({ userId }) => {
             try {
