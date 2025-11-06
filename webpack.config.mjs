@@ -56,6 +56,13 @@ export default {
     ],
   },
   plugins: [
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: path.resolve(__dirname, 'src/service-worker.js'), to: path.resolve(__dirname, 'dist/service-worker.js') },
+        { from: path.resolve(__dirname, 'public'), to: path.resolve(__dirname, 'dist/public'), noErrorOnMissing: true },
+      ],
+    }),
+
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, 'src', 'index.html'),
       filename: 'index.html',

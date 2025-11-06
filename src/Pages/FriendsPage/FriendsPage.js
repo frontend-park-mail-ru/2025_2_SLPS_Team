@@ -3,70 +3,89 @@ import FriendsPageTemplate from './FriendsPage.hbs';
 import { renderFriendsStats } from '../../components/molecules/FriendsStats/FriendsStats.js';
 import { renderFriendsList } from '../../components/organisms/FriendsList/FriendsList.js';
 import './FriendsPage.css';
+import { cachedFetch } from "../../services/CacheService.js";
+
 
 async function getFriendsData(page = 1, limit = 20) {
-    const requestsRes = await fetch(`${process.env.API_BASE_URL}/api/friends/requests?page=${page}`, {credentials: 'include'});
+  const requestsRes = await cachedFetch(
+    `${process.env.API_BASE_URL}/api/friends/requests?page=${page}`,
+    { credentials: "include" }
+  );
 
-    const requestsData = await requestsRes.json();
-    const requests = Array.isArray(requestsData) ? requestsData : (requestsData.requests || []);
+  const requestsData = await requestsRes.json();
+  const requests = Array.isArray(requestsData)
+    ? requestsData
+    : requestsData.requests || [];
 
-    const subscribers = await Promise.all(requests.map(async (req) => {
-        console.log(req)
+  const subscribers = await Promise.all(
+    requests.map(async (req) => {
+      const profileRes = await cachedFetch(
+        `${process.env.API_BASE_URL}/api/profile/${req.userID}`,
+        { credentials: "include" }
+      );
+      const profileData = await profileRes.json();
 
-        const profileRes = await fetch(`${process.env.API_BASE_URL}/api/profile/${req.userID}`, {
-            credentials: 'include'
-        });
-        const profileData = await profileRes.json();
+      return {
+        userID: req.userID,
+        name: req.fullName,
+        age: profileData.dob ? calculateAge(profileData.dob) : null,
+        avatarSrc: req.avatarPath || null,
+        type: "subscriber",
+      };
+    })
+  );
 
-        return {
-            userID: req.userID,
-            name: req.fullName,
-            age: profileData.dob ? calculateAge(profileData.dob) : null,
-            avatarSrc: req.avatarPath || null,
-            type: 'subscriber'
-        };
-    }));
+  const friendsRes = await cachedFetch(
+    `${process.env.API_BASE_URL}/api/friends?page=${page}`,
+    { credentials: "include" }
+  );
+  const friendsData = await friendsRes.json();
 
+  const friends = await Promise.all(
+    (friendsData || []).map(async (friend) => {
+      const profileRes = await cachedFetch(
+        `${process.env.API_BASE_URL}/api/profile/${friend.userID}`,
+        { credentials: "include" }
+      );
+      const profileData = await profileRes.json();
 
-    const friendsRes = await fetch(`${process.env.API_BASE_URL}/api/friends?page=${page}`, { credentials: 'include' });
-    const friendsData = await friendsRes.json();
+      return {
+        userID: friend.userID,
+        name: friend.fullName,
+        avatarPath: friend.avatarPath || null,
+        age: profileData.dob ? calculateAge(profileData.dob) : null,
+      };
+    })
+  );
 
-    const friends = await Promise.all((friendsData || []).map(async (friend) => {
-        const profileRes = await fetch(`${process.env.API_BASE_URL}/api/profile/${friend.userID}`, { credentials: 'include' });
-        const profileData = await profileRes.json();
+  const possibleRes = await cachedFetch(
+    `${process.env.API_BASE_URL}/api/friends/users/all?page=${page}`,
+    { credentials: "include" }
+  );
+  const possibleData = await possibleRes.json();
 
-        return {
-            userID: friend.userID,
-            name: friend.fullName,
-            avatarPath: friend.avatarPath || null,
-            age: profileData.dob ? calculateAge(profileData.dob) : null
-        };
-}));
+  const possible = await Promise.all(
+    (possibleData || []).map(async (user) => {
+      const profileRes = await cachedFetch(
+        `${process.env.API_BASE_URL}/api/profile/${user.userID}`,
+        { credentials: "include" }
+      );
+      const profileData = await profileRes.json();
 
-    const possibleRes = await fetch(`${process.env.API_BASE_URL}/api/friends/users/all?page=${page}`,{credentials: 'include'});
-    const possibleData = await possibleRes.json();
+      return {
+        userID: user.userID,
+        name: user.fullName,
+        avatarPath: user.avatarPath || null,
+        age: profileData.dob ? calculateAge(profileData.dob) : null,
+        type: "possible",
+      };
+    })
+  );
 
-    const possible = await Promise.all((possibleData || []).map(async (user) => {
-        const profileRes = await fetch(`${process.env.API_BASE_URL}/api/profile/${user.userID}`, {credentials: 'include'});
-        const profileData = await profileRes.json();
-
-        return {
-            userID: user.userID,
-            name: user.fullName,
-            avatarPath: user.avatarPath || null,
-            age: profileData.dob ? calculateAge(profileData.dob) : null,
-            type: 'possible'
-        };
-    }));
-
-    return {
-        friends,
-        subscribers,
-        possible
-    };
+  return { friends, subscribers, possible };
 }
 
-// Вспомогательная функция для вычисления возраста по дате рождения
+
 function calculateAge(dobString) {
     const dob = new Date(dobString);
     const diffMs = Date.now() - dob.getTime();

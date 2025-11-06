@@ -10,6 +10,15 @@ import { authService } from "./services/AuthService.js";
 
 import './index.css';
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/service-worker.js')
+      .then(() => console.log('Service Worker зарегистрирован'))
+      .catch((err) => console.error('Ошибка регистрации SW:', err));
+  });
+}
+
 
 const layout = new LayoutManager(document.body, navigateTo);
 
