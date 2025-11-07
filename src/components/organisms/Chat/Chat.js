@@ -100,7 +100,9 @@ export class Chat{
         this.inputMes.sendButton.addEventListener('click', (e) => {this.sendEvent(e);});
 
         wsService.on('new_message', (data) => {
-            console.log('[WS] Новое сообщение:', data);
+            if (data.id !== this.chatInfo && data.chatId !== this.chatInfo) {
+                return;
+            }
 
             const messageData = {
                 id: data.id,

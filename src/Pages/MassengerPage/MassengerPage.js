@@ -65,6 +65,10 @@ export class MessengerPage extends BasePage {
 
     this.rootElement.appendChild(this.wrapper);
 
+    wsService.on('new_message', (data) => {
+        this.UpdateChat(data.id);
+    });
+
     EventBus.on('openChat', async ({ userId }) => {
       try {
         const response = await cachedFetch(
@@ -93,33 +97,42 @@ export class MessengerPage extends BasePage {
     console.log(profile)
     this.openChat = new Chat(this.chatWrapper, chatId, this.myUserId, fullName, avatar);
     this.openChat.render();
+
+    const openedChatItem = this.chatItems.find(item => item.chatData.id === chatId);
+    if (openedChatItem && typeof openedChatItem.hideCounter === 'function') {
+        openedChatItem.hideCounter();
+    }
   }
 
-  UpdateChat(chatId) {
+    UpdateChat(chatId) {
     const chatItem = this.chatItems.find(item => item.chatData.id === chatId);
     if (!chatItem) return;
 
     const container = this.wrapper.querySelector('.chat-items-block');
-    if (container.firstChild === chatItem.wrapper) return;
 
-    chatItem.wrapper.style.opacity = '0';
-    chatItem.wrapper.style.transform = 'translateY(10px)';
+    if (container.firstChild !== chatItem.wrapper) {
+        chatItem.wrapper.style.opacity = '0';
+        chatItem.wrapper.style.transform = 'translateY(10px)';
 
-    container.prepend(chatItem.wrapper);
+        container.prepend(chatItem.wrapper);
 
-    gsap.to(chatItem.wrapper, {
-      opacity: 1,
-      y: 0,
-      duration: 0.05,
-      ease: 'power1.out',
-      onComplete: () => {
-        chatItem.wrapper.style.opacity = '';
-        chatItem.wrapper.style.transform = '';
-      }
-    });
+        gsap.to(chatItem.wrapper, {
+        opacity: 1,
+        y: 0,
+        duration: 0.05,
+        ease: 'power1.out',
+        onComplete: () => {
+            chatItem.wrapper.style.opacity = '';
+            chatItem.wrapper.style.transform = '';
+        }
+        });
+    }
 
-    chatItem.updateCounter();
-  }
+    if (!this.openChat || chatItem.chatData.id !== this.openChat.chatInfo) {
+        chatItem.showCounter();
+    }
+    }
+
 
   async fetchCurrentUserProfile() {
     const response = await cachedFetch(
