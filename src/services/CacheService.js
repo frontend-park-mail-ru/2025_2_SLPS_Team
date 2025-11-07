@@ -1,5 +1,12 @@
 export async function cachedFetch(url, options = {}, cacheName = "data-cache-v1") {
-  const cache = await caches.open(cacheName);
+  let cache = null;
+
+  try {
+    cache = await caches.open(cacheName);
+  } catch (err) {
+    console.warn("[cachedFetch] Не удалось открыть кэш:", err);
+  }
+  
 
   try {
     const response = await fetch(url, options);
