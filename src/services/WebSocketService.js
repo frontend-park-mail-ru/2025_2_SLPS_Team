@@ -73,4 +73,4 @@ class WebSocketService {
     }
 }
 
-export const wsService = new WebSocketService("ws://localhost:8080/api/ws");
+export const wsService = new WebSocketService("ws://185.86.146.77:8080/api/ws");

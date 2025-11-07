@@ -18,7 +18,7 @@ export class ChatItem {
         this.wrapper = tempDiv.querySelector('.chat-item');
 
         this.photoWrapper = this.wrapper.querySelector('.user-avatar-container')
-        this.photoElement = new UserPhotoItem(this.photoWrapper, `${process.env.API_BASE_URL}/uploads/${this.chatData.avatarPath}`);
+        this.photoElement = new UserPhotoItem(this.photoWrapper, this.chatData.avatarPath);
         this.photoElement.render();
 
         this.mesCounter = this.wrapper.querySelector('.new-mess-counter');

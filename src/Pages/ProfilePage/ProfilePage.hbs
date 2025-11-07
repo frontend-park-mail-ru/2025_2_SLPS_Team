@@ -4,11 +4,7 @@
         <img class="header-image" src="/public/globalImages/backgroud.png">
         <div class="profile-header-content">
             <img class="profile-avatar"
-                src="{{#if user.avatarPath}}
-                        {{user.avatarPath}}
-                    {{else}}
-                        {{user.defaultAvatar}}
-                    {{/if}}"
+                src="{{user.avatarPath}}"
             >
             <div class="user-info-container">
                 <div class="user-name">{{user.fullName}}</div>
@@ -40,10 +36,12 @@
                 <div>День рождения</div> 
                 <div class="text-accent">{{user.dobFormatted}}</div>
             </div>
-            <div class="about-user">
-                <div class="text-header">О себе</div>
-                <div class="about-text">{{user.aboutMyself}}</div>
-            </div>
+            {{#if user.aboutMyself}}
+                <div class="about-user">
+                    <div class="text-header">О себе</div>
+                    <div class="about-text">{{user.aboutMyself}}</div>
+                </div>
+            {{/if}}
             <div class="user-counts-info">
                 <a class="text-accent"> {{friends.count_friends}} <div class="base-text">друзей</div></a>
                 <a class="text-accent"> {{friends.count_followers}} <div class="base-text">подписчиков</div></a>

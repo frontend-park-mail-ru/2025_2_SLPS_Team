@@ -2,6 +2,7 @@ import CreatePostTemplate from './CreatePost.hbs';
 import {ImageInput} from '../../molecules/ImageInput/ImageInput.js'
 import BaseButton from '../../atoms/BaseButton/BaseButton.js';
 import { NotificationManager } from '../NotificationsBlock/NotificationsManager.js';
+import { navigateTo } from '../../../index.js';
 
 const notifier = new NotificationManager();
 
@@ -118,6 +119,9 @@ export class CreatePostForm {
 
             if (res.ok) {
                 notifier.show('Пост Создан', "Вы создали пост, можете посмотреть его в проифле", 'success')
+                navigateTo(window.location.pathname);
+            } else {
+                notifier.show('Ошибка', "Текст поста слишком коротки",'error');
             }
 
         } catch (error) {
@@ -136,13 +140,13 @@ export class CreatePostForm {
             if (this.input && this.input.selectedFiles && this.input.selectedFiles.length > 0) {
                 for (let file of this.input.selectedFiles) {
                     if (file instanceof File) {
-                        formData.append('attachments', file);
+                        formData.append('photos', file);
                     } else if (file.url) {
                         const response = await fetch(file.url);
                         const blob = await response.blob();
                         const filename = file.url.split('/').pop();
                         const newFile = new File([blob], filename, { type: blob.type });
-                        formData.append('attachments', newFile);
+                        formData.append('photos', newFile);
                     }
                 }
             }
@@ -157,6 +161,7 @@ export class CreatePostForm {
 
             const data = await res.json();
             notifier.show('Пост изменён', 'Изменения успешно сохранены', 'success');
+            navigateTo(window.location.pathname);
 
         } catch (error) {
             console.error(error);

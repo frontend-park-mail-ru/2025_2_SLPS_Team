@@ -16,7 +16,7 @@ export function renderFriendCard(context = {}) {
         userID,
         name = 'Имя пользователя',
         age = 0,
-        avatarSrc = null,
+        avatarPath,
         listType = 'friends'
     } = context;
 
@@ -24,16 +24,25 @@ export function renderFriendCard(context = {}) {
     const isSubscribersList = listType === 'subscribers';
     const isPossibleList = listType === 'possible';
 
+    const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
+
+    let safeAvatarPath;
+    if (!avatarPath || avatarPath === 'null') {
+        safeAvatarPath = `public/globalImages/DefaultAvatar.svg`;
+    } else {
+        safeAvatarPath = `${baseUrl}${avatarPath}`;
+    }
+
     const wrapper = document.createElement('div');
     wrapper.innerHTML = FriendCardTemplate({
         userID,
-        avatarSrc,
+        avatarPath: safeAvatarPath,
         name,
         age,
         isFriendsList,
         isSubscribersList,
     });
-    
+
     const card = wrapper.firstElementChild;
 
     card.querySelector('.friend-card__main-content').addEventListener('click', () => {navigateTo(`/profile/${userID}`)})

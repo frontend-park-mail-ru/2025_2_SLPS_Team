@@ -1,12 +1,12 @@
 import {FeedPage} from "./Pages/FeedPage/FeedPage.js";
 import { ProfilePage } from "./Pages/ProfilePage/ProfilePage.js";
 import { MessengerPage } from "./Pages/MassengerPage/MassengerPage.js";
-import { LayoutManager } from "./Pages/LayoutManager.js";
 import { CommunityPage } from "./Pages/CommunityPage/CommunityPage.js";
 import {renderRegPage} from "./Pages/RegPage/RegPage.js";
 import {renderLoginPage} from "./Pages/LoginPage/LoginPage.js";
 import { FriendsPage } from "./Pages/FriendsPage/FriendsPage.js";
 import { authService } from "./services/AuthService.js";
+import { layout } from "./Pages/LayoutManager.js";
 
 import './index.css';
 
@@ -18,9 +18,6 @@ if ('serviceWorker' in navigator) {
       .catch((err) => console.error('Ошибка регистрации SW:', err));
   });
 }
-
-
-const layout = new LayoutManager(document.body, navigateTo);
 
 document.addEventListener('DOMContentLoaded', router);
 

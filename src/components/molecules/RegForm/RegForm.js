@@ -2,6 +2,8 @@ import FormInput from "../../atoms/FormInput/FromInput.js";
 import { renderFormButton } from "../../atoms/FormButtons/FormButtons.js";
 import RegFormTemplate from './RegForm.hbs'
 import { gsap } from "gsap";
+import { authService } from "../../../services/AuthService.js";
+import { navigateTo } from "../../../index.js";
 
 
 /**
@@ -210,12 +212,12 @@ export default class RegistrationForm {
 
         genderContainer.innerHTML = `
             <label class="remember-me">
-                <input type="checkbox" name="gender" value="male">
+                <input type="checkbox" name="gender" value="Мужской">
                 <span class="custom-checkbox"></span>
                 <div>Мужчина</div>
             </label>
             <label class="remember-me">
-                <input type="checkbox" name="gender" value="female">
+                <input type="checkbox" name="gender" value="Женский">
                 <span class="custom-checkbox"></span>
                 <div>Женщина</div>
             </label>
@@ -342,6 +344,7 @@ export default class RegistrationForm {
             credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
+                "X-CSRF-Token": authService.getCsrfToken(),
             },
             body: JSON.stringify({
                 firstName: data.firstName,
@@ -349,6 +352,7 @@ export default class RegistrationForm {
                 email: data.email,
                 password: data.password,
                 confirmPassword: data.confirmpassword,
+                gender: data.gender,
                 dob: dob,
             }),
         })
@@ -367,6 +371,7 @@ export default class RegistrationForm {
                 if (this.options.onSubmit) {
                     this.options.onSubmit(data);
                 }
+                navigateTo('/');
 
             })
             .catch(err => {

@@ -4,6 +4,8 @@ import SelectInput from '../../atoms/SelectInput/SelectInput.js';
 import DropDown from '../../atoms/dropDown/dropDown.js';
 import BaseButton from '../../atoms/BaseButton/BaseButton.js';
 import { NotificationManager } from '../NotificationsBlock/NotificationsManager.js';
+import { navigateTo } from '../../../index.js';
+import { layout } from '../../../Pages/LayoutManager.js';
 
 const notifier = new NotificationManager();
 
@@ -14,8 +16,9 @@ export class EditProfileForm {
         this.wrapper = null;
         this.inputs = {};
         this.editAvatarMenu = null;
-        this.defaultAvatar = '/public/globalImages/backgroud.png';
+        this.defaultAvatar = '/public/globalImages/DefaultAvatar.svg';
         this.hasCustomAvatar = !!profileData.avatar;
+        this.avatarDeleted = false;
     }
 
     async render() {
@@ -25,6 +28,9 @@ export class EditProfileForm {
             AvatarUrl: this.profileData.avatar || this.defaultAvatar,
             profileData: this.profileData,
         });
+
+        this.rootElement.insertAdjacentElement('beforeend', this.wrapper);
+
         const mainContainer = this.wrapper.querySelector('.edit-profile-modal');
 
         const closeBtn = this.wrapper.querySelector('.edit-close');
@@ -133,6 +139,7 @@ export class EditProfileForm {
                 const blobUrl = URL.createObjectURL(file);
                 this.inputs.preview.src = blobUrl;
                 this.hasCustomAvatar = true;
+                this.avatarDeleted = false;
             }
         });
 
@@ -157,8 +164,6 @@ export class EditProfileForm {
         });
         await Savebutton.render();
 
-
-        this.rootElement.insertAdjacentElement('beforeend', this.wrapper);
     }
 
     async addEditAvatatarMenu() {
@@ -192,6 +197,7 @@ export class EditProfileForm {
         this.inputs.preview.src = this.defaultAvatar;
         this.inputs.Imageinput.value = '';
         this.hasCustomAvatar = false;
+        this.avatarDeleted = true;
 
         if (this.currentAvatarBlobUrl) {
             URL.revokeObjectURL(this.currentAvatarBlobUrl);
@@ -200,11 +206,6 @@ export class EditProfileForm {
     }
 
     handleAvatarClick() {
-        if (!this.hasCustomAvatar) {
-            this.inputs.Imageinput.click();
-            return;
-        }
-
         this.addEditAvatatarMenu();
     }
 
@@ -233,12 +234,25 @@ async saveData() {
         const firstName= String(this.inputs.secondName.getValue() || '').trim();
         const lastName = String(this.inputs.name.getValue() || '').trim();
         const aboutMyself = String(this.inputs.aboutUser.getValue() || '').trim();
-        const year = Number(this.inputs.bthYear.getValue());
-        const monthNames = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
-        const month = monthNames.indexOf(this.inputs.bthMonth.getValue());
-        const day = Number(this.inputs.bthDay.getValue());
+        const oldDob = new Date(this.profileData.dob);
+        let year = Number(this.inputs.bthYear.getValue());
+        let monthName = this.inputs.bthMonth.getValue();
+        let day = Number(this.inputs.bthDay.getValue());
 
-        const dob = new Date(year, month, day).toISOString();
+        const monthNames = [
+        "Январь","Февраль","Март","Апрель","Май","Июнь",
+        "Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"
+        ];
+
+        if (!year || isNaN(year)) year = oldDob.getFullYear();
+        if (!monthName) monthName = monthNames[oldDob.getMonth()];
+        if (!day || isNaN(day)) day = oldDob.getDate();
+
+        const month = monthNames.indexOf(monthName);
+
+        const dob = new Date(Date.UTC(year, month, day)).toISOString();
+
+
         const gender = this.inputs.gender.getValue();
 
         const profileData = { firstName,lastName, aboutMyself, dob, gender };
@@ -247,7 +261,14 @@ async saveData() {
         formData.append('profile', JSON.stringify(profileData));
 
         const avatarFile = this.inputs.Imageinput.files[0];
-        if (avatarFile) formData.append('avatar', avatarFile);
+        if (avatarFile) {
+            formData.append('avatar', avatarFile);
+        } else if (this.avatarDeleted) {
+        await fetch(`${process.env.API_BASE_URL}/api/profile/avatar`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+}
 
         const res = await fetch(`${process.env.API_BASE_URL}/api/profile`, {
             method: 'PUT',
@@ -259,6 +280,8 @@ async saveData() {
 
         const data = await res.json();
         notifier.show('Изменения сохранены', "Изменения в вашем профиле успешно сохранены", 'success');
+        navigateTo(window.location.pathname);
+        layout.rerenderLayout();
 
     } catch (error) {
         console.error(error);

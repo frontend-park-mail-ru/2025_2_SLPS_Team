@@ -28,11 +28,18 @@ export async function renderPost(postData) {
     console.log(postData)
     const template = PostTemplate;
     const isOwner = Number(authService.getUserId()) === postData.post.authorID;
-    console.log(postData.post.authorID)
+    const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
+    let communityAvatar;
+
+    if (!postData.author.avatarPath || postData.author.avatarPath === "null") {
+        communityAvatar = `/public/globalImages/DefaultAvatar.svg`;
+    } else {
+        communityAvatar = `${baseUrl}${postData.author.avatarPath}`;
+    }
     const templateData = {
         ...postData,
         isOwner: isOwner,
-        communityAvatar: `${process.env.API_BASE_URL}/uploads/${postData.author.avatarPath}` || '/public/testData/Avatar.jpg',
+        communityAvatar: communityAvatar,
         groupName: postData.author.fullName,
         text: postData.post.text,
     };

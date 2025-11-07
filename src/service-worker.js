@@ -1,4 +1,4 @@
-const CACHE_NAME = "social-app-cache-v1"; //v2
+/*const CACHE_NAME = "social-app-cache-v1"; //v2
 
 const URLS_TO_CACHE = [
   "/",
@@ -12,17 +12,14 @@ const URLS_TO_CACHE = [
 ];
 
 self.addEventListener("install", (event) => {
-  console.log("[SW] Installing...");
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log("[SW] Adding core pages to cache...");
       return cache.addAll(URLS_TO_CACHE);
     })
   );
 });
 
 self.addEventListener("activate", (event) => {
-  console.log("[SW] Activated");
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(keys.map((key) => key !== CACHE_NAME && caches.delete(key)))
@@ -40,7 +37,6 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
       if (cachedResponse) {
-        console.log("[SW] Cache hit:", request.url);
         return cachedResponse;
       }
 
@@ -69,4 +65,4 @@ self.addEventListener("fetch", (event) => {
         });
     })
   );
-});
+});*/

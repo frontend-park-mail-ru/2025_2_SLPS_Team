@@ -6,27 +6,38 @@ import { MessageInput } from '../../molecules/MessageInput/MessageInput.js';
 import { wsService } from '../../../services/WebSocketService.js';
 
 
-async function getChatMessages(chatId, limit = 20, offset = 0) {
-    console.log(chatId);
-    const response = await fetch(`${process.env.API_BASE_URL}/api/chats/${chatId}/messages?page=${1}`, {credentials: 'include'});
-    if (!response.ok) {
-        throw new Error(`Ошибка запроса: ${response.status}`);
+async function getChatMessages(chatId, myUserId, limit = 20, offset = 0) {
+  const response = await fetch(`${process.env.API_BASE_URL}/api/chats/${chatId}/messages?page=1`, {
+    credentials: 'include'
+  });
+  if (!response.ok) throw new Error(`Ошибка запроса: ${response.status}`);
+
+  const data = await response.json();
+
+  const messages = (data.Messages || []).map(msg => ({
+    id: msg.id,
+    text: msg.text,
+    created_at: msg.createdAt,
+    User: {
+      id: msg.authorID,
+      full_name: data.Authors?.[msg.authorID]?.fullName || '',
+      avatar: data.Authors?.[msg.authorID]?.avatarPath || ''
     }
-    const data = await response.json();
+  }));
 
-    const messages = (data.Messages || []).map(msg => ({
-        id: msg.id,
-        text: msg.text,
-        created_at: msg.createdAt,
-        User: {
-            id: msg.authorID,
-            full_name: data.Authors?.[msg.authorID]?.fullName || '',
-            avatar: data.Authors?.[msg.authorID]?.avatarPath || ''
-        }
-    }));
+  let companion = Object.values(data.Authors || {}).find(a => a.userID !== myUserId);
 
-    return messages;
+  if (!companion) {
+    companion = {
+      userID: null,
+      fullName: 'Пользователь',
+      avatarPath: '/public/globalImages/DefaultAvatar.svg'
+    };
+  }
+
+  return { messages, companion };
 }
+
 
 
 export class Chat{
@@ -41,7 +52,6 @@ export class Chat{
         this.inputMes = null;
         this.messagesContainer = null;
         this.scrollButton = null;
-        console.log(chatInfo);
     }
 
     async render() {
@@ -50,11 +60,13 @@ export class Chat{
         wrapper.innerHTML = ChatTemplate(this.chatInfo);
 
         const mainContainer = wrapper.querySelector('.chat-container');
+        console.log(this.myUserAvatar)
 
-        this.chatHeader = new ChatHeader(mainContainer.querySelector('.chat-header-container'), this.chatInfo);
+        const { messages, companion } = await getChatMessages(this.chatInfo, this.myUserId);
+        this.messages = messages;
+
+        this.chatHeader = new ChatHeader(mainContainer.querySelector('.chat-header-container'), this.myUserId , this.myUserName, this.myUserAvatar);
         this.chatHeader.render();
-
-        this.messages = await getChatMessages(this.chatInfo);
 
         this.messagesContainer = mainContainer.querySelector('.chat-messeges');
         this.messages.forEach((messageData, index) => {

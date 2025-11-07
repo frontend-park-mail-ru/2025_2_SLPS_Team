@@ -49,6 +49,7 @@
     border-radius: 50%;
     margin-top: -80px;
     margin-left: 30px;
+    background: var(--base-white);
 }
 
 .profile-header-content{
@@ -188,4 +189,8 @@
 
 .unblock-user-btn:hover {
     background-color: var(--base-gray);
+}
+
+.profile-feed-container {
+    width: 602px;
 }

@@ -69,7 +69,7 @@ export default {
       favicon: './public/globalImages/favicon.svg',
     }),
     new webpack.DefinePlugin({
-      'process.env.API_BASE_URL': JSON.stringify(process.env.API_BASE_URL || 'http://localhost:8080'),
+      'process.env.API_BASE_URL': JSON.stringify(process.env.API_BASE_URL || 'http://185.86.146.77:8080'),
     }),
     new MiniCssExtractPlugin({
       filename: 'styles/[name].css',

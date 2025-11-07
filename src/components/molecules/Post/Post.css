@@ -57,23 +57,26 @@
     flex-direction: column;
 }
 
-.post-text{
+.post-text {
     font-family: 'Nunito Sans';
     font-weight: 400;
     font-size: 16px;
     color: var(--text-black);
     display: -webkit-box;
     -webkit-line-clamp: 2;
-    line-clamp: unset;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    max-height: 3em;
+    transition: max-height 0.3s ease;
 }
 
 .post-text.expanded {
     -webkit-line-clamp: unset;
-    line-clamp: unset;
-    overflow: visible;
+    display: block;
+    max-height: 500px;
 }
+
+
 
 .js-toggle-btn{
     background: none;

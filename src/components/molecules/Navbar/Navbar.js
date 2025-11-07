@@ -4,13 +4,21 @@ import { wrap } from 'gsap';
 import { navigateTo } from '../../../index.js';
 import { authService } from '../../../services/AuthService.js';
 
-export async function renderNavbar() {
+export async function renderNavbar(photo) {
+    const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
+    let avatarPath;
+
+    if (!photo || photo === "null") {
+        avatarPath = `/public/globalImages/DefaultAvatar.svg`;
+    } else {
+        avatarPath = `${baseUrl}${photo}`;
+    }
     const template = NavbarTemplate;
     const html = template({ logo: '/public/globalImages/Logo.svg',
-        profilePhoto: '/public/testData/Avatar.jpg',
+        profilePhoto: avatarPath,
         dropdownIcon: '/public/globalImages/DropdownIcon.svg',
         serachIcon: '/public/globalImages/SearchIcon.svg'
-        });
+    });
 
     const wrapper = document.createElement("div");
     wrapper.innerHTML = html.trim();

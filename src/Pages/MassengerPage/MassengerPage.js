@@ -90,7 +90,7 @@ export class MessengerPage extends BasePage {
     const profile = await this.fetchCurrentUserProfile();
     const fullName = `${profile.firstName} ${profile.lastName}`;
     const avatar = profile.avatarPath;
-
+    console.log(profile)
     this.openChat = new Chat(this.chatWrapper, chatId, this.myUserId, fullName, avatar);
     this.openChat.render();
   }

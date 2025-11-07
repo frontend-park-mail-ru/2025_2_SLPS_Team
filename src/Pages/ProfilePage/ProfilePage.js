@@ -74,7 +74,6 @@ export class ProfilePage extends BasePage {
         this.posts = [];
         this.profileData = [];
         this.friendsData = [];
-        this.defaultAvatar = "/public/globalImages/backgroud.png";
         this.params = params;
         this.userId = null;
         this.isOwner = false;
@@ -84,27 +83,35 @@ export class ProfilePage extends BasePage {
 
     async render() {
         this.checkId();
-
         this.profileData = await getProfileData(this.userId);
         this.friendsData = await getFriendsData(this.userId);
 
         const { dobFormatted, age } = formatDob(this.profileData.dob);
 
+        this.isOwner = (this.userId === authService.getUserId())
+
         if (!this.isOwner) {
             this.friendsStatus = await getFriendsStatus(this.userId);
         }
-
+        
         const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
+        let avatarPath;
 
+        if (!this.profileData.avatarPath || this.profileData.avatarPath === "null") {
+            avatarPath = `/public/globalImages/DefaultAvatar.svg`;
+        } else {
+            avatarPath = `${baseUrl}${this.profileData.avatarPath}`;
+        }
+
+        console.log(avatarPath);
         const templateData = {
             user: {
                 ...this.profileData,
                 fullName: `${this.profileData.firstName} ${this.profileData.lastName}`,
                 dobFormatted,
                 age,
-                defaultAvatar: this.defaultAvatar,
                 isOwner: this.isOwner,
-                avatarPath: `${baseUrl}${this.profileData.avatarPath}`
+                avatarPath: avatarPath
             },
             showCancelRequest: this.friendsStatus === 'pending',
             showMessage: this.friendsStatus === 'accepted',
@@ -122,7 +129,7 @@ export class ProfilePage extends BasePage {
         });
 
         this.posts = await getPosts(10, 1);
-        const feedElement = await renderFeed(this.posts, !this.isOwner);
+        const feedElement = await renderFeed(this.posts, this.isOwner);
         this.wrapper.querySelector('.profile-feed-container').appendChild(feedElement);
 
         const editButton = this.wrapper.querySelector('.edit-open');
