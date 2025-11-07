@@ -85,6 +85,10 @@ export class MessengerPage extends BasePage {
         console.error('Ошибка открытия чата:', err);
       }
     });
+
+    EventBus.on('chatUpdated', ({ chatId }) => {
+        this.UpdateChat(chatId);
+    });
   }
 
   async OpenChat(chatId) {

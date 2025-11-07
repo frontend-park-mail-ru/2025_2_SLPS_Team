@@ -200,6 +200,7 @@ export class Chat{
 
             new Message(this.messagesContainer, message, true).render(true);
             this.inputMes.clear();
+            EventBus.emit('chatUpdated', { chatId: this.chatInfo });
 
         } catch (err) {
             console.error('Ошибка при отправке сообщения:', err);
