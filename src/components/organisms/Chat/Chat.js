@@ -4,6 +4,7 @@ import { Message } from '../../atoms/Message/Message.js';
 import { MessageInput } from '../../molecules/MessageInput/MessageInput.js';
 
 import { wsService } from '../../../services/WebSocketService.js';
+import { EventBus } from '../../services/EventBus.js';
 
 
 async function getChatMessages(chatId, myUserId, limit = 20, offset = 0) {
