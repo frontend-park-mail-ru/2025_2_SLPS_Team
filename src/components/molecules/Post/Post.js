@@ -101,7 +101,8 @@ export async function renderPost(postData) {
                         "Подтвердите действие",
                         `Вы уверены что хотите удалить пост?`,
                         async () => {
-                            const request = await PostDelete(postData.post.id);
+                            console.log(postData.id)
+                            const request = await PostDelete(postData.id);
                             if (request.ok){
                                 notifier.show('Пост удален', `Ваш пост успешно удален`, "error")
                             }
