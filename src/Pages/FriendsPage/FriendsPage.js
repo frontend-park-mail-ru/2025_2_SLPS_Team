@@ -82,6 +82,7 @@ export class FriendsPage extends BasePage {
     constructor(rootElement) {
         super(rootElement);
         this.currentListType = 'friends'; // 'friends', 'subscribers', 'possible'
+        this.wrapper = null
         this.friendsData = {
             friends: [],
             subscribers: [],
@@ -93,8 +94,8 @@ export class FriendsPage extends BasePage {
         const existingWrapper = document.getElementById('page-wrapper');
         if (existingWrapper) existingWrapper.remove();
 
-        const wrapper = document.createElement('div');
-        wrapper.id = 'page-wrapper';
+        this.wrapper = document.createElement('div');
+        this.wrapper.id = 'page-wrapper';
         
         let title = 'Ваши друзья';
             if (this.currentListType === 'subscribers') {
@@ -126,8 +127,8 @@ export class FriendsPage extends BasePage {
         const currentList = this.renderCurrentList();
         if (contentContainer && currentList) contentContainer.appendChild(currentList);
 
-        wrapper.appendChild(friendsPage);
-        this.rootElement.appendChild(wrapper);
+        this.wrapper.appendChild(friendsPage);
+        this.rootElement.appendChild(this.wrapper);
     }
 
     async loadFriendsData() {
@@ -153,6 +154,7 @@ export class FriendsPage extends BasePage {
                 if (listType && listType !== this.currentListType) {
                     this.currentListType = listType;
                     this.rerenderList(contentContainer, sidebarContainer);
+                    this.changeHeader();
                 }
             });
         });
@@ -176,5 +178,16 @@ export class FriendsPage extends BasePage {
         });
         sidebarContainer.appendChild(newStats);
         this.addStatsEventListeners(sidebarContainer, contentContainer);
+    }
+
+    changeHeader() {
+        let title = 'Ваши друзья';
+            if (this.currentListType === 'subscribers') {
+                title = 'Подписчики';
+            } else if (this.currentListType === 'possible') {
+                title = 'Возможные друзья';
+            }
+        const header = this.wrapper.querySelector('.friends-page__title')
+        header.textContent = title
     }
 }

@@ -17,7 +17,20 @@ import { renderNavButton } from "../NavButton/NavButton.js";
 export async function renderPostPhoto(photos) {
     console.log(photos);
 
-    const photosWithFullPath = photos.map(photo => `${process.env.API_BASE_URL}/uploads/${photo}`);
+    if (!Array.isArray(photos) || photos.length === 0) {
+        photos = ["/public/globalImages/DefaultAvatar.svg"];
+    }
+
+    const filteredPhotos = photos.filter(photo => photo && photo.trim() !== "");
+
+    const finalPhotos = filteredPhotos.length > 0 
+        ? filteredPhotos 
+        : ["/public/globalImages/DefaultAvatar.svg"];
+
+    const photosWithFullPath = finalPhotos.map(photo => {
+        if (photo.startsWith("/public/")) return photo;
+        return `${process.env.API_BASE_URL}/uploads/${photo}`;
+    });
 
     const template = PostPhotoTemplate;
     const html = template({ photos: photosWithFullPath });
