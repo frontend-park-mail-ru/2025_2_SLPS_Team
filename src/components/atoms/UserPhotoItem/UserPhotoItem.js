@@ -23,7 +23,9 @@ export class UserPhotoItem {
         this.wrapper = tempDiv.firstElementChild;
 
         const photoItem = this.wrapper.querySelector('.user-photo');
-        photoItem.addEventListener('click', () => {navigateTo(`/profile/${this.userID}`)})
+        if (this.userID) {
+            photoItem.addEventListener('click', () => {navigateTo(`/profile/${this.userID}`)})
+        }
 
         this.rootElement.appendChild(this.wrapper);
     }

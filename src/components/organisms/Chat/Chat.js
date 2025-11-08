@@ -42,9 +42,9 @@ async function getChatMessages(chatId, myUserId, limit = 20, offset = 0) {
 
 
 export class Chat{
-    constructor(rootElement, chatInfo, myUserId, myUserName, myUserAvatar) {
+    constructor(rootElement, myUserId, myUserName, myUserAvatar, data) {
         this.rootElement = rootElement;
-        this.chatInfo = chatInfo;
+        this.chatInfo = data.id;
         this.myUserId = myUserId;
         this.myUserName = myUserName;
         this.myUserAvatar = myUserAvatar;
@@ -53,6 +53,7 @@ export class Chat{
         this.inputMes = null;
         this.messagesContainer = null;
         this.scrollButton = null;
+        this.data = data;
     }
 
     async render() {
@@ -62,11 +63,11 @@ export class Chat{
 
         const mainContainer = wrapper.querySelector('.chat-container');
         console.log(this.myUserAvatar)
-
+        console.log(this.chatInfo);
         const { messages, companion } = await getChatMessages(this.chatInfo, this.myUserId);
         this.messages = messages;
-
-        this.chatHeader = new ChatHeader(mainContainer.querySelector('.chat-header-container'), this.myUserId , this.myUserName, this.myUserAvatar);
+        console.log(this.data)
+        this.chatHeader = new ChatHeader(mainContainer.querySelector('.chat-header-container'), null , this.data.name, this.data.avatarPath);
         this.chatHeader.render();
 
         this.messagesContainer = mainContainer.querySelector('.chat-messeges');

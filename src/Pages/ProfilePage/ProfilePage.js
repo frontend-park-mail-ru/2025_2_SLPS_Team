@@ -195,7 +195,14 @@ export class ProfilePage extends BasePage {
                     const data = await response.json();
                     const userId = this.userId;
                     navigateTo('/messanger');
-                    setTimeout(() => EventBus.emit('openChat', { userId }), 100);
+                    const userData = {
+                    id: this.userId,
+                    name: `${this.profileData.firstName} ${this.profileData.lastName}`,
+                    avatarPath: this.profileData.avatarPath,
+                    };
+
+                    navigateTo('/messanger');
+                    setTimeout(() => EventBus.emit('openChat', { data: userData }), 100);
                 } catch (err) {
                     console.error(err);
                 }

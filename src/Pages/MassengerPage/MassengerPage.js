@@ -59,7 +59,7 @@ export class MessengerPage extends BasePage {
         }
         this.activeChatItem = chatItem;
         chatItem.makeActive();
-        await this.OpenChat(chatData.id);
+        await this.OpenChat(chatData);
       });
     });
 
@@ -69,18 +69,23 @@ export class MessengerPage extends BasePage {
         this.UpdateChat(data.id);
     });
 
-    EventBus.on('openChat', async ({ userId }) => {
+    EventBus.on('openChat', async ({ data }) => {
       try {
+        console.log(data);
         const response = await cachedFetch(
-          `${process.env.API_BASE_URL}/api/chats/user/${userId}`,
+          `${process.env.API_BASE_URL}/api/chats/user/${data.id}`,
           { credentials: 'include' },
           "messenger-cache-v1"
         );
-
-        if (!response.ok) throw new Error(`Ошибка при получении/создании чата: ${response.status}`);
-        const data = await response.json();
-        const chatId = data.chatID;
-        await this.OpenChat(chatId);
+        const responseData = await response.json();
+        console.log(responseData.id)
+        let chatData = {
+            id: responseData.chatID,
+            avatarPath: data.avatarPath,
+            name: data.name
+        }
+        console.log(data);
+        await this.OpenChat(chatData);
       } catch (err) {
         console.error('Ошибка открытия чата:', err);
       }
@@ -91,7 +96,8 @@ export class MessengerPage extends BasePage {
     });
   }
 
-  async OpenChat(chatId) {
+  async OpenChat(data) {
+    console.log(data);
     this.chatWrapper = this.wrapper.querySelector('.chat-block');
     this.chatWrapper.innerHTML = '';
 
@@ -99,10 +105,10 @@ export class MessengerPage extends BasePage {
     const fullName = `${profile.firstName} ${profile.lastName}`;
     const avatar = profile.avatarPath;
     console.log(profile)
-    this.openChat = new Chat(this.chatWrapper, chatId, this.myUserId, fullName, avatar);
+    this.openChat = new Chat(this.chatWrapper, this.myUserId, fullName, avatar, data);
     this.openChat.render();
 
-    const openedChatItem = this.chatItems.find(item => item.chatData.id === chatId);
+    const openedChatItem = this.chatItems.find(item => item.chatData.id === data.chatId);
     if (openedChatItem && typeof openedChatItem.hideCounter === 'function') {
         openedChatItem.hideCounter();
     }
@@ -132,7 +138,7 @@ export class MessengerPage extends BasePage {
         });
     }
 
-    if (!this.openChat || chatItem.chatData.id !== this.openChat.chatInfo) {
+    if (chatItem.chatData.id !== this.openChat.chatInfo) {
         chatItem.showCounter();
     }
     }
