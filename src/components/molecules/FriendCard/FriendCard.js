@@ -60,6 +60,7 @@ export function renderFriendCard(context = {}) {
                         async () => {
                             const info = await deleteFriend(userID);
                             if (info.ok){
+                                navigateTo('/friends')
                                 notifier.show('Пользователь удален', `Вы удалили пользователя ${name} из друзей`, "error")
                             }
                         }

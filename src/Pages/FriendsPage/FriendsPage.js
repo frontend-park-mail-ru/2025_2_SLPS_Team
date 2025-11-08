@@ -19,16 +19,10 @@ async function getFriendsData(page = 1, limit = 20) {
 
   const subscribers = await Promise.all(
     requests.map(async (req) => {
-      const profileRes = await cachedFetch(
-        `${process.env.API_BASE_URL}/api/profile/${req.userID}`,
-        { credentials: "include" }
-      );
-      const profileData = await profileRes.json();
-
       return {
         userID: req.userID,
         name: req.fullName,
-        age: profileData.dob ? calculateAge(profileData.dob) : null,
+        age: req.dob ? calculateAge(req.dob) : null,
         avatarSrc: req.avatarPath || null,
         type: "subscriber",
       };
@@ -43,46 +37,36 @@ async function getFriendsData(page = 1, limit = 20) {
 
   const friends = await Promise.all(
     (friendsData || []).map(async (friend) => {
-      const profileRes = await cachedFetch(
-        `${process.env.API_BASE_URL}/api/profile/${friend.userID}`,
-        { credentials: "include" }
-      );
-      const profileData = await profileRes.json();
-
       return {
         userID: friend.userID,
         name: friend.fullName,
         avatarPath: friend.avatarPath || null,
-        age: profileData.dob ? calculateAge(profileData.dob) : null,
+        age: friend.dob ? calculateAge(friend.dob) : null,
       };
     })
   );
 
-  const possibleRes = await cachedFetch(
+    const possibleRes = await cachedFetch(
     `${process.env.API_BASE_URL}/api/friends/users/all?page=${page}`,
     { credentials: "include" }
-  );
-  const possibleData = await possibleRes.json();
+    );
+    const possibleData = await possibleRes.json();
 
-  const possible = await Promise.all(
-    (possibleData || []).map(async (user) => {
-      const profileRes = await cachedFetch(
-        `${process.env.API_BASE_URL}/api/profile/${user.userID}`,
-        { credentials: "include" }
-      );
-      const profileData = await profileRes.json();
+    const filteredPossibleData = (possibleData || []).filter(user => user.status === null);
 
-      return {
+    const possible = await Promise.all(
+    filteredPossibleData.map(async (user) => {
+        return {
         userID: user.userID,
         name: user.fullName,
         avatarPath: user.avatarPath || null,
-        age: profileData.dob ? calculateAge(profileData.dob) : null,
+        age: user.dob ? calculateAge(user.dob) : null,
         type: "possible",
-      };
+        };
     })
-  );
+    );
 
-  return { friends, subscribers, possible };
+    return { friends, subscribers, possible };
 }
 
 
