@@ -14,11 +14,10 @@ import { cachedFetch } from '../../services/CacheService.js';
 
 const notifier = new NotificationManager();
 
-async function getPosts(limit = 10, page = 1) {
+async function getPosts( userId) {
     try {
-        const params = new URLSearchParams({ limit, page });
         const res = await cachedFetch(
-            `${process.env.API_BASE_URL}/api/posts?${params.toString()}`,
+            `${process.env.API_BASE_URL}/api/users/${userId}/posts?limit=${20}`,
             { credentials: "include" },
             "profile-cache-v1"
         );
@@ -128,7 +127,16 @@ export class ProfilePage extends BasePage {
             this.wrapper.querySelector('.profile-info').classList.toggle('expanded');
         });
 
-        this.posts = await getPosts(10, 1);
+        this.posts = await getPosts(this.userId);
+        this.posts = this.posts.map(post => ({
+            ...post,
+            author: {
+                id: this.userId,
+                fullName: `${this.profileData.firstName} ${this.profileData.lastName}`,
+                avatarPath: this.profileData.avatarPath
+            }
+        }));
+        console.log(this.posts);
         const feedElement = await renderFeed(this.posts, this.isOwner);
         this.wrapper.querySelector('.profile-feed-container').appendChild(feedElement);
 

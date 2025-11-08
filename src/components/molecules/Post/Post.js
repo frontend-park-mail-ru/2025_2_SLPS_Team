@@ -26,8 +26,18 @@ const notifier = new NotificationManager();
  */
 export async function renderPost(postData) {
     console.log(postData)
+    if (postData.post && postData.author) {
+        postData = {
+            ...postData.post,
+            author: postData.author,
+            likes: postData.likes ?? postData.post.like_count ?? 0,
+            comments: postData.comments ?? postData.post.comment_count ?? 0,
+            reposts: postData.reposts ?? postData.post.repost_count ?? 0,
+        };
+    }
+
     const template = PostTemplate;
-    const isOwner = Number(authService.getUserId()) === postData.post.authorID;
+    const isOwner = Number(authService.getUserId()) === postData.authorID;
     const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
     let communityAvatar;
 
@@ -41,7 +51,7 @@ export async function renderPost(postData) {
         isOwner: isOwner,
         communityAvatar: communityAvatar,
         groupName: postData.author.fullName,
-        text: postData.post.text,
+        text: postData.text,
     };
     console.log(postData.author.avatarPath);
 
@@ -52,10 +62,10 @@ export async function renderPost(postData) {
 
     const postElement = wrapper.firstElementChild;
     const postHeader = postElement.querySelector(".post-header");
-    postData.photos = Array.isArray(postData.post.photos) 
+    postData.photos = Array.isArray(postData.photos) 
     ? postData.photos 
     : postData.imagePath ? [postData.imagePath] : [];
-    const photoElement = await renderPostPhoto(postData.post.photos)
+    const photoElement = await renderPostPhoto(postData.photos)
     postHeader.insertAdjacentElement("afterend", photoElement);
 
     const postFooter = postElement.querySelector(".post-footer").querySelector('.post-actions-container');
