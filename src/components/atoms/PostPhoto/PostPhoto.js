@@ -67,11 +67,12 @@ export async function renderPostPhoto(photos) {
             } else {
                 prevBtn.style.display = 'flex';
             }
-
-            if (currentIndex === photos.length - 1) {
-                nextBtn.style.display = 'none';
-            } else {
-                nextBtn.style.display = 'flex';
+            if (photos) {
+                if (currentIndex === photos.length - 1) {
+                    nextBtn.style.display = 'none';
+                } else {
+                    nextBtn.style.display = 'flex';
+                }
             }
         }
 
