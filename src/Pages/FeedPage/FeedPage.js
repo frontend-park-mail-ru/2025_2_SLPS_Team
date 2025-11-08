@@ -5,7 +5,7 @@ import { renderFeedSettings } from '../../components/molecules/FeedSettings/Feed
 import { renderNavbar } from '../../components/molecules/Navbar/Navbar.js';
 import FeedPageTemplate from './FeedPage.hbs';
 
-async function getPosts(limit = 10, page = 1) {
+async function getPosts(limit = 100, page = 1) {
     try {
         const params = new URLSearchParams({ limit, page });
         const res = await fetch(`${process.env.API_BASE_URL}/api/posts?${params.toString()}`,{credentials: 'include'});
@@ -42,7 +42,7 @@ export class FeedPage extends BasePage {
         wrapper.innerHTML = FeedPageTemplate();
         const mainContainer = wrapper.querySelector('.feed-page');
 
-        this.posts = await getPosts(10, 1);
+        this.posts = await getPosts(100, 1);
         const feedElement = await renderFeed(this.posts);
         mainContainer.appendChild(feedElement);
 

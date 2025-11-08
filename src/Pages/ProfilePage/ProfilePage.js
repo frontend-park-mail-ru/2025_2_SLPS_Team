@@ -152,7 +152,33 @@ export class ProfilePage extends BasePage {
         this.wrapper.querySelector('.folows-container').appendChild(communitiesList);
 
         this.rootElement.appendChild(this.wrapper);
+
+        EventBus.on('profile:newPost', async () => {
+            if (this.wrapper) {
+                await this.renderPosts();
+            }
+        });
     }
+
+     async renderPosts() {
+        this.posts = await getPosts(this.userId);
+        this.posts = this.posts.map(post => ({
+            ...post,
+            author: {
+                id: this.userId,
+                fullName: `${this.profileData.firstName} ${this.profileData.lastName}`,
+                avatarPath: this.profileData.avatarPath 
+            }
+        }));
+
+        const feedContainer = this.wrapper.querySelector('.profile-feed-container');
+
+        feedContainer.innerHTML = '';
+
+        const feedElement = await renderFeed(this.posts, this.isOwner);
+        feedContainer.appendChild(feedElement);
+    }
+
 
     checkId() {
         if (this.params.id) {

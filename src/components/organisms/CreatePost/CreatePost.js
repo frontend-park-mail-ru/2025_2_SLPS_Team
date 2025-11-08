@@ -3,6 +3,7 @@ import {ImageInput} from '../../molecules/ImageInput/ImageInput.js'
 import BaseButton from '../../atoms/BaseButton/BaseButton.js';
 import { NotificationManager } from '../NotificationsBlock/NotificationsManager.js';
 import { navigateTo } from '../../../index.js';
+import { EventBus } from '../../../services/EventBus.js';
 
 const notifier = new NotificationManager();
 
@@ -105,6 +106,13 @@ export class CreatePostForm {
             const formData = new FormData();
             formData.append('text', text);
 
+            const hasPhotos = this.input && this.input.selectedFiles && this.input.selectedFiles.length > 0;
+
+            if (!hasPhotos) {
+                notifier.show('Ошибка', 'Нельзя создать пост без фото', 'error');
+                return; 
+            }
+
             if (this.input && this.input.selectedFiles && this.input.selectedFiles.length > 0) {
                 this.input.selectedFiles.forEach(file => formData.append('photos', file));
             }
@@ -119,13 +127,16 @@ export class CreatePostForm {
 
             if (res.ok) {
                 notifier.show('Пост Создан', "Вы создали пост, можете посмотреть его в проифле", 'success')
-                navigateTo(window.location.pathname);
+                if (window.location.pathname.startsWith('/profile')) {
+                    EventBus.emit('profile:newPost');
+                }
             } else {
                 notifier.show('Ошибка', "Текст поста слишком коротки",'error');
             }
 
         } catch (error) {
             notifier.show('Ошибка', 'Не удалось создать пост. Попробуйте снова.', 'error');
+            console.log(error);
         }
     }
 
