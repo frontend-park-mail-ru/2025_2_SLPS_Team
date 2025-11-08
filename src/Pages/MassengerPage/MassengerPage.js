@@ -66,8 +66,22 @@ export class MessengerPage extends BasePage {
     this.rootElement.appendChild(this.wrapper);
 
     wsService.on('new_message', (data) => {
-        this.UpdateChat(data.id);
+        this.UpdateChat(data.chatId);
+        
+        if (this.openChat && this.openChat.chatInfo === data.chatId) {
+            this.openChat.addMessage({
+                id: data.id,
+                text: data.lastMessage.text,
+                created_at: data.lastMessage.createdAt,
+                User: {
+                    id: data.authorID,
+                    full_name: data.fullName || 'Unknown',
+                    avatar: data.avatarPath || ''
+                }
+            });
+        }
     });
+
 
     EventBus.on('openChat', async ({ data }) => {
       try {
@@ -115,32 +129,32 @@ export class MessengerPage extends BasePage {
   }
 
     UpdateChat(chatId) {
-    const chatItem = this.chatItems.find(item => item.chatData.id === chatId);
-    if (!chatItem) return;
+        const chatItem = this.chatItems.find(item => item.chatData.id === chatId);
+        if (!chatItem) return;
 
-    const container = this.wrapper.querySelector('.chat-items-block');
+        const container = this.wrapper.querySelector('.chat-items-block');
 
-    if (container.firstChild !== chatItem.wrapper) {
-        chatItem.wrapper.style.opacity = '0';
-        chatItem.wrapper.style.transform = 'translateY(10px)';
+        if (container.firstChild !== chatItem.wrapper) {
+            chatItem.wrapper.style.opacity = '0';
+            chatItem.wrapper.style.transform = 'translateY(10px)';
 
-        container.prepend(chatItem.wrapper);
+            container.prepend(chatItem.wrapper);
 
-        gsap.to(chatItem.wrapper, {
-        opacity: 1,
-        y: 0,
-        duration: 0.05,
-        ease: 'power1.out',
-        onComplete: () => {
-            chatItem.wrapper.style.opacity = '';
-            chatItem.wrapper.style.transform = '';
+            gsap.to(chatItem.wrapper, {
+            opacity: 1,
+            y: 0,
+            duration: 0.05,
+            ease: 'power1.out',
+            onComplete: () => {
+                chatItem.wrapper.style.opacity = '';
+                chatItem.wrapper.style.transform = '';
+            }
+            });
         }
-        });
-    }
 
-    if (chatItem.chatData.id !== this.openChat.chatInfo) {
-        chatItem.showCounter();
-    }
+        if (chatItem.chatData.id !== this.openChat.chatInfo) {
+            chatItem.showCounter();
+        }
     }
 
 

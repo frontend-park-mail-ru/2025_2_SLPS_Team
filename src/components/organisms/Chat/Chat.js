@@ -101,29 +101,6 @@ export class Chat{
 
         this.inputMes.sendButton.addEventListener('click', (e) => {this.sendEvent(e);});
 
-        wsService.on('new_message', (data) => {
-            if (data.id !== this.chatInfo && data.chatId !== this.chatInfo) {
-                return;
-            }
-
-            const messageData = {
-                id: data.id,
-                text: data.lastMessage.text,
-                created_at: data.lastMessage.createdAt,
-                User: {
-                    id: data.authorID,
-                    full_name: data.fullName || 'Unknown',
-                    avatar: data.avatarPath || ''
-                }
-            };
-
-            const isMine = messageData.User.id === this.myUserId;
-
-            new Message(this.messagesContainer, messageData, isMine, true, true).render(true);
-            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
-        });
-
-
         this.addScrollButton();
 
         this.rootElement.appendChild(wrapper.firstElementChild);
@@ -161,6 +138,12 @@ export class Chat{
             }, 20);
         });
 
+    }
+
+    addMessage(messageData) {
+        const isMine = messageData.User.id === this.myUserId;
+        new Message(this.messagesContainer, messageData, isMine, true, true).render(true);
+        this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
     }
 
 
