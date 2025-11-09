@@ -28,14 +28,15 @@ export class CreatePostForm {
         } 
 
         if (this.mode === "edit" && this.postData) {
-            textInput.value = this.postData.post.text || "";
+            textInput.value = this.postData.text || "";
 
             const inputContainer = this.wrapper.querySelector('.input-image__block');
             this.input = new ImageInput(inputContainer);
             this.input.render();
-
-            if (this.postData.post.photos && this.postData.post.photos.length > 0) {
-                this.input.displayExistingImages(this.postData.post.photos);
+            console.log(this.postData);
+            if (this.postData.photos && this.postData.photos.length > 0) {
+                console.log('AAaaaaaaaas')
+                this.input.displayExistingImages(this.postData.photos);
             }
         } else {
             const inputContainer = this.wrapper.querySelector('.input-image__block');
@@ -162,7 +163,7 @@ export class CreatePostForm {
                 }
             }
 
-            const res = await fetch(`${process.env.API_BASE_URL}/api/posts/${this.postData.post.id}`, {
+            const res = await fetch(`${process.env.API_BASE_URL}/api/posts/${this.postData.id}`, {
                 method: 'PUT',
                 body: formData,
                 credentials: 'include',
