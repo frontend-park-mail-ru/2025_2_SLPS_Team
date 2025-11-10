@@ -1,49 +1,55 @@
 import { renderPost } from "../../molecules/Post/Post.js";
-import FeedTemplate from './Feed.hbs'
-import {CreatePostForm} from '../CreatePost/CreatePost.js';
+import FeedTemplate from "./Feed.hbs";
+import { CreatePostForm } from "../CreatePost/CreatePost.js";
+import { EventBus } from "../../../services/EventBus.js";
+import { getPosts } from "../../../shared/api/postsApi.js";
 
-/**
- * Рендерит ленту постов.
- *
- * @async
- * @function renderFeed
- * @param {Object[]} posts - Массив объектов постов для отображения.
- * @param {string} posts[].id - Уникальный идентификатор поста.
- * @param {string} posts[].author - Автор поста.
- * @param {string} posts[].text - Текст поста.
- * @param {string|string[]} [posts[].photos] - Фото или массив фото, прикреплённых к посту.
- * @param {number} [posts[].like_count] - Количество лайков у поста.
- * @returns {Promise<HTMLElement>} DOM-элемент ленты, содержащий все посты.
- */
-export async function renderFeed(posts, isOwner=true){
-    const template = FeedTemplate;
-    const html = template({icon: "/public/globalImages/NewPostIcon.svg"});
+const feedInstances = [];
+let subscribed = false;
 
-    const wrapper = document.createElement("div");
-    wrapper.innerHTML = html.trim()
+export async function renderFeed(posts, isOwner = true) {
+  const html = FeedTemplate({ icon: "/public/globalImages/NewPostIcon.svg" });
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = html.trim();
 
-    const FeedElement = wrapper.firstElementChild;
+  const feedEl = wrapper.firstElementChild;
+  let postsContainer = feedEl.querySelector(".feed-posts-container");
+  if (!postsContainer) {
+    postsContainer = document.createElement("div");
+    postsContainer.classList.add("feed-posts-container");
+    feedEl.appendChild(postsContainer);
+  }
 
-    const safePosts = Array.isArray(posts) ? posts : [];
+  const newPostButton = feedEl.querySelector(".feed-post-button");
+  await renderPostsInto(postsContainer, posts);
 
-    for(const postData of safePosts){
-        FeedElement.appendChild(await renderPost(postData));
-    }
+  if (!isOwner && newPostButton) {
+    newPostButton.style.display = "none";
+  } else if (isOwner && newPostButton) {
+    const modal = new CreatePostForm(document.body);
+    newPostButton.addEventListener("click", () => modal.open());
+  }
 
-    const newPostButton = wrapper.querySelector('.feed-post-button');
+  feedInstances.push({ postsContainer });
 
-    console.log(isOwner);
+  if (!subscribed) {
+    subscribed = true;
+    const reloadAllFeeds = async () => {
+      const fresh = await getPosts();
+      for (const inst of feedInstances) {
+        await renderPostsInto(inst.postsContainer, fresh);
+      }
+    };
+    EventBus.on("posts:created", reloadAllFeeds);
+    EventBus.on("posts:updated", reloadAllFeeds);
+    EventBus.on("posts:deleted", reloadAllFeeds);
+  }
 
-    if (!isOwner && newPostButton) {
-        newPostButton.style.display = "none";
-    }
+  return feedEl;
+}
 
-    if (isOwner && newPostButton) {
-        const NewPostModal = new CreatePostForm(document.body);
-        newPostButton.addEventListener('click', () => {
-            NewPostModal.open();
-        });
-    }
-    
-    return FeedElement;
+async function renderPostsInto(container, posts) {
+  const safe = Array.isArray(posts) ? posts : [];
+  container.innerHTML = "";
+  for (const post of safe) container.appendChild(await renderPost(post));
 }

@@ -3,191 +3,147 @@ import FriendsPageTemplate from './FriendsPage.hbs';
 import { renderFriendsStats } from '../../components/molecules/FriendsStats/FriendsStats.js';
 import { renderFriendsList } from '../../components/organisms/FriendsList/FriendsList.js';
 import './FriendsPage.css';
-import { cachedFetch } from "../../services/CacheService.js";
 
-
-async function getFriendsData(page = 1, limit = 20) {
-  const requestsRes = await cachedFetch(
-    `${process.env.API_BASE_URL}/api/friends/requests?page=${page}`,
-    { credentials: "include" }
-  );
-
-  const requestsData = await requestsRes.json();
-  const requests = Array.isArray(requestsData)
-    ? requestsData
-    : requestsData.requests || [];
-
-  const subscribers = await Promise.all(
-    requests.map(async (req) => {
-      return {
-        userID: req.userID,
-        name: req.fullName,
-        age: req.dob ? calculateAge(req.dob) : null,
-        avatarSrc: req.avatarPath || null,
-        type: "subscriber",
-      };
-    })
-  );
-
-  const friendsRes = await cachedFetch(
-    `${process.env.API_BASE_URL}/api/friends?page=${page}`,
-    { credentials: "include" }
-  );
-  const friendsData = await friendsRes.json();
-
-  const friends = await Promise.all(
-    (friendsData || []).map(async (friend) => {
-      return {
-        userID: friend.userID,
-        name: friend.fullName,
-        avatarPath: friend.avatarPath || null,
-        age: friend.dob ? calculateAge(friend.dob) : null,
-      };
-    })
-  );
-
-    const possibleRes = await cachedFetch(
-    `${process.env.API_BASE_URL}/api/friends/users/all?page=${page}`,
-    { credentials: "include" }
-    );
-    const possibleData = await possibleRes.json();
-
-    const filteredPossibleData = (possibleData || []).filter(user => user.status === null);
-
-    const possible = await Promise.all(
-    filteredPossibleData.map(async (user) => {
-        return {
-        userID: user.userID,
-        name: user.fullName,
-        avatarPath: user.avatarPath || null,
-        age: user.dob ? calculateAge(user.dob) : null,
-        type: "possible",
-        };
-    })
-    );
-
-    return { friends, subscribers, possible };
-}
-
+import { getFriendRequests, getFriends, getPossibleFriends } from '../../shared/api/friendsApi.js';
 
 function calculateAge(dobString) {
-    const dob = new Date(dobString);
-    const diffMs = Date.now() - dob.getTime();
-    const ageDate = new Date(diffMs);
-    return Math.abs(ageDate.getUTCFullYear() - 1970);
+  if (!dobString) return null;
+  const dob = new Date(dobString);
+  const diffMs = Date.now() - dob.getTime();
+  const ageDate = new Date(diffMs);
+  return Math.abs(ageDate.getUTCFullYear() - 1970);
 }
 
-
 export class FriendsPage extends BasePage {
-    constructor(rootElement) {
-        super(rootElement);
-        this.currentListType = 'friends'; // 'friends', 'subscribers', 'possible'
-        this.wrapper = null
-        this.friendsData = {
-            friends: [],
-            subscribers: [],
-            possible: []
-        };
-    }
+  constructor(rootElement) {
+    super(rootElement);
+    this.currentListType = 'friends';
+    this.wrapper = null;
+    this.friendsData = {
+      friends: [],
+      subscribers: [],
+      possible: []
+    };
+  }
 
-    async render() {
-        const existingWrapper = document.getElementById('page-wrapper');
-        if (existingWrapper) existingWrapper.remove();
+  async render() {
+    const existingWrapper = document.getElementById('page-wrapper');
+    if (existingWrapper) existingWrapper.remove();
 
-        this.wrapper = document.createElement('div');
-        this.wrapper.id = 'page-wrapper';
-        
-        let title = 'Ваши друзья';
-            if (this.currentListType === 'subscribers') {
-                title = 'Подписчики';
-            } else if (this.currentListType === 'possible') {
-                title = 'Возможные друзья';
-            }
-    
+    this.wrapper = document.createElement('div');
+    this.wrapper.id = 'page-wrapper';
 
-        const pageElement = document.createElement('div');
-        pageElement.innerHTML = FriendsPageTemplate({title});
-        const friendsPage = pageElement.firstElementChild;
-        
-        const contentContainer = friendsPage.querySelector('.friends-page__content');
-        const sidebarContainer = friendsPage.querySelector('.friends-page__sidebar');
-        
-        await this.loadFriendsData();
-        
-        const friendsStats = renderFriendsStats({
-            friendsCount: this.friendsData.friends.length,
-            subscribersCount: this.friendsData.subscribers.length,
-            possibleCount: this.friendsData.possible.length,
-            currentType: this.currentListType
-        });
+    const pageElement = document.createElement('div');
+    pageElement.innerHTML = FriendsPageTemplate({ title: this.getTitle() });
+    const friendsPage = pageElement.firstElementChild;
 
-        sidebarContainer.appendChild(friendsStats);
-        this.addStatsEventListeners(sidebarContainer, contentContainer);
-        
-        const currentList = this.renderCurrentList();
-        if (contentContainer && currentList) contentContainer.appendChild(currentList);
+    const contentContainer = friendsPage.querySelector('.friends-page__content');
+    const sidebarContainer = friendsPage.querySelector('.friends-page__sidebar');
 
-        this.wrapper.appendChild(friendsPage);
-        this.rootElement.appendChild(this.wrapper);
-    }
+    await this.loadFriendsData();
 
-    async loadFriendsData() {
-        this.friendsData = await getFriendsData();
-    }
+    const friendsStats = renderFriendsStats({
+      friendsCount: this.friendsData.friends.length,
+      subscribersCount: this.friendsData.subscribers.length,
+      possibleCount: this.friendsData.possible.length,
+      currentType: this.currentListType,
+    });
+    sidebarContainer.appendChild(friendsStats);
 
-    renderCurrentList() {
-        const data = this.friendsData[this.currentListType];
-        if (!data) return null;
+    this.addStatsEventListeners(sidebarContainer, contentContainer);
 
-        return renderFriendsList({
-            friends: data,
-            listType: this.currentListType
-        });
-    }
+    const currentList = this.renderCurrentList();
+    if (contentContainer && currentList) contentContainer.appendChild(currentList);
 
-    addStatsEventListeners(sidebarContainer, contentContainer) {
-        const statsButtons = sidebarContainer.querySelectorAll('.friends-stats__item');
-        
-        statsButtons.forEach(button => {
-            button.addEventListener('click', (event) => {
-                const listType = event.currentTarget.dataset.type;
-                if (listType && listType !== this.currentListType) {
-                    this.currentListType = listType;
-                    this.rerenderList(contentContainer, sidebarContainer);
-                    this.changeHeader();
-                }
-            });
-        });
-    }
+    this.wrapper.appendChild(friendsPage);
+    this.rootElement.appendChild(this.wrapper);
+  }
 
-    rerenderList(contentContainer, sidebarContainer) {
-        const oldList = contentContainer.querySelector('.friends-list');
-        if (oldList) oldList.remove();
+  getTitle() {
+    if (this.currentListType === 'subscribers') return 'Подписчики';
+    if (this.currentListType === 'possible') return 'Возможные друзья';
+    return 'Ваши друзья';
+  }
 
-        const newList = this.renderCurrentList();
-        if (newList) contentContainer.appendChild(newList);
+  async loadFriendsData() {
+    const requestsRaw = await getFriendRequests();
+    const subscribers = requestsRaw.map((req) => ({
+      userID: req.userID,
+      name: req.fullName,
+      avatarPath: req.avatarPath || null,
+      age: req.dob ? calculateAge(req.dob) : null,
+      type: 'subscribers',
+    }));
 
-        const oldStats = sidebarContainer.querySelector('.friends-stats');
-        if (oldStats) oldStats.remove();
+    const friendsRaw = await getFriends();
+    const friends = friendsRaw.map((friend) => ({
+      userID: friend.userID,
+      name: friend.fullName,
+      avatarPath: friend.avatarPath || null,
+      age: friend.dob ? calculateAge(friend.dob) : null,
+      type: 'friends',
+    }));
 
-        const newStats = renderFriendsStats({
-            friendsCount: this.friendsData.friends.length,
-            subscribersCount: this.friendsData.subscribers.length,
-            possibleCount: this.friendsData.possible.length,
-            currentType: this.currentListType
-        });
-        sidebarContainer.appendChild(newStats);
-        this.addStatsEventListeners(sidebarContainer, contentContainer);
-    }
+    const possibleRaw = await getPossibleFriends();
+    const filtered = (possibleRaw || []).filter((u) => u.status === null);
+    const possible = filtered.map((user) => ({
+      userID: user.userID,
+      name: user.fullName,
+      avatarPath: user.avatarPath || null,
+      age: user.dob ? calculateAge(user.dob) : null,
+      type: 'possible',
+    }));
 
-    changeHeader() {
-        let title = 'Ваши друзья';
-            if (this.currentListType === 'subscribers') {
-                title = 'Подписчики';
-            } else if (this.currentListType === 'possible') {
-                title = 'Возможные друзья';
-            }
-        const header = this.wrapper.querySelector('.friends-page__title')
-        header.textContent = title
-    }
+    this.friendsData = { friends, subscribers, possible };
+  }
+
+  renderCurrentList() {
+    const data = this.friendsData[this.currentListType];
+    if (!data) return null;
+
+    return renderFriendsList({
+      friends: data,
+      listType: this.currentListType,
+    });
+  }
+
+  addStatsEventListeners(sidebarContainer, contentContainer) {
+    const statsButtons = sidebarContainer.querySelectorAll('.friends-stats__item');
+
+    statsButtons.forEach((button) => {
+      button.addEventListener('click', (event) => {
+        const listType = event.currentTarget.dataset.type;
+        if (listType && listType !== this.currentListType) {
+          this.currentListType = listType;
+          this.rerenderList(contentContainer, sidebarContainer);
+          this.changeHeader();
+        }
+      });
+    });
+  }
+
+  rerenderList(contentContainer, sidebarContainer) {
+    const oldList = contentContainer.querySelector('.friends-list');
+    if (oldList) oldList.remove();
+
+    const newList = this.renderCurrentList();
+    if (newList) contentContainer.appendChild(newList);
+
+    const oldStats = sidebarContainer.querySelector('.friends-stats');
+    if (oldStats) oldStats.remove();
+
+    const newStats = renderFriendsStats({
+      friendsCount: this.friendsData.friends.length,
+      subscribersCount: this.friendsData.subscribers.length,
+      possibleCount: this.friendsData.possible.length,
+      currentType: this.currentListType,
+    });
+    sidebarContainer.appendChild(newStats);
+    this.addStatsEventListeners(sidebarContainer, contentContainer);
+  }
+
+  changeHeader() {
+    const header = this.wrapper.querySelector('.friends-page__title');
+    if (header) header.textContent = this.getTitle();
+  }
 }

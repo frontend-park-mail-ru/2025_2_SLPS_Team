@@ -1,0 +1,64 @@
+import { FeedPage } from '../../Pages/FeedPage/FeedPage.js';
+import { ProfilePage } from '../../Pages/ProfilePage/ProfilePage.js';
+import { MessengerPage } from '../../Pages/MassengerPage/MassengerPage.js';
+import { CommunityPage } from '../../Pages/CommunityPage/CommunityPage.js';
+import { renderRegPage } from '../../Pages/RegPage/RegPage.js';
+import { renderLoginPage } from '../../Pages/LoginPage/LoginPage.js';
+import { FriendsPage } from '../../Pages/FriendsPage/FriendsPage.js';
+import { layout } from '../../Pages/LayoutManager.js';
+import { navigateTo } from './navigateTo.js'; 
+
+export const routes = {
+  "/": {
+    renderFunc: async () => layout.renderPage(FeedPage),
+    access: "auth-only",
+    title: "Лента"
+  },
+  "/login": {
+    renderFunc: async () => {
+      document.body.innerHTML = '';
+      await renderLoginPage(document.body, {
+        onSubmit: () => navigateTo("/"),
+        onReg: () => navigateTo("/register")
+      });
+    },
+    access: "guest-only",
+    title: "Вход"
+  },
+  "/register": {
+    renderFunc: async () => {
+      document.body.innerHTML = '';
+      await renderRegPage(document.body, {
+        onSubmit: () => navigateTo("/"),
+        onLog: () => navigateTo("/login")
+      });
+    },
+    access: "guest-only",
+    title: "Регистрация"
+  },
+  "/profile": {
+    renderFunc: async () => layout.renderPage(ProfilePage),
+    access: "auth-only",
+    title: "Профиль"
+  },
+  "/messanger": {
+    renderFunc: async () => layout.renderPage(MessengerPage),
+    access: "auth-only",
+    title: "Мессенджер"
+  },
+  "/community": {
+    renderFunc: async () => layout.renderPage(CommunityPage),
+    access: "auth-only",
+    title: "Сообщества"
+  },
+  "/friends": {
+    renderFunc: async () => layout.renderPage(FriendsPage),
+    access: "auth-only",
+    title: "Друзья"
+  },
+  "/profile/:id": {
+    renderFunc: async (params) => layout.renderPage(ProfilePage, params),
+    access: "auth-only",
+    title: "Профиль пользователя"
+  },
+};

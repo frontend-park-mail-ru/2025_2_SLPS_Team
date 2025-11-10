@@ -6,6 +6,7 @@ import DropDown from '../../atoms/dropDown/dropDown.js';
 import { ModalConfirm } from '../ModalConfirm/ModalConfirm.js';
 import { NotificationManager } from '../../organisms/NotificationsBlock/NotificationsManager.js';
 import { CreatePostForm } from '../../organisms/CreatePost/CreatePost.js';
+import { EventBus } from '../../../services/EventBus.js';
 
 const notifier = new NotificationManager();
 
@@ -105,6 +106,7 @@ export async function renderPost(postData) {
                             const request = await PostDelete(postData.id);
                             if (request.ok){
                                 notifier.show('Пост удален', `Ваш пост успешно удален`, "error")
+                                EventBus.emit('posts:deleted');
                             }
                         }
                     );
@@ -145,7 +147,9 @@ async function PostDelete(postId) {
             },
             credentials: 'include',
         });
-
+        if (res.ok) {
+           EventBus.emit('posts:deleted');
+        }
         return res;
     } catch (error) {
         notifier.show("Ошибка", "Не удалось удалить пост", 'error');

@@ -1,8 +1,13 @@
+
 <div class="feed-container">
+  <div class="feed-header">
     <button class="feed-post-button">
-        <div class="button-content">
-            <img src="{{icon}}">
-            Создать Пост
-        </div>
+      <img src="{{icon}}" alt="Создать пост" class="feed-post-button__icon" />
+      <span class="button-content">Создать пост</span>
     </button>
+  </div>
+
+  <div class="feed-posts-container">
+    {{!-- сюда JavaScript добавит посты динамически --}}
+  </div>
 </div>

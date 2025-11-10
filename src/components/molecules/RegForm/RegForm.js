@@ -3,7 +3,6 @@ import { renderFormButton } from "../../atoms/FormButtons/FormButtons.js";
 import RegFormTemplate from './RegForm.hbs'
 import { gsap } from "gsap";
 import { authService } from "../../../services/AuthService.js";
-import { navigateTo } from "../../../index.js";
 
 
 /**
@@ -50,7 +49,6 @@ export default class RegistrationForm {
     }
 
     async renderStepAnimated(renderFn, direction = "forward") {
-
         const stepContainer = document.createElement("div");
         stepContainer.classList.add("step-wrapper");
         stepContainer.style.display = "flex";
@@ -78,8 +76,6 @@ export default class RegistrationForm {
         this.form.appendChild(this.buttons);
         stepContainer.remove();
     }
-
-
 
     renderStep() {
         this.inputContainer.innerHTML = "";
@@ -131,7 +127,8 @@ export default class RegistrationForm {
             value: this.savedValues?.confirmPassword || ""
         });
         await this.inputs.confirmPassword.render();
-        if(this.emailError){
+
+        if (this.emailError) {
             this.validateStep1();
         }
 
@@ -205,7 +202,7 @@ export default class RegistrationForm {
 
         const genderLabel = document.createElement("div");
         genderLabel.textContent = "Выберите пол";
-        genderLabel.classList.add("small-lable")
+        genderLabel.classList.add("small-lable");
 
         const genderContainer = document.createElement("div");
         genderContainer.classList.add("gender-container");
@@ -237,7 +234,6 @@ export default class RegistrationForm {
             });
         });
 
-
         await renderFormButton(this.buttons, "submit", "Завершить", "accent", (e) => {
             e.preventDefault();
             if (this.validateStep3()) {
@@ -262,11 +258,13 @@ export default class RegistrationForm {
         this.inputs.email.hideError();
         this.inputs.password.hideError();
         this.inputs.confirmPassword.hideError();
-        if(this.emailError){
+
+        if (this.emailError) {
             this.inputs.email.showError("email занят");
             valid = false;
             this.emailError = false;
         }
+
         const emailRegex =
             /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/u;
 
@@ -313,9 +311,9 @@ export default class RegistrationForm {
         this.inputs.age.hideError();
 
         if (
-        !/^\d+$/.test(age) ||
-        Number(age) < 14 || 
-        Number(age) > 120 
+            !/^\d+$/.test(age) ||
+            Number(age) < 14 ||
+            Number(age) > 120
         ) {
             this.inputs.age.showError("Введите корректный возраст");
             valid = false;
@@ -323,60 +321,26 @@ export default class RegistrationForm {
 
         return valid;
     }
+
     handleSubmit() {
         const age = parseInt(this.inputs.age.input.value.trim(), 10);
         const currentYear = new Date().getFullYear();
         const birthYear = currentYear - age;
         const dob = new Date(Date.UTC(birthYear, 0, 1, 0, 0, 0)).toISOString();
 
-
         const data = {
             email: this.inputs.email.input.value.trim(),
             password: this.inputs.password.input.value.trim(),
+            confirmPassword: this.inputs.confirmPassword.input.value.trim(),
             firstName: this.inputs.firstName.input.value.trim(),
             lastName: this.inputs.lastName.input.value.trim(),
-            confirmpassword: this.inputs.confirmPassword.input.value.trim(),
-            dob: dob,
+            dob,
             gender: this.form.querySelector('input[name="gender"]:checked')?.value || null,
         };
-        fetch(`${process.env.API_BASE_URL}/api/auth/register`, {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
-                "X-CSRF-Token": authService.getCsrfToken(),
-            },
-            body: JSON.stringify({
-                firstName: data.firstName,
-                lastName: data.lastName,
-                email: data.email,
-                password: data.password,
-                confirmPassword: data.confirmpassword,
-                gender: data.gender,
-                dob: dob,
-            }),
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.message === "User already exist") {
-                    this.emailError = true;
-                    this.currentStep = 1;
-                    this.renderStep(true);
-                    return;
-                }
 
-
-                console.log("Регистрация завершена:", data);
-
-                if (this.options.onSubmit) {
-                    this.options.onSubmit(data);
-                }
-                navigateTo('/');
-
-            })
-            .catch(err => {
-                console.error('Ошибка при регистрации:', err);
-            })
+        if (this.options.onSubmit) {
+            this.options.onSubmit(data);
+        }
     }
 
     handleLogin() {

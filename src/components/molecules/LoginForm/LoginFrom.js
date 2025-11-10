@@ -10,7 +10,7 @@ import loginFormTemplate from "./LoginFrom.hbs";
 
 /**
  * Класс, представляющий форму авторизации пользователя.
- */ 
+ */
 export default class LoginForm {
     /**
      * Создаёт экземпляр LoginForm.
@@ -35,11 +35,11 @@ export default class LoginForm {
         wrapper.innerHTML = html.trim();
 
         this.form = wrapper.querySelector("form");
-        
+
         this.container.appendChild(this.form);
 
-        const inputContainer = this.form.querySelector('.input-container'); 
-        const buttons = this.form.querySelector('.button-container')
+        const inputContainer = this.form.querySelector('.input-container');
+        const buttons = this.form.querySelector('.button-container');
 
         this.inputs.email = new FormInput(inputContainer, {
             name: "email",
@@ -66,45 +66,20 @@ export default class LoginForm {
             this.handleSubmit();
         });
 
-
         await renderFormButton(buttons, "button", "Регистрация", "base", (e) => {
             e.preventDefault();
             this.handleRegister();
         });
-
 
         this.container.appendChild(this.form);
     }
 
     handleSubmit() {
         const { email, password, rememberMe } = this.getValues();
-        console.log(email,password,rememberMe);
-        fetch(`${process.env.API_BASE_URL}/api/auth/login`, {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    email: email,
-                    password: password
-                }),
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.code===200) {
-                        console.log("Успешный вход");
-                            if (this.options.onSubmit) {
-                                this.options.onSubmit({ email, password });
-                            }
-                    } else {
-                        this.inputs.email.showError("Неверный email");
-                        this.inputs.password.showError("Неверный пароль");
-                    }
-                })
-                .catch(err => {
-                    console.error("Ошибка при запросе:", err);
-                });
+
+        if (this.options.onSubmit) {
+            this.options.onSubmit({ email, password, rememberMe });
+        }
     }
 
     handleRegister() {
@@ -113,14 +88,12 @@ export default class LoginForm {
         }
     }
 
-
-
     getValues() {
         const rememberMeInput = this.form.querySelector('input[name="rememberMe"]');
         return {
             email: this.inputs.email.input.value.trim(),
             password: this.inputs.password.input.value.trim(),
-            rememberMe: rememberMeInput? rememberMeInput.checked : false,
+            rememberMe: rememberMeInput ? rememberMeInput.checked : false,
         };
     }
 }
