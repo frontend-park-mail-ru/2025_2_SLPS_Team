@@ -1,68 +1,92 @@
-/*const CACHE_NAME = "social-app-cache-v1"; //v2
+importScripts('/helpers/sw-constants.js');
+importScripts('/helpers/sw-cache-helpers.js');
+importScripts('/helpers/sw-idb-helpers.js');
+importScripts('/helpers/sw-queue-helpers.js');
 
-const URLS_TO_CACHE = [
-  "/",
-  "/profile",
-  "/friends",
-  "/messanger",
-  "/community",
-  "/bundle.js",
-  "/styles/main.css",
-  "/favicon.svg"
-];
+const { STATIC_CACHE, API_CACHE } = self.SW_CONSTANTS;
 
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(URLS_TO_CACHE);
-    })
-  );
+self.__lastAuth = null;
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(self.swPrecacheStatic());
+  self.skipWaiting();
 });
 
-self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.map((key) => key !== CACHE_NAME && caches.delete(key)))
-    )
-  );
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.swCleanupOldCaches());
+  self.clients.claim();
 });
 
-self.addEventListener("fetch", (event) => {
-  const { request } = event;
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  const url = new URL(req.url);
 
-  if (request.url.includes("/api/") || request.url.startsWith("ws://")) {
+  if (req.mode === 'navigate') {
+    event.respondWith(self.swHandleNavigation(req));
     return;
   }
 
-  event.respondWith(
-    caches.match(request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
+  if (url.pathname === '/api/auth/isloggedin') {
+    event.respondWith((async () => {
+      const cache = await caches.open(API_CACHE);
 
-      return fetch(request)
-        .then((response) => {
-          if (!response || response.status !== 200 || response.type !== "basic") {
-            return response;
-          }
+      try {
+        const netRes = await fetch(req.clone(), { credentials: 'include' });
+        cache.put(req, netRes.clone());
 
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, responseToCache));
-          return response;
-        })
-        .catch(async () => {
-          console.warn("[SW] Network failed, serving fallback for:", request.url);
+        try {
+          const json = await netRes.clone().json();
+          self.__lastAuth = json;
+        } catch (e) {
+        }
 
-          if (request.mode === "navigate") {
-            const offlinePage = await caches.match("/");
-            if (offlinePage) return offlinePage;
-            return new Response("Вы офлайн. Подключитесь к сети и обновите страницу.", {
-              headers: { "Content-Type": "text/html; charset=utf-8" },
-            });
-          }
+        return netRes;
+      } catch (err) {
 
-          return new Response("", { status: 408, statusText: "Offline" });
+        if (self.__lastAuth) {
+          return new Response(JSON.stringify(self.__lastAuth), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+
+        const cached = await cache.match(req);
+        if (cached) {
+          try {
+            const json = await cached.clone().json();
+            self.__lastAuth = json;
+          } catch (e) {}
+          return cached;
+        }
+
+        return new Response(JSON.stringify({
+          code: 401,
+          isLoggedIn: false,
+          message: 'offline and no cached auth'
+        }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
         });
-    })
-  );
-});*/
+      }
+    })());
+    return;
+  }
+
+  if (url.pathname.startsWith('/api/') && req.method !== 'GET') {
+    event.respondWith(self.swHandleApiMutation(req));
+    return;
+  }
+
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(self.swNetworkFirst(req, API_CACHE));
+    return;
+  }
+
+  event.respondWith(self.swCacheFirst(req, STATIC_CACHE));
+});
+
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'offline-queue-sync') {
+    event.waitUntil(self.swFlushQueue());
+  }
+});
