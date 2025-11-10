@@ -1,0 +1,23 @@
+.settings-container{
+    width: 250px;
+}
+
+.settings-menu{
+    width: 250px;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.settings-menu-container{
+    display: flex
+;
+    flex-direction: column;
+    gap: 6px;
+    width: 250px;
+    position: fixed;
+    color: var(--base-white);
+    background: var(--base-white);
+    padding: 6px;
+    border-radius: 10px;
+}

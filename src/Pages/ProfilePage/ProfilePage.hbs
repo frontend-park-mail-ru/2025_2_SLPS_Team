@@ -1,0 +1,57 @@
+<div class="profile-page">
+    <div class="profile-content">
+    <div class="profile-info" id="profile-card">
+        <img class="header-image" src="/public/globalImages/backgroud.png">
+        <div class="profile-header-content">
+            <img class="profile-avatar"
+                src="{{user.avatarPath}}"
+            >
+            <div class="user-info-container">
+                <div class="user-name">{{user.fullName}}</div>
+                <div class="user-info">
+                    {{user.age}} лет
+                    <button class="profile-toggle-btn">Подробнее</button>
+                </div>
+            </div>
+            {{#if user.isOwner}}
+                <div class="edit-open">Редактировать профиль</div>
+            {{else}}
+                {{#if showCancelRequest}}
+                    <div class="request-text">Заявка отправлена</div>
+                {{/if}}
+                {{#if showMessage}}
+                    <div class="message-btn">Написать сообщение</div>
+                {{/if}}
+                {{#if showAddFriend}}
+                    <div class="add-friend-btn">Добавить в друзья</div>
+                {{/if}}
+                {{#if showBlocked}}
+                    <div class="unblock-user-btn">Разблокировать Пользователя</div>
+                {{/if}}
+            {{/if}}
+        </div>
+
+        <div class="profile-extra">
+            <div class="base-text">
+                <div>День рождения</div> 
+                <div class="text-accent">{{user.dobFormatted}}</div>
+            </div>
+            {{#if user.aboutMyself}}
+                <div class="about-user">
+                    <div class="text-header">О себе</div>
+                    <div class="about-text">{{user.aboutMyself}}</div>
+                </div>
+            {{/if}}
+            <div class="user-counts-info">
+                <a class="text-accent"> {{friends.count_friends}} <div class="base-text">друзей</div></a>
+                <a class="text-accent"> {{friends.count_followers}} <div class="base-text">подписчиков</div></a>
+                <a class="text-accent"> {{friends.count_follows}} <div class="base-text">подписок</div></a>
+            </div>
+        </div>
+    </div>
+    <div class="profile-down-container">
+        <div class="profile-feed-container"></div>
+        <div class="folows-container"></div>
+    </div>
+    </div>
+</div>

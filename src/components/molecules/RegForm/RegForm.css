@@ -1,0 +1,10 @@
+.gender-container{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.small-lable{
+    font-size: 14px;
+    color: var(--dark-gray);
+}

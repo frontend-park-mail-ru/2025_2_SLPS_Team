@@ -1,0 +1,196 @@
+.profile-page{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    gap: 16px;
+    box-sizing: border-box;
+    align-items: flex-start;
+}
+
+.profile-info {
+    width: 880px;
+    background: var(--base-white);
+    border-radius: 20px;
+    padding: 10px;
+    overflow: hidden;
+    transition: max-height 0.7s linear;
+    max-height: 260px;
+}
+
+.profile-info.expanded {
+    max-height: 600px;
+
+}
+
+.profile-content{
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+}
+
+.header-image{
+    width: 100%;
+    height: 180px;
+    border-radius: 14px;
+    object-fit: cover;
+}
+
+.profile-header{
+    position: relative;
+}
+
+
+.profile-avatar{
+    width: 130px;
+    height: 130px;
+    object-fit: cover;
+    border: 4px solid var(--base-white);
+    border-radius: 50%;
+    margin-top: -80px;
+    margin-left: 30px;
+    background: var(--base-white);
+}
+
+.profile-header-content{
+    display: flex;
+    gap: 14px
+}
+
+
+.user-info-container{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.user-name{
+    font-size: 20px;
+    color: var(--text-black);
+}
+
+.user-info{
+    font-size: 14px;
+    color: var(--dark-gray);
+    font-family: inherit;
+    font-weight: 400;
+}
+
+.profile-extra {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    font-size: 16px;
+    padding: 20px;
+    padding-top: 30px;
+}
+
+.profile-info.is-open {
+    display: block;
+}
+
+.base-text {
+    color: var(--text-black) !important;
+    all: unset;
+    display: flex;
+    gap: 4px;
+}
+
+.text-accent{
+    color: var(--base-purple);
+}
+
+.about-text{
+    font-size: 16px;
+    color: var(--dark-gray);
+}
+
+.about-user{
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.user-counts-info{
+    display: flex;
+    gap: 45px;
+}
+
+.user-counts-info a{
+    all: unset;
+    cursor: pointer;
+    color: var(--base-purple);
+    display: flex;
+    gap: 4px;
+}
+
+.profile-toggle-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--blue);
+    font-size: 14px;
+    font-family: inherit;
+}
+
+.edit-open,
+.add-friend-btn,
+.message-btn {
+    width: fit-content;
+    height: fit-content;
+    padding: 4px 8px;
+    background-color: var(--light-gray);
+    border: none;
+    font-size: 14px;
+    border-radius: 6px;
+    color: var(--base-purple);
+    margin-left: auto;
+    margin-top: 5px;
+    cursor: pointer;
+}
+
+.edit-open:hover,
+.add-friend-btn:hover,
+.message-btn:hover { 
+    background-color: var(--base-gray);
+}
+
+.profile-down-container{
+    display: flex;
+    gap: 16px;
+}
+
+.request-text {
+    width: fit-content;
+    height: fit-content;
+    padding: 4px 8px;
+    border: none;
+    font-size: 14px;
+    color: var(--base-purple);
+    margin-left: auto;
+    margin-top: 5px;
+    background: none;
+}
+
+.unblock-user-btn {
+        width: fit-content;
+    height: fit-content;
+    padding: 4px 8px;
+    background-color: var(--light-gray);
+    border: none;
+    font-size: 14px;
+    border-radius: 6px;
+    color: var(--base-red);
+    margin-left: auto;
+    margin-top: 5px;
+    cursor: pointer;
+}
+
+.unblock-user-btn:hover {
+    background-color: var(--base-gray);
+}
+
+.profile-feed-container {
+    width: 602px;
+}
