@@ -9,7 +9,7 @@ import { ModalConfirm } from '../../components/molecules/ModalConfirm/ModalConfi
 import { EventBus } from '../../services/EventBus.js';
 import { navigateTo } from '../../app/router/navigateTo.js';
 
-import { getFriends, getFriendRequests } from '../../shared/api/friendsApi.js';
+import { getFriends, getFriendRequests, getFriendsData } from '../../shared/api/friendsApi.js';
 import { getProfile, getUserPosts, getProfileFriendStatus, sendProfileFriendRequest, openChatWithUser } from '../../shared/api/profileApi.js';
 
 const notifier = new NotificationManager();
@@ -229,4 +229,5 @@ export class ProfilePage extends BasePage {
     }
   }
 }
+
 
