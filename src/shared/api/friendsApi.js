@@ -46,6 +46,30 @@ export async function deleteFriend(userId, csrf) {
   });
 }
 
+export async function getFriendsStats(userId) {
+  try {
+    const types = ['accepted', 'pending', 'sent'];
+    const results = {};
+
+    for (const type of types) {
+      const res = await fetch(
+        `${API_BASE_URL}/api/friends/${userId}/count?type=${type}`,
+        { credentials: 'include' }
+      );
+
+      const data = await parseJsonSafe(res);
+      if (!res.ok) throw { status: res.status, data };
+
+      results[type] = data?.count ?? 0;
+    }
+
+    return results;
+  } catch (err) {
+    console.error('[FriendsStats] Ошибка:', err);
+    throw err;
+  }
+}
+
 export async function acceptFriend(userId, csrf) {
   return fetch(`${API_BASE_URL}/api/friends/${userId}/accept`, {
     method: 'PUT',

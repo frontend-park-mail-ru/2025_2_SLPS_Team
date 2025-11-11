@@ -36,13 +36,12 @@ async function getFriendsDataMock() {
 */
 
 async function getFriendsData(userId) {
-  const friends = await getFriends();
-  const requests = await getFriendRequests();
+  const res = await getFriendsStats(userId);
 
   return {
-    count_friends: Array.isArray(friends) ? friends.length : 0,
-    count_followers: Array.isArray(requests) ? requests.length : 0,
-    count_follows: 56,
+    count_friends: res["accepted"],
+    count_followers: res["pending"],
+    count_follows: res["sent"],
   };
 }
 
