@@ -1,12 +1,14 @@
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.API_BASE_URL || "";
+
+export { API_BASE_URL };
 
 export async function api(path, options = {}) {
-  const url = path.startsWith('http') ? path : `${API_BASE_URL}${path}`;
+  const url = path.startsWith("http") ? path : `${API_BASE_URL}${path}`;
 
   const res = await fetch(url, {
-    credentials: 'include',
+    credentials: "include",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...(options.headers || {}),
     },
     ...options,

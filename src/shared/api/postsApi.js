@@ -1,26 +1,18 @@
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8080';
+import { api, API_BASE_URL } from "./client.js";
 
 export async function getPosts() {
-  const res = await fetch(`${API_BASE_URL}/api/posts`, {
-    method: 'GET',
-    credentials: 'include',
+  const data = await api("/api/posts", {
+    method: "GET",
   });
 
-  const text = await res.text();
-  const data = text ? JSON.parse(text) : null;
-
-  if (!res.ok) {
-    throw { status: res.status, data };
-  }
-
-  return data || [];
+  return Array.isArray(data) ? data : data?.posts || [];
 }
 
 export async function createPost(formData) {
   const res = await fetch(`${API_BASE_URL}/api/posts`, {
-    method: 'POST',
+    method: "POST",
     body: formData,
-    credentials: 'include',
+    credentials: "include",
   });
 
   const text = await res.text();
@@ -35,9 +27,9 @@ export async function createPost(formData) {
 
 export async function updatePost(postId, formData) {
   const res = await fetch(`${API_BASE_URL}/api/posts/${postId}`, {
-    method: 'PUT',
+    method: "PUT",
     body: formData,
-    credentials: 'include',
+    credentials: "include",
   });
 
   const text = await res.text();
