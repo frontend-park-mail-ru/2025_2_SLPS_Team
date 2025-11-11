@@ -26,16 +26,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (
-    url.pathname === '/api/auth/isloggedin' ||
-    url.pathname.endsWith('/api/auth/isloggedin')
-  ) {
+  if (url.pathname === '/api/auth/isloggedin') {
     event.respondWith((async () => {
       const cache = await caches.open(API_CACHE);
 
       try {
         const netRes = await fetch(req.clone(), { credentials: 'include' });
-
         cache.put(req, netRes.clone());
 
         try {
@@ -46,6 +42,7 @@ self.addEventListener('fetch', (event) => {
 
         return netRes;
       } catch (err) {
+
         if (self.__lastAuth) {
           return new Response(JSON.stringify(self.__lastAuth), {
             status: 200,
@@ -76,25 +73,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (url.pathname.startsWith('/api/') && req.method !== 'GET') {
-    event.respondWith((async () => {
-      try {
-        const netRes = await fetch(req.clone(), { credentials: 'include' });
-
-        if (
-          (url.pathname === '/api/auth/logout' || url.pathname.endsWith('/api/auth/logout')) &&
-          netRes.ok
-        ) {
-          self.__lastAuth = { isLoggedIn: false, code: 200, message: 'logged out' };
-
-          const cache = await caches.open(API_CACHE);
-          await cache.delete('/api/auth/isloggedin');
-        }
-
-        return netRes;
-      } catch (err) {
-        return self.swHandleApiMutation(req);
-      }
-    })());
+    event.respondWith(self.swHandleApiMutation(req));
     return;
   }
 

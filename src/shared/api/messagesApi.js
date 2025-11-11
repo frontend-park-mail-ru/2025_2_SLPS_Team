@@ -1,14 +1,22 @@
-import { api } from "./client.js";
+const API_BASE = process.env.API_BASE_URL;
 
 export async function getChatMessages(chatId, page = 1) {
-  return api(`/api/chats/${chatId}/messages?page=${page}`, {
-    method: "GET",
+  const res = await fetch(`${API_BASE}/api/chats/${chatId}/messages?page=${page}`, {
+    credentials: 'include',
   });
+  if (!res.ok) throw new Error(`getChatMessages error: ${res.status}`);
+  return res.json();
 }
 
 export async function sendMessage(chatId, text) {
-  return api(`/api/chats/${chatId}/message`, {
-    method: "POST",
+  const res = await fetch(`${API_BASE}/api/chats/${chatId}/message`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
     body: JSON.stringify({ text }),
   });
+  if (!res.ok) throw new Error(`sendMessage error: ${res.status}`);
+  return res.json();
 }

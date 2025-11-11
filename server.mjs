@@ -32,7 +32,7 @@ app.get(/.*/, (req, res) => {
     res.sendFile(path.resolve(__dirname, "dist", "index.html"));
 });
 
-app.listen(80, () => {
+app.listen(3000, () => {
     dotenv.config();
     console.log(process.env.API_BASE_URL)
     console.log("Server started at http://localhost:3000");

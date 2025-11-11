@@ -22,25 +22,24 @@ class AuthService {
 
   async checkAuth() {
     try {
-      const res = await fetch("/api/auth/isloggedin", {
+      const res = await fetch(`${process.env.API_BASE_URL}/api/auth/isloggedin`, {
         method: "GET",
         credentials: "include",
       });
 
+      if (!res.ok) throw new Error("Not authorized");
+
       const data = await res.json();
+      console.log(data);
+      console.log(data.userID);
 
-      if ((data.isLoggedIn || data.userID) && data.code !== 401) {
-        this.userId = Number(data.userID);
-        this.isLoggedIn = true;
-        localStorage.setItem("userId", this.userId);
-        localStorage.setItem("isLoggedIn", "true");
-        return true;
-      }
+      this.userId = data.userID;
+      this.isLoggedIn = true;
 
-      this.isLoggedIn = false;
-      localStorage.removeItem("userId");
-      localStorage.removeItem("isLoggedIn");
-      return false;
+      localStorage.setItem("userId", this.userId);
+      localStorage.setItem("isLoggedIn", "true");
+
+      return true;
     } catch (err) {
       console.warn("[Auth] Ошибка сети или авторизации:", err.message);
 
@@ -74,24 +73,25 @@ class AuthService {
 
   async logout() {
     try {
-      const res = await fetch("/api/auth/logout", {
+      const res = await fetch(`${process.env.API_BASE_URL}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
       });
 
       if (!res.ok) {
-        console.error("[Auth] Сервер не подтвердил logout:", res.status);
+        console.error(`Ошибка разлогина: ${res.status}`);
+        return false;
       }
     } catch (e) {
       console.warn("[Auth] Оффлайн разлогин — сервер недоступен.");
-    } finally {
-      this.userId = null;
-      this.isLoggedIn = false;
-      localStorage.removeItem("userId");
-      localStorage.removeItem("isLoggedIn");
-      console.log("[Auth] Пользователь разлогинен локально");
     }
 
+    this.userId = null;
+    this.isLoggedIn = false;
+    localStorage.removeItem("userId");
+    localStorage.removeItem("isLoggedIn");
+
+    console.log("Пользователь разлогинен");
     return true;
   }
 }

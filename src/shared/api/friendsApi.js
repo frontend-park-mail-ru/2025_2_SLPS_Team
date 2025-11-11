@@ -1,34 +1,39 @@
-// src/shared/api/friendsApi.js
-import { api, API_BASE_URL } from './client.js';
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8080';
 
-// GET /api/friends/requests
+async function parseJsonSafe(res) {
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
 export async function getFriendRequests(page = 1, limit = 20) {
-  const data = await api(`/api/friends/requests?page=${page}&limit=${limit}`, {
-    method: 'GET',
-  });
-
-  // у тебя раньше было: вернуть массив
+  const res = await fetch(
+    `${API_BASE_URL}/api/friends/requests?page=${page}&limit=${limit}`,
+    { credentials: 'include' }
+  );
+  const data = await parseJsonSafe(res);
+  if (!res.ok) throw { status: res.status, data };
   return Array.isArray(data) ? data : data.requests || [];
 }
 
-// GET /api/friends
 export async function getFriends(page = 1, limit = 20) {
-  const data = await api(`/api/friends?page=${page}&limit=${limit}`, {
-    method: 'GET',
-  });
-  return Array.isArray(data) ? data : data.friends || [];
+  const res = await fetch(
+    `${API_BASE_URL}/api/friends?page=${page}&limit=${limit}`,
+    { credentials: 'include' }
+  );
+  const data = await parseJsonSafe(res);
+  if (!res.ok) throw { status: res.status, data };
+  return Array.isArray(data) ? data : (data.friends || []);
 }
 
-// GET /api/friends/users/all
 export async function getPossibleFriends(page = 1, limit = 20) {
-  const data = await api(`/api/friends/users/all?page=${page}&limit=${limit}`, {
-    method: 'GET',
-  });
+  const res = await fetch(
+    `${API_BASE_URL}/api/friends/users/all?page=${page}&limit=${limit}`,
+    { credentials: 'include' }
+  );
+  const data = await parseJsonSafe(res);
+  if (!res.ok) throw { status: res.status, data };
   return Array.isArray(data) ? data : [];
 }
-
-// вот эти четыре у тебя, судя по ошибкам, где-то ожидаются как "возвращает Response"
-// поэтому оставим прямой fetch чтобы не ломать старый код
 
 export async function deleteFriend(userId, csrf) {
   return fetch(`${API_BASE_URL}/api/friends/${userId}`, {
