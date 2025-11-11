@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.API_BASE_URL || '';
 
 async function parseJsonSafe(res) {
   const text = await res.text();
@@ -46,5 +46,6 @@ export async function apiRaw(path, options = {}) {
   });
   return res;
 }
+
 
 export { API_BASE_URL };
