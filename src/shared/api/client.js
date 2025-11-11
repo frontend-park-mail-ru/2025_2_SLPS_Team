@@ -1,4 +1,12 @@
-const API_BASE_URL = process.env.API_BASE_URL || '';
+const API_BASE_URL =
+  (typeof process !== 'undefined' && process.env && process.env.API_BASE_URL) ||
+  '';
+
+function buildUrl(path) {
+  if (path.startsWith('http')) return path;
+  if (path.startsWith('/api')) return path;
+  return `${API_BASE_URL}${path}`;
+}
 
 async function parseJsonSafe(res) {
   const text = await res.text();
@@ -6,7 +14,7 @@ async function parseJsonSafe(res) {
 }
 
 export async function api(path, options = {}) {
-  const url = path.startsWith('http') ? path : `${API_BASE_URL}${path}`;
+  const url = buildUrl(path);
   const isFormData = options.body instanceof FormData;
   const res = await fetch(url, {
     method: options.method || 'GET',
@@ -29,7 +37,7 @@ export async function api(path, options = {}) {
 }
 
 export async function apiRaw(path, options = {}) {
-  const url = path.startsWith('http') ? path : `${API_BASE_URL}${path}`;
+  const url = buildUrl(path);
   const isFormData = options.body instanceof FormData;
   const res = await fetch(url, {
     method: options.method || 'GET',
@@ -46,6 +54,5 @@ export async function apiRaw(path, options = {}) {
   });
   return res;
 }
-
 
 export { API_BASE_URL };
