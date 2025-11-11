@@ -39,9 +39,9 @@ async function getFriendsData(userId) {
   const res = await getFriendsStats(userId);
 
   return {
-    count_friends: res["accepted"],
-    count_followers: res["pending"],
-    count_follows: res["sent"],
+    count_friends: res.accepted,
+    count_followers: res.pending,
+    count_follows: res.sent,
   };
 }
 
@@ -229,3 +229,4 @@ export class ProfilePage extends BasePage {
     }
   }
 }
+
