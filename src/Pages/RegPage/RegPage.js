@@ -13,40 +13,72 @@ export async function renderRegPage(container, options = {}) {
 
   const regForm = new RegistrationForm(tempContainer, {
     onSubmit: async (formData) => {
+    try {
+      await registerUser({
+        email: formData.email,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        gender: formData.gender,
+        dob: formData.dob,
+      });
+
       try {
-        await registerUser({
+        await loginUser({
           email: formData.email,
           password: formData.password,
-          confirmPassword: formData.confirmPassword,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          gender: formData.gender,
-          dob: formData.dob,
+          rememberMe: true,
         });
+      } catch (e) {
+        console.warn('Не удалось залогиниться сразу после регистрации', e);
+        window.location.href = '/login';
+        return;
+      }
 
-        try {
-          await loginUser({
-            email: formData.email,
-            password: formData.password,
-            rememberMe: true,
-          });
-        } catch (e) {
-          console.warn('Не удалось залогиниться сразу после регистрации', e);
-          // fallback — отправим на страницу логина
-          window.location.href = '/login';
+      if (typeof options.onSubmit === 'function') {
+        options.onSubmit(formData);
+      }
+
+      window.location.href = '/';
+    } catch (e) {
+      console.error('Ошибка регистрации:', e);
+
+      // Если email уже существует
+      if (e.status === 409) {
+        const backendMessage =
+          e.data?.message ||
+          e.data?.error ||
+          'Пользователь с таким email уже существует';
+
+        if (typeof regForm.setFieldError === 'function') {
+          regForm.setFieldError('email', backendMessage);
           return;
         }
 
-        if (typeof options.onSubmit === 'function') {
-          options.onSubmit(formData);
+        if (typeof regForm.setGlobalError === 'function') {
+          regForm.setGlobalError(backendMessage);
+          return;
         }
 
-        // 3. и в конце — полный переход
-        window.location.href = '/';
-      } catch (e) {
-        console.error('Ошибка регистрации:', e);
+        // Вариант 3: совсем в лоб — через alert (временный костыль)
+        alert(backendMessage);
+        return;
       }
-    },
+
+      // Любая другая ошибка регистрации
+      const commonMessage =
+        e.data?.message ||
+        e.data?.error ||
+        'Произошла ошибка при регистрации. Попробуйте позже';
+
+      if (typeof regForm.setGlobalError === 'function') {
+        regForm.setGlobalError(commonMessage);
+      } else {
+        alert(commonMessage);
+      }
+    }
+  },
     onLog: () => {
       if (typeof options.onLog === 'function') {
         options.onLog();

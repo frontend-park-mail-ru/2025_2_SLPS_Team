@@ -240,8 +240,8 @@ export class EditProfileForm {
 
   async saveData() {
     try {
-      const firstName = String(this.inputs.secondName.getValue() || '').trim();
-      const lastName = String(this.inputs.name.getValue() || '').trim();
+      const firstName = String(this.inputs.name.getValue() || '').trim();
+      const lastName = String(this.inputs.secondName.getValue() || '').trim();
       const aboutMyself = String(this.inputs.aboutUser.getValue() || '').trim();
       const oldDob = new Date(this.profileData.dob);
 
