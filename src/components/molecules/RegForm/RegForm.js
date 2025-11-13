@@ -252,7 +252,7 @@ export default class RegistrationForm {
     validateStep1() {
         let valid = true;
         const email = this.inputs.email.input.value.trim();
-        const pass = this.inputs.passSword.input.value.trim();
+        const pass = this.inputs.password.input.value.trim();
         const confirm = this.inputs.confirmPassword.input.value.trim();
 
         this.inputs.email.hideError();
@@ -283,6 +283,7 @@ export default class RegistrationForm {
 
         return valid;
     }
+
 
     validateStep2() {
         let valid = true;
