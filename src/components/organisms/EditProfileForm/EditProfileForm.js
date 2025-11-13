@@ -47,7 +47,7 @@ export class EditProfileForm {
       type: 'text',
       placeholder: 'Имя',
       required: true,
-      value: splitName[1],
+      value: splitName[0],
     });
     await this.inputs.name.render();
 
@@ -56,7 +56,7 @@ export class EditProfileForm {
       type: 'text',
       placeholder: 'Фамилия',
       required: true,
-      value: splitName[0],
+      value: splitName[1],
     });
     await this.inputs.secondName.render();
 
