@@ -44,39 +44,30 @@ export async function renderRegPage(container, options = {}) {
     } catch (e) {
       console.error('Ошибка регистрации:', e);
 
-      // Если email уже существует
-      if (e.status === 409) {
-        const backendMessage =
-          e.data?.message ||
-          e.data?.error ||
-          'Пользователь с таким email уже существует';
+      // ===== ОБРАБОТКА ЗАНЯТОГО EMAIL =====
+      const backendMessage = e?.data?.message || e?.data?.error || "";
 
-        if (typeof regForm.setFieldError === 'function') {
-          regForm.setFieldError('email', backendMessage);
-          return;
-        }
+      // вариант через статус 409 (конфликт)
+      const isEmailAlreadyExists =
+        e?.status === 409 ||
+        backendMessage.toLowerCase().includes('already') ||
+        backendMessage.toLowerCase().includes('exist') ||
+        backendMessage.toLowerCase().includes('существ');
 
-        if (typeof regForm.setGlobalError === 'function') {
-          regForm.setGlobalError(backendMessage);
-          return;
-        }
+      if (isEmailAlreadyExists) {
+        // помечаем, что email занят
+        regForm.emailError = true;
 
-        // Вариант 3: совсем в лоб — через alert (временный костыль)
-        alert(backendMessage);
+        // возвращаем пользователя на первый шаг (если он не там)
+        regForm.currentStep = 1;
+        regForm.animationStatus = 'back';
+        regForm.renderStep(); // внутри renderStep1 вызовется validateStep1 и покажет ошибку
+
         return;
       }
 
       // Любая другая ошибка регистрации
-      const commonMessage =
-        e.data?.message ||
-        e.data?.error ||
-        'Произошла ошибка при регистрации. Попробуйте позже';
-
-      if (typeof regForm.setGlobalError === 'function') {
-        regForm.setGlobalError(commonMessage);
-      } else {
-        alert(commonMessage);
-      }
+      alert(backendMessage || 'Произошла ошибка при регистрации. Попробуйте позже');
     }
   },
     onLog: () => {

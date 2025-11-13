@@ -252,7 +252,7 @@ export default class RegistrationForm {
     validateStep1() {
         let valid = true;
         const email = this.inputs.email.input.value.trim();
-        const pass = this.inputs.password.input.value.trim();
+        const pass = this.inputs.passSword.input.value.trim();
         const confirm = this.inputs.confirmPassword.input.value.trim();
 
         this.inputs.email.hideError();
@@ -260,7 +260,7 @@ export default class RegistrationForm {
         this.inputs.confirmPassword.hideError();
 
         if (this.emailError) {
-            this.inputs.email.showError("email занят");
+            this.inputs.email.showError("Пользователь с таким email уже зарегистрирован");
             valid = false;
             this.emailError = false;
         }
