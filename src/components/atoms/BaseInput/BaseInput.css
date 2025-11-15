@@ -5,8 +5,8 @@
 }
 
 .baseinput-field{
-    height: 35px;
-    width: 240px;
+    min-height: 35px;
+    min-width: 240px;
     background-color: var(--light-gray);
     border: 1px solid var(--light-border);
     border-radius: 6px;

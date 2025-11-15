@@ -31,28 +31,27 @@
 }
 
 .support-title {
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 20px;
+    font-weight: 500;
     text-align: left;
     color: var(--base-purple);
 }
 
 .support-subtitle {
-    font-size: 14px;
-    line-height: 1.4;
-    color: var(--text-secondary, #777);
-    margin: 0 0 8px;
+    font-size: 16px;
+    font-weight: 350;
+    color: var(--text-black);
 }
 
 .support-group {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
 }
 
 .support-label {
-    font-size: 13px;
-    color: var(--text-secondary, #777);
+    font-size: 16px;
+    color: var(--dark-gray);
 }
 
 .support-input,
@@ -106,13 +105,6 @@
     gap: 8px;
 }
 
-.support-divider {
-    width: 100%;
-    height: 1px;
-    background-color: var(--light-border);
-    margin: 4px 0 8px;
-}
-
 .support-contacts-header {
     display: flex;
     flex-direction: column;
@@ -147,4 +139,66 @@
     gap: 16px;
     margin-top: 12px;
     margin-left: auto;
+}
+
+.support-header{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.about-problem-container{
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.support-select-wrapper {
+  position: relative;
+}
+
+.support-select-wrapper .select-list {
+  position: absolute !important;
+  z-index: 1000 !important;
+  top: 75px;
+}
+
+.reg-email-input .baseinput-field {
+  height: 40px !important;
+}
+
+.reg-email-input{
+    width: 100%;
+}
+
+.about-problem-input {
+    width: 100%;
+}
+
+.support-contacts-container{
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.support-contacts-container .baseinput-field {
+    height: 40px !important;
+}
+
+.divider-create-report{
+    width: 100%;
+    height: 1px;
+    background-color: var(--light-border);
+}
+
+.support-container {
+    overflow-y: auto;
+
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.support-container::-webkit-scrollbar {
+    width: 0;
+    height: 0;
 }

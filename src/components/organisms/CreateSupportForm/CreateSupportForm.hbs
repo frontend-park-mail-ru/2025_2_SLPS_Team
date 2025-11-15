@@ -1,53 +1,21 @@
 <div class="support-modal">
   <div class="support-container">
-    <h2 class="support-title">Расскажите о проблеме</h2>
-    <p class="support-subtitle">
-      Все поля обязательные, пожалуйста заполните их внимательно,
-      это поможет быстрее найти решение
-    </p>
+    <div class="support-header">
+      <div class="support-title">Расскажите о проблеме</div>
+      <div class="support-subtitle">
+        Все поля обязательные, пожалуйста заполните их внимательно,
+        это поможет быстрее найти решение
+      </div>
+    </div>
+    <div class="about-problem-container">
+      <div class="reg-email-input"></div>
 
     <div class="support-group">
-      <label class="support-label" for="support-login-email">
-        С какой почтой вы вошли?
-      </label>
-      <input
-        id="support-login-email"
-        class="support-input support-email-input"
-        type="email"
-        placeholder="example@gmail.com"
-      />
+      <div class="support-select-wrapper"></div>
     </div>
 
     <div class="support-group">
-      <label class="support-label" for="support-topic">
-        С чем связано ваше обращение
-      </label>
-      <div class="support-select-wrapper">
-        <select
-          id="support-topic"
-          class="support-select support-topic-select"
-        >
-          <option value="" disabled selected>Не выбрано</option>
-          <option value="auth">Авторизация и регистрация</option>
-          <option value="profile">Профиль</option>
-          <option value="feed">Лента и посты</option>
-          <option value="messages">Сообщения</option>
-          <option value="other">Другое</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="support-group">
-      <label class="support-label" for="support-description">
-        Опишите проблему как можно подробнее
-      </label>
-      <div class="support-textarea-wrapper">
-        <textarea
-          id="support-description"
-          class="support-textarea support-description-input"
-          placeholder="Какой то текст, с информацией о проблеме, какой то текст с информацией о проблеме"
-        ></textarea>
-      </div>
+      <div class="about-problem-input"></div>
     </div>
 
     <div class="support-group">
@@ -56,40 +24,22 @@
       </span>
       <div class="support-screenshot-block input-image__block"></div>
     </div>
+    </div>
 
-    <div class="support-divider"></div>
+    <div class="divider-create-report"></div>
 
-    <div class="support-contacts-header">
-      <h3 class="support-contacts-title">Оставьте свои контакты</h3>
-      <p class="support-contacts-subtitle">
+    <div class="support-header">
+      <div class="support-title">Оставьте свои контакты</div>
+      <div class="support-subtitle">
         Мы ответим вам в ближайшее время
-      </p>
+      </div>
     </div>
 
-    <div class="support-contacts-grid">
-      <div class="support-group">
-        <label class="support-label" for="support-name">
-          Имя и Фамилия
-        </label>
-        <input
-          id="support-name"
-          class="support-input support-name-input"
-          type="text"
-          placeholder="Укажите как мы можем к вам обращаться"
-        />
-      </div>
-      <div class="support-group">
-        <label class="support-label" for="support-contact-email">
-          Почта для связи
-        </label>
-        <input
-          id="support-contact-email"
-          class="support-input support-contact-email-input"
-          type="email"
-          placeholder="example@gmail.com"
-        />
-      </div>
+    <div class="support-contacts-container">
+      <div class="support-contacts-name"></div>
+      <div class="support-contacts-email"></div>
     </div>
+
 
     <div class="support-actions__container"></div>
   </div>

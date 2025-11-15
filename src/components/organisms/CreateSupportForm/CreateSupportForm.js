@@ -1,9 +1,11 @@
 import CreateSupportTemplate from './CreateSupportForm.hbs';
 import './CreateSupportForm.css';
 
-import { ImageInput } from '../../molecules/ImageInput/ImageInput.js';
 import BaseButton from '../../atoms/BaseButton/BaseButton.js';
 import { NotificationManager } from '../NotificationsBlock/NotificationsManager.js';
+import SelectInput from '../../atoms/SelectInput/SelectInput.js';
+import BaseInput from '../../atoms/BaseInput/BaseInput.js';
+import { ImageInputSmall } from '../../molecules/InputImageSmall/InputImageSmall.js';
 
 const notifier = new NotificationManager();
 
@@ -13,6 +15,7 @@ export class CreateSupportForm {
         this.wrapper = null;
         this.input = null;
         this.outsideClickHandler = null;
+        this.inputs = {};
     }
 
     async render() {
@@ -20,9 +23,56 @@ export class CreateSupportForm {
         this.wrapper.id = 'support-form-wrapper';
         this.wrapper.innerHTML = CreateSupportTemplate();
 
-        const inputContainer = this.wrapper.querySelector('.support-screenshot-block');
-        this.input = new ImageInput(inputContainer);
-        this.input.render();
+        this.inputs.regEmail = new BaseInput(this.wrapper.querySelector('.reg-email-input'), {
+              header: 'С какой почтой вы вошли?',
+              type: 'text',
+              placeholder: 'exampl@email.com',
+              required: true,
+            });
+        await this.inputs.regEmail.render();
+
+        this.inputs.supportSelect = new SelectInput(this.wrapper.querySelector('.support-select-wrapper'), {
+              header: 'С чем связано ваше обращние?',
+              values: [
+                { label: 'Приложение зависает/тормозит', value: 'none', active: false },
+                { label: 'Не загружается страница', value: 'none', active: false },
+                { label: 'Не рабоатет чат', value: 'none', active: false },
+                { label: 'Не рабоатет профиль', value: 'none', active: false },
+                { label: 'Не рабоатет мессенджер', value: 'none', active: false },
+                { label: 'Не рабоатет страница друзья', value: 'none', active: false },
+                { label: 'Проблема с авторизацией/входом', value: 'none', active: false },
+                { label: 'Не выбрано', value: 'Не выбрано', active: true },
+              ],
+            });
+        await this.inputs.supportSelect.render();
+
+        this.inputs.aboutProblem = new BaseInput(this.wrapper.querySelector('.about-problem-input'), {
+              header: 'Опишите проблему как можно подробнее',
+              type: 'text',
+              placeholder: 'Тут описание вашей проблемы',
+              required: true,
+              isBig: true,
+            });
+        await this.inputs.aboutProblem.render(); 
+
+        this.inputs.imageInput = new ImageInputSmall(this.wrapper.querySelector('.support-screenshot-block'));
+        this.inputs.imageInput.render();
+
+        this.inputs.nameInput = new BaseInput(this.wrapper.querySelector('.support-contacts-name'), {
+              header: 'Имя и Фамилия',
+              type: 'text',
+              placeholder: 'Укажите как мы можем к вам обращаться',
+              required: true,
+            });
+        await this.inputs.nameInput.render(); 
+
+        this.inputs.emailInput = new BaseInput(this.wrapper.querySelector('.support-contacts-email'), {
+              header: 'Почта для связи',
+              type: 'text',
+              placeholder: 'example@email.com',
+              required: true,
+            });
+        await this.inputs.emailInput.render(); 
 
         const buttonContainer = this.wrapper.querySelector('.support-actions__container');
 
