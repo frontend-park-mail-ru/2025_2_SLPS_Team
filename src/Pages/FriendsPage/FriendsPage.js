@@ -2,7 +2,7 @@ import BasePage from '../BasePage.js';
 import FriendsPageTemplate from './FriendsPage.hbs';
 import { renderFriendsStats } from '../../components/molecules/FriendsStats/FriendsStats.js';
 import { renderFriendsList } from '../../components/organisms/FriendsList/FriendsList.js';
-import { CreateSupportForm } from '../../components/organisms/CreateSupportForm/CreateSupportForm.js';
+import { ApplicationModal } from '../../components/organisms/ApplicationModal/ApplicationModal.js';
 
 import './FriendsPage.css';
 
@@ -62,8 +62,20 @@ export class FriendsPage extends BasePage {
 
     const supportButton = this.wrapper.querySelector('.friends-support-button');
     if (supportButton) {
-        const supportModal = new CreateSupportForm(document.body);
-        supportButton.addEventListener('click', () => supportModal.open());
+        const modal = new ApplicationModal(document.body, {
+            id: 12,
+            first_name: "Иван",
+            last_name: "Петров",
+            email: "test@example.com",
+            topic: "Не работает чат",
+            description: "Сообщения не отправляются",
+            status: "processing",
+            images: [
+                "/public/testData/1.jpg",
+                "/public/testData/1.jpg"
+            ]
+        });
+        supportButton.addEventListener('click', () => modal.open());
     }
   }
 
