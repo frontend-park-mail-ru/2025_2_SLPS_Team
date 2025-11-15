@@ -12,11 +12,11 @@ const notifier = new NotificationManager();
 const CATEGORY_MAP = {
     'Приложение зависает/тормозит': 'app_freezing',
     'Не загружается страница': 'page_not_loading',
-    'Не работает чат': 'chat_profile_messenger_friends',
-    'Не работает профиль': 'chat_profile_messenger_friends',
-    'Не работает мессенджер': 'chat_profile_messenger_friends',
-    'Не работает страница друзья': 'chat_profile_messenger_friends',
-    'Проблема с авторизацией/входом': 'authorization_issue',
+    'Не работает чат': 'chat_not_working',
+    'Не работает профиль': 'profile_not_working',
+    'Не работает мессенджер': 'messenger_not_working',
+    'Не работает страница друзья': 'friend_not_working',
+    'Проблема с авторизацией/входом': 'auth_problem',
 };
 
 export class CreateSupportForm {
