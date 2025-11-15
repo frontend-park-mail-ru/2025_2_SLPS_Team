@@ -14,6 +14,7 @@ export class App {
   }
 
   render() {
+    /*
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker
@@ -21,6 +22,7 @@ export class App {
           .catch((err) => console.error('SW error:', err));
       });
     }
+      */
 
     this.router.handleRoute();
 

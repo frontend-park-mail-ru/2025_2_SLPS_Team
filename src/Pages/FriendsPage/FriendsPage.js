@@ -2,6 +2,8 @@ import BasePage from '../BasePage.js';
 import FriendsPageTemplate from './FriendsPage.hbs';
 import { renderFriendsStats } from '../../components/molecules/FriendsStats/FriendsStats.js';
 import { renderFriendsList } from '../../components/organisms/FriendsList/FriendsList.js';
+import { CreateSupportForm } from '../../components/organisms/CreateSupportForm/CreateSupportForm.js';
+
 import './FriendsPage.css';
 
 import { getFriendRequests, getFriends, getPossibleFriends } from '../../shared/api/friendsApi.js';
@@ -57,6 +59,12 @@ export class FriendsPage extends BasePage {
 
     this.wrapper.appendChild(friendsPage);
     this.rootElement.appendChild(this.wrapper);
+
+    const supportButton = this.wrapper.querySelector('.friends-support-button');
+    if (supportButton) {
+        const supportModal = new CreateSupportForm(document.body);
+        supportButton.addEventListener('click', () => supportModal.open());
+    }
   }
 
   getTitle() {
