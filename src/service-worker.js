@@ -1,4 +1,4 @@
-importScripts('/helpers/sw-constants.js');
+/* importScripts('/helpers/sw-constants.js');
 importScripts('/helpers/sw-cache-helpers.js');
 importScripts('/helpers/sw-idb-helpers.js');
 importScripts('/helpers/sw-queue-helpers.js');
@@ -90,3 +90,4 @@ self.addEventListener('sync', (event) => {
     event.waitUntil(self.swFlushQueue());
   }
 });
+*/

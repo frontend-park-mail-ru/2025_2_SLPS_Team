@@ -410,6 +410,239 @@ app.put("/api/profile", profileUpload.single("avatar"), (req, res) => {
     }
 });
 
+let supportRequests = [
+  {
+    id: 1,
+    number: 1,
+    loginEmail: "user1@example.com",
+    contactEmail: "user1@example.com",
+    name: "Иван Иванов",
+    topic: "Приложение зависает/тормозит",
+    description: "После авторизации лента грузится очень долго.",
+    status: "closed",
+    createdAt: "2025-12-10T09:15:00Z",
+  },
+  {
+    id: 2,
+    number: 2,
+    loginEmail: "user2@example.com",
+    contactEmail: "user2@example.com",
+    name: "Пётр Петров",
+    topic: "Не работает чат",
+    description: "Сообщения не отправляются более 5 минут.",
+    status: "in_progress",
+    createdAt: "2025-12-10T10:05:00Z",
+  },
+  {
+    id: 3,
+    number: 3,
+    loginEmail: "user3@example.com",
+    contactEmail: "user3@example.com",
+    name: "Роман Павловский",
+    topic: "Проблема со входом",
+    description: "При входе получаю ошибку 500.",
+    status: "canceled",
+    createdAt: "2025-12-10T11:30:00Z",
+  },
+  {
+    id: 1,
+    number: 1,
+    loginEmail: "user1@example.com",
+    contactEmail: "user1@example.com",
+    name: "Иван Иванов",
+    topic: "Приложение зависает/тормозит",
+    description: "После авторизации лента грузится очень долго.",
+    status: "closed",
+    createdAt: "2025-12-10T09:15:00Z",
+  },
+  {
+    id: 2,
+    number: 2,
+    loginEmail: "user2@example.com",
+    contactEmail: "user2@example.com",
+    name: "Пётр Петров",
+    topic: "Не работает чат",
+    description: "Сообщения не отправляются более 5 минут.",
+    status: "in_progress",
+    createdAt: "2025-12-10T10:05:00Z",
+  },
+  {
+    id: 3,
+    number: 3,
+    loginEmail: "user3@example.com",
+    contactEmail: "user3@example.com",
+    name: "Роман Павловский",
+    topic: "Проблема со входом",
+    description: "При входе получаю ошибку 500.",
+    status: "canceled",
+    createdAt: "2025-12-10T11:30:00Z",
+  },
+  {
+    id: 1,
+    number: 1,
+    loginEmail: "user1@example.com",
+    contactEmail: "user1@example.com",
+    name: "Иван Иванов",
+    topic: "Приложение зависает/тормозит",
+    description: "После авторизации лента грузится очень долго.",
+    status: "closed",
+    createdAt: "2025-12-10T09:15:00Z",
+  },
+  {
+    id: 2,
+    number: 2,
+    loginEmail: "user2@example.com",
+    contactEmail: "user2@example.com",
+    name: "Пётр Петров",
+    topic: "Не работает чат",
+    description: "Сообщения не отправляются более 5 минут.",
+    status: "in_progress",
+    createdAt: "2025-12-10T10:05:00Z",
+  },
+  {
+    id: 3,
+    number: 3,
+    loginEmail: "user3@example.com",
+    contactEmail: "user3@example.com",
+    name: "Роман Павловский",
+    topic: "Проблема со входом",
+    description: "При входе получаю ошибку 500.",
+    status: "canceled",
+    createdAt: "2025-12-10T11:30:00Z",
+  },
+  {
+    id: 1,
+    number: 1,
+    loginEmail: "user1@example.com",
+    contactEmail: "user1@example.com",
+    name: "Иван Иванов",
+    topic: "Приложение зависает/тормозит",
+    description: "После авторизации лента грузится очень долго.",
+    status: "closed",
+    createdAt: "2025-12-10T09:15:00Z",
+  },
+  {
+    id: 2,
+    number: 2,
+    loginEmail: "user2@example.com",
+    contactEmail: "user2@example.com",
+    name: "Пётр Петров",
+    topic: "Не работает чат",
+    description: "Сообщения не отправляются более 5 минут.",
+    status: "in_progress",
+    createdAt: "2025-12-10T10:05:00Z",
+  },
+  {
+    id: 3,
+    number: 3,
+    loginEmail: "user3@example.com",
+    contactEmail: "user3@example.com",
+    name: "Роман Павловский",
+    topic: "Проблема со входом",
+    description: "При входе получаю ошибку 500.",
+    status: "canceled",
+    createdAt: "2025-12-10T11:30:00Z",
+  },{
+    id: 1,
+    number: 1,
+    loginEmail: "user1@example.com",
+    contactEmail: "user1@example.com",
+    name: "Иван Иванов",
+    topic: "Приложение зависает/тормозит",
+    description: "После авторизации лента грузится очень долго.",
+    status: "closed",
+    createdAt: "2025-12-10T09:15:00Z",
+  },
+  {
+    id: 2,
+    number: 2,
+    loginEmail: "user2@example.com",
+    contactEmail: "user2@example.com",
+    name: "Пётр Петров",
+    topic: "Не работает чат",
+    description: "Сообщения не отправляются более 5 минут.",
+    status: "in_progress",
+    createdAt: "2025-12-10T10:05:00Z",
+  },
+  {
+    id: 3,
+    number: 3,
+    loginEmail: "user3@example.com",
+    contactEmail: "user3@example.com",
+    name: "Роман Павловский",
+    topic: "Проблема со входом",
+    description: "При входе получаю ошибку 500.",
+    status: "canceled",
+    createdAt: "2025-12-10T11:30:00Z",
+  },{
+    id: 1,
+    number: 1,
+    loginEmail: "user1@example.com",
+    contactEmail: "user1@example.com",
+    name: "Иван Иванов",
+    topic: "Приложение зависает/тормозит",
+    description: "После авторизации лента грузится очень долго.",
+    status: "closed",
+    createdAt: "2025-12-10T09:15:00Z",
+  },
+  {
+    id: 2,
+    number: 2,
+    loginEmail: "user2@example.com",
+    contactEmail: "user2@example.com",
+    name: "Пётр Петров",
+    topic: "Не работает чат",
+    description: "Сообщения не отправляются более 5 минут.",
+    status: "in_progress",
+    createdAt: "2025-12-10T10:05:00Z",
+  },
+  {
+    id: 3,
+    number: 3,
+    loginEmail: "user3@example.com",
+    contactEmail: "user3@example.com",
+    name: "Роман Павловский",
+    topic: "Проблема со входом",
+    description: "При входе получаю ошибку 500.",
+    status: "canceled",
+    createdAt: "2025-12-10T11:30:00Z",
+  },
+];
+
+let nextSupportId = supportRequests.length + 1;
+
+app.get("/api/support", (req, res) => {
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 10;
+
+  if (page < 1 || limit < 1 || limit > 100) {
+    return res.status(400).json({
+      code: 400,
+      message: "Неверные параметры пагинации",
+    });
+  }
+
+  const total = supportRequests.length;
+  const totalPages = Math.ceil(total / limit);
+
+  const start = (page - 1) * limit;
+  const end = Math.min(start + limit, total);
+
+  const items = supportRequests
+    .slice()
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(start, end);
+
+  res.json({
+    items,
+    page,
+    limit,
+    total,
+    totalPages,
+  });
+});
+
+
 
 app.listen(PORT, () => {
   console.log(`API сервер запущен на http://localhost:${PORT}`);

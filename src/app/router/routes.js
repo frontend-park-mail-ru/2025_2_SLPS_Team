@@ -5,7 +5,7 @@ import { CommunityPage } from '../../Pages/CommunityPage/CommunityPage.js';
 import { renderRegPage } from '../../Pages/RegPage/RegPage.js';
 import { renderLoginPage } from '../../Pages/LoginPage/LoginPage.js';
 import { FriendsPage } from '../../Pages/FriendsPage/FriendsPage.js';
-//import { HelpPage } from '../../Pages/HelpPage/HelpPage.js';
+import { HelpPage } from '../../Pages/HelpPage/HelpPage.js';
 import { layout } from '../../Pages/LayoutManager.js';
 import { navigateTo } from './navigateTo.js'; 
 
@@ -62,10 +62,10 @@ export const routes = {
     access: "auth-only",
     title: "Профиль пользователя"
   },
- /* "/help": {
-    renderFunc: async (params) => layout.HelpPage(HelpPage, params),
+  "/help": {
+    renderFunc: async () => layout.renderPage(HelpPage),
     access: "auth-only",
     title: "Поддержка"
-  },
-  */
+},
+  
 };
