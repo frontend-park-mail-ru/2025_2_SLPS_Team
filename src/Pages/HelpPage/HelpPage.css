@@ -2,11 +2,9 @@
     position: fixed;
     top: 80px;
     bottom: 20px;
-    left: 260px;
-    right: 40px;
     display: flex;
-    justify-content: center;
     box-sizing: border-box;
+    align-items: flex-start;
 }
 
 .help-page__content {
@@ -44,7 +42,7 @@
 .help-page__table-wrapper {
     background: var(--base-white);
     border-radius: 12px;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .help-table {
@@ -109,6 +107,7 @@
 
 .help-table__cell--status {
     font-weight: 500;
+    min-width: 60px;
 }
 
 /* цвета статусов */
@@ -179,6 +178,8 @@
     margin-top: 16px;
     display: flex;
     gap: 8px;
+    position: absolute;
+    bottom: 16px;
 }
 
 .help-page__page-btn {
