@@ -33,7 +33,7 @@ function mapCategory(category) {
  * Админу вернёт все заявки, обычному пользователю — только его.
  */
 export async function getSupportRequests(page = 1, limit = 10) {
-  const url = `${BASE_URL}/applications?page=${page}&limit=${limit}`;
+  const url = `${BASE_URL}/api/applications?page=${page}&limit=${limit}`;
 
   const res = await cachedFetch(url, {
     credentials: 'include',

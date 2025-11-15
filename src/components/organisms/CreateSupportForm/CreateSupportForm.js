@@ -9,6 +9,16 @@ import { ImageInputSmall } from '../../molecules/InputImageSmall/InputImageSmall
 
 const notifier = new NotificationManager();
 
+const CATEGORY_MAP = {
+    'Приложение зависает/тормозит': 'app_freezing',
+    'Не загружается страница': 'page_not_loading',
+    'Не работает чат': 'chat_profile_messenger_friends',
+    'Не работает профиль': 'chat_profile_messenger_friends',
+    'Не работает мессенджер': 'chat_profile_messenger_friends',
+    'Не работает страница друзья': 'chat_profile_messenger_friends',
+    'Проблема с авторизацией/входом': 'authorization_issue',
+};
+
 export class CreateSupportForm {
     constructor(rootElement) {
         this.rootElement = rootElement;
@@ -40,14 +50,14 @@ export class CreateSupportForm {
             {
                 header: 'С чем связано ваше обращние?',
                 values: [
-                    { label: 'Приложение зависает/тормозит', value: 'app_freezing', active: false },
-                    { label: 'Не загружается страница', value: 'page_not_loading', active: false },
-                    { label: 'Не работает чат', value: 'chat_not_working', active: false },
-                    { label: 'Не работает профиль', value: 'profile_not_working', active: false },
-                    { label: 'Не работает мессенджер', value: 'messenger_not_working', active: false },
-                    { label: 'Не работает страница друзья', value: 'friends_not_working', active: false },
-                    { label: 'Проблема с авторизацией/входом', value: 'auth_problem', active: false },
-                    { label: 'Не выбрано', value: 'none', active: true },
+                    { label: 'Приложение зависает/тормозит', value: 'Приложение зависает/тормозит', active: false },
+                    { label: 'Не загружается страница', value: 'Не загружается страница', active: false },
+                    { label: 'Не работает чат', value: 'Не работает чат', active: false },
+                    { label: 'Не работает профиль', value: 'Не работает профиль', active: false },
+                    { label: 'Не работает мессенджер', value: 'Не работает мессенджер', active: false },
+                    { label: 'Не работает страница друзья', value: 'Не работает страница друзья', active: false },
+                    { label: 'Проблема с авторизацией/входом', value: 'Проблема с авторизацией/входом', active: false },
+                    { label: 'Не выбрано', value: 'Не выбрано', active: true },
                 ],
             },
         );
@@ -138,18 +148,18 @@ export class CreateSupportForm {
     }
 
     async handleSubmit() {
-        try {
             const loginEmailInput = this.wrapper.querySelector('.support-email-input');
             const topicSelect = this.wrapper.querySelector('.support-topic-select');
             const descriptionInput = this.wrapper.querySelector('.support-description-input');
             const nameInput = this.wrapper.querySelector('.support-name-input');
             const contactEmailInput = this.wrapper.querySelector('.support-contact-email-input');
 
-            const loginEmail = loginEmailInput?.value.trim();
-            const topic = topicSelect?.value.trim();
-            const description = descriptionInput?.value.trim();
-            const name = nameInput?.value.trim();
-            const contactEmail = contactEmailInput?.value.trim();
+            const loginEmail = this.inputs.regEmail.getValue();
+            const topicLabel = this.inputs.supportSelect.getValue(); // текст
+            const topic = CATEGORY_MAP[topicLabel]; 
+            const description = this.inputs.aboutProblem.getValue();
+            const name = this.inputs.nameInput.getValue();
+            const contactEmail = this.inputs.emailInput.getValue();
 
             // убираем старую подсветку
             this.wrapper
@@ -235,13 +245,5 @@ export class CreateSupportForm {
                     '*',
                 );
             }
-        } catch (error) {
-            console.error('[Support] unexpected error:', error);
-            notifier.show(
-                'Ошибка',
-                'Не удалось отправить обращение. Попробуйте снова.',
-                'error',
-            );
-        }
     }
 }
