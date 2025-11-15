@@ -23,63 +23,81 @@ export class CreateSupportForm {
         this.wrapper.id = 'support-form-wrapper';
         this.wrapper.innerHTML = CreateSupportTemplate();
 
-        this.inputs.regEmail = new BaseInput(this.wrapper.querySelector('.reg-email-input'), {
-              header: 'С какой почтой вы вошли?',
-              type: 'text',
-              placeholder: 'exampl@email.com',
-              required: true,
-            });
+        this.inputs.regEmail = new BaseInput(
+            this.wrapper.querySelector('.reg-email-input'),
+            {
+                header: 'С какой почтой вы вошли?',
+                type: 'text',
+                placeholder: 'exampl@email.com',
+                required: true,
+            },
+        );
         await this.inputs.regEmail.render();
 
-        this.inputs.supportSelect = new SelectInput(this.wrapper.querySelector('.support-select-wrapper'), {
-              header: 'С чем связано ваше обращние?',
-              values: [
-                { label: 'Приложение зависает/тормозит', value: 'none', active: false },
-                { label: 'Не загружается страница', value: 'none', active: false },
-                { label: 'Не рабоатет чат', value: 'none', active: false },
-                { label: 'Не рабоатет профиль', value: 'none', active: false },
-                { label: 'Не рабоатет мессенджер', value: 'none', active: false },
-                { label: 'Не рабоатет страница друзья', value: 'none', active: false },
-                { label: 'Проблема с авторизацией/входом', value: 'none', active: false },
-                { label: 'Не выбрано', value: 'Не выбрано', active: true },
-              ],
-            });
+        // значения value делаем осмысленными, которые будем отправлять как category
+        this.inputs.supportSelect = new SelectInput(
+            this.wrapper.querySelector('.support-select-wrapper'),
+            {
+                header: 'С чем связано ваше обращние?',
+                values: [
+                    { label: 'Приложение зависает/тормозит', value: 'app_freezing', active: false },
+                    { label: 'Не загружается страница', value: 'page_not_loading', active: false },
+                    { label: 'Не работает чат', value: 'chat_not_working', active: false },
+                    { label: 'Не работает профиль', value: 'profile_not_working', active: false },
+                    { label: 'Не работает мессенджер', value: 'messenger_not_working', active: false },
+                    { label: 'Не работает страница друзья', value: 'friends_not_working', active: false },
+                    { label: 'Проблема с авторизацией/входом', value: 'auth_problem', active: false },
+                    { label: 'Не выбрано', value: 'none', active: true },
+                ],
+            },
+        );
         await this.inputs.supportSelect.render();
 
-        this.inputs.aboutProblem = new BaseInput(this.wrapper.querySelector('.about-problem-input'), {
-              header: 'Опишите проблему как можно подробнее',
-              type: 'text',
-              placeholder: 'Тут описание вашей проблемы',
-              required: true,
-              isBig: true,
-            });
-        await this.inputs.aboutProblem.render(); 
+        this.inputs.aboutProblem = new BaseInput(
+            this.wrapper.querySelector('.about-problem-input'),
+            {
+                header: 'Опишите проблему как можно подробнее',
+                type: 'text',
+                placeholder: 'Тут описание вашей проблемы',
+                required: true,
+                isBig: true,
+            },
+        );
+        await this.inputs.aboutProblem.render();
 
-        this.inputs.imageInput = new ImageInputSmall(this.wrapper.querySelector('.support-screenshot-block'));
+        this.inputs.imageInput = new ImageInputSmall(
+            this.wrapper.querySelector('.support-screenshot-block'),
+        );
         this.inputs.imageInput.render();
 
-        this.inputs.nameInput = new BaseInput(this.wrapper.querySelector('.support-contacts-name'), {
-              header: 'Имя и Фамилия',
-              type: 'text',
-              placeholder: 'Укажите как мы можем к вам обращаться',
-              required: true,
-            });
-        await this.inputs.nameInput.render(); 
+        this.inputs.nameInput = new BaseInput(
+            this.wrapper.querySelector('.support-contacts-name'),
+            {
+                header: 'Имя и Фамилия',
+                type: 'text',
+                placeholder: 'Укажите как мы можем к вам обращаться',
+                required: true,
+            },
+        );
+        await this.inputs.nameInput.render();
 
-        this.inputs.emailInput = new BaseInput(this.wrapper.querySelector('.support-contacts-email'), {
-              header: 'Почта для связи',
-              type: 'text',
-              placeholder: 'example@email.com',
-              required: true,
-            });
-        await this.inputs.emailInput.render(); 
+        this.inputs.emailInput = new BaseInput(
+            this.wrapper.querySelector('.support-contacts-email'),
+            {
+                header: 'Почта для связи',
+                type: 'text',
+                placeholder: 'example@email.com',
+                required: true,
+            },
+        );
+        await this.inputs.emailInput.render();
 
         const buttonContainer = this.wrapper.querySelector('.support-actions__container');
 
         const cancelButton = new BaseButton(buttonContainer, {
             text: 'Отменить',
             style: 'default',
-            onClick: () => this.close(),
+            onClick: () => this.handleCancel(),
         });
         await cancelButton.render();
 
@@ -96,15 +114,6 @@ export class CreateSupportForm {
     open() {
         document.body.style.overflow = 'hidden';
         this.render();
-
-        this.outsideClickHandler = (event) => {
-            const modalContent = this.wrapper.querySelector('.support-container');
-            if (modalContent && !modalContent.contains(event.target)) {
-                this.close();
-            }
-        };
-
-        document.addEventListener('mousedown', this.outsideClickHandler);
     }
 
     close() {
@@ -118,6 +127,13 @@ export class CreateSupportForm {
         if (this.wrapper) {
             this.wrapper.remove();
             this.wrapper = null;
+        }
+    }
+
+    handleCancel() {
+        // по заданию: закрываем только виджет
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'support-widget:close' }, '*');
         }
     }
 
@@ -135,39 +151,73 @@ export class CreateSupportForm {
             const name = nameInput?.value.trim();
             const contactEmail = contactEmailInput?.value.trim();
 
-            if (!loginEmail || !topic || !description || !name || !contactEmail) {
+            // убираем старую подсветку
+            this.wrapper
+                .querySelectorAll('.support-input-error')
+                .forEach((el) => el.classList.remove('support-input-error'));
+
+            let hasError = false;
+            const markError = (el) => {
+                if (!el) return;
+                el.classList.add('support-input-error');
+                hasError = true;
+            };
+
+            // валидация — окно НЕ закрываем
+            if (!loginEmail) markError(loginEmailInput);
+            if (!topic || topic === 'none' || topic === 'Не выбрано') markError(topicSelect);
+            if (!description) markError(descriptionInput);
+            if (!name) markError(nameInput);
+            if (!contactEmail) markError(contactEmailInput);
+
+            if (hasError) {
                 notifier.show(
                     'Заполните все поля',
                     'Все поля формы обязательны для заполнения',
-                    'error'
+                    'error',
                 );
                 return;
             }
 
-            const formData = new FormData();
-            formData.append('login_email', loginEmail);
-            formData.append('topic', topic);
-            formData.append('description', description);
-            formData.append('name', name);
-            formData.append('contact_email', contactEmail);
+            const now = new Date().toISOString();
 
-            if (this.input && this.input.selectedFiles && this.input.selectedFiles.length > 0) {
-                this.input.selectedFiles.forEach((file) => {
-                    formData.append('screenshots', file);
-                });
-            }
+            // Полный payload, как в swagger-модели
+            const payload = {
+                authorID: 'temp',          // заглушка, если автор берётся с сессии
+                category: topic,           // коды из SelectInput (app_freezing, ...)
+                createdAt: now,
+                emailFeedBack: contactEmail,
+                emailReg: loginEmail,
+                fullName: name,
+                id: 0,
+                status: 'open',
+                text: description,
+                updatedAt: now,
+            };
 
-            const res = await fetch(`${process.env.API_BASE_URL}/api/support`, {
+            console.log('[SUPPORT PAYLOAD]', payload);
+
+            const res = await fetch(`${process.env.API_BASE_URL}/api/applications`, {
                 method: 'POST',
-                body: formData,
+                headers: {
+                    'Content-Type': 'application/json',
+                    accept: 'application/json',
+                },
                 credentials: 'include',
+                body: JSON.stringify(payload),
             });
 
             if (!res.ok) {
+                const errText = await res.text().catch(() => '');
+                console.error(
+                    `[Support] create application failed: ${res.status} ${res.statusText}`,
+                    errText,
+                );
+
                 notifier.show(
                     'Ошибка',
                     'Не удалось отправить обращение. Попробуйте снова.',
-                    'error'
+                    'error',
                 );
                 return;
             }
@@ -175,16 +225,22 @@ export class CreateSupportForm {
             notifier.show(
                 'Обращение отправлено',
                 'Мы получили ваше обращение и скоро свяжемся с вами.',
-                'success'
+                'success',
             );
 
-            this.close();
+            // по ТЗ: после успешной отправки виджет закрывается
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage(
+                    { type: 'support-widget:submitted' },
+                    '*',
+                );
+            }
         } catch (error) {
-            console.error(error);
+            console.error('[Support] unexpected error:', error);
             notifier.show(
                 'Ошибка',
                 'Не удалось отправить обращение. Попробуйте снова.',
-                'error'
+                'error',
             );
         }
     }
