@@ -2,6 +2,8 @@ import { renderNavbar } from '../components/molecules/Navbar/Navbar.js';
 import { renderMenu } from '../components/molecules/Menu/Menu.js';
 import { NotificationManager } from '../components/organisms/NotificationsBlock/NotificationsManager.js';
 import { authService } from '../services/AuthService.js';
+import { SupportWidget } from '../components/organisms/SupportWidget/SupportWidget.js';
+
 import { navigateTo } from '../index.js';
 
 export class LayoutManager {
@@ -13,6 +15,7 @@ export class LayoutManager {
         this.initialized = false;
         this.navigateTo = navigateTo;
         this.NotificationManager = new NotificationManager();
+        this.supportWidget = null;
     }
 
     async init() {
@@ -28,7 +31,8 @@ export class LayoutManager {
             { label: "Лента", view: "/", icon: "/public/MenuIcons/FeedIcon.svg" },
             { label: "Сообщества", view: "/community", icon: "/public/MenuIcons/FeedIcon.svg" },
             { label: "Мессенджер", view: "/messanger", icon: "/public/MenuIcons/MessengerIcon.svg" },
-            { label: "Друзья", view: "/friends", icon: "/public/MenuIcons/FriendsIcon.svg" }
+            { label: "Друзья", view: "/friends", icon: "/public/MenuIcons/FriendsIcon.svg" },
+            { label: "Поддержка", view: "/help", icon: "/public/MenuIcons/HelpIcon.svg" }
         ];
 
         this.menu = await renderMenu({
@@ -46,6 +50,11 @@ export class LayoutManager {
         this.root.appendChild(this.navbar);
         this.root.appendChild(layoutWrapper);
         this.NotificationManager.init();
+
+        if (!this.supportWidget) {
+            this.supportWidget = new SupportWidget(document.body);
+            this.supportWidget.render();
+        }
 
         this.initialized = true;
     }
@@ -86,7 +95,8 @@ export class LayoutManager {
             { label: "Лента", view: "/", icon: "/public/MenuIcons/FeedIcon.svg" },
             { label: "Сообщества", view: "/community", icon: "/public/MenuIcons/FeedIcon.svg" },
             { label: "Мессенджер", view: "/messanger", icon: "/public/MenuIcons/MessengerIcon.svg" },
-            { label: "Друзья", view: "/friends", icon: "/public/MenuIcons/FriendsIcon.svg" }
+            { label: "Друзья", view: "/friends", icon: "/public/MenuIcons/FriendsIcon.svg" },
+            { label: "Поддержка", view: "/help", icon: "/public/MenuIcons/HelpIcon.svg" } // 🆕
         ];
         const newMenu = await renderMenu({
             items: menuItems,
@@ -111,6 +121,5 @@ export class LayoutManager {
     }
 
 }
-
 
 export const layout = new LayoutManager(document.body, navigateTo);

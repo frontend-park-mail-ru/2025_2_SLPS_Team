@@ -7,6 +7,8 @@ import { renderLoginPage } from '../../Pages/LoginPage/LoginPage.js';
 import { FriendsPage } from '../../Pages/FriendsPage/FriendsPage.js';
 import { HelpPage } from '../../Pages/HelpPage/HelpPage.js';
 import { layout } from '../../Pages/LayoutManager.js';
+import { SupportFormPage } from '../../Pages/SupportFormPage/SupportFormPage.js';
+
 import { navigateTo } from './navigateTo.js'; 
 
 export const routes = {
@@ -66,6 +68,10 @@ export const routes = {
     renderFunc: async () => layout.renderPage(HelpPage),
     access: "auth-only",
     title: "Поддержка"
-},
-  
+  },
+  "/supportform": {
+    renderFunc: async () => layout.renderPage(SupportFormPage),
+    access: "auth-only",
+    title: "Форма"
+  }
 };
