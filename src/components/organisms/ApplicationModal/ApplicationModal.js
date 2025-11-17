@@ -21,10 +21,10 @@ export class ApplicationModal {
 
         const container = this.wrapper.querySelector('.application-container');
 
-        container.querySelector('.user-first-name').textContent = `${this.data.first_name} ${this.data.last_name}`;
-        container.querySelector('.user-email').textContent = this.data.email;
+        container.querySelector('.user-first-name').textContent = `${this.data.full_name}`;
+        container.querySelector('.user-email').textContent = this.data.emailFeedBack;
         container.querySelector('.user-topic').textContent = this.data.topic;
-        container.querySelector('.user-description').textContent = this.data.description;
+        container.querySelector('.user-description').textContent = this.data.text;
 
         const imgBox = container.querySelector('.application-images');
         if (this.data.images?.length) {

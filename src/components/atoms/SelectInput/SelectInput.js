@@ -62,6 +62,12 @@ export default class SelectInput {
     }
 
     toggleDropdown() {
+        this.selector.classList.add('pressed');
+        this.selector.addEventListener(
+            'animationend',
+            () => this.selector.classList.remove('pressed'),
+            { once: true }
+        );
         this.isOpen = !this.isOpen;
         this.dropdown.style.display = this.isOpen ? "block" : "none";
         this.dropdownbutton.classList.toggle('select-arrow--open');

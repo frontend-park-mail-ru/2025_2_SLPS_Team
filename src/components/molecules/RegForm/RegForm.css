@@ -8,16 +8,23 @@
     font-size: 14px;
     color: var(--dark-gray);
 }
-.bth-container {
+
+.reg-bth-container{
     display: flex;
     gap: 6px;
 }
 
-.bth-day {
-    width: 56px;
+.reg-bth-day{
+    width: 80px;
 }
 
-.bth-month,
-.bth-year {
-    width: 86px;
+.reg-bth-month
+.reg-bth-year {
+    width: 126px;
+}
+
+.reg-bth-day .select,
+.reg-bth-month .select,
+.reg-bth-year .select {
+   gap: 0px !important;
 }

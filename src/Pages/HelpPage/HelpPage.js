@@ -4,10 +4,12 @@ import HelpPageTemplate from './HelpPage.hbs';
 import './HelpPage.css';
 import { NotificationManager } from '../../components/organisms/NotificationsBlock/NotificationsManager.js';
 import DropDown from '../../components/atoms/dropDown/dropDown.js';
+import { ApplicationModal } from '../../components/organisms/ApplicationModal/ApplicationModal.js';
 import {
   getSupportRequests,
   cancelSupportRequest,
 } from '../../shared/api/helpApi.js';
+import { noConflict } from 'handlebars';
 
 const notifier = new NotificationManager();
 
@@ -131,6 +133,12 @@ export class HelpPage extends BasePage {
           </div>
         </td>
       `;
+
+      row.addEventListener('click', () => {
+        console.log(req);
+        const applicaationInfo = new ApplicationModal(document.body,req);
+        applicaationInfo.open();
+      });
 
       const dropButton = row.querySelector('.fiend-actions-button');
       const actionsContainer = row.querySelector('.friend-actions-container');

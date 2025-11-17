@@ -187,6 +187,13 @@ export class CreateSupportForm {
 
             const now = new Date().toISOString();
 
+            const images = this.inputs.imageInput.getImages();
+            const base64Images = [];
+            for (const file of images) {
+                const base64 = await this.fileToBase64(file);
+                base64Images.push(base64);
+            }
+
             const payload = {
                 authorID: 'temp',
                 category: topic,
@@ -198,6 +205,7 @@ export class CreateSupportForm {
                 status: 'open',
                 text: description,
                 updatedAt: now,
+                images: base64Images,
             };
 
             console.log('[SUPPORT PAYLOAD]', payload);
@@ -240,4 +248,13 @@ export class CreateSupportForm {
                 );
             }
     }
+
+    fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
 }

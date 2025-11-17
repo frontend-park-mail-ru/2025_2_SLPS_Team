@@ -3,10 +3,6 @@ import { cachedFetch } from '../../services/CacheService.js';
 
 const BASE_URL = process.env.API_BASE_URL || '';
 
-/**
- * Маппинг категории из бекенда в человекочитаемый текст
- * (подправь под свои enum'ы, если они другие)
- */
 function mapCategory(category) {
   switch (category) {
     case 'app_freezing':
@@ -28,10 +24,7 @@ function mapCategory(category) {
   }
 }
 
-/**
- * GET /applications?page=&limit=
- * Админу вернёт все заявки, обычному пользователю — только его.
- */
+
 export async function getSupportRequests(page = 1, limit = 10) {
   const url = `${BASE_URL}/api/applications?page=${page}&limit=${limit}`;
 
@@ -45,7 +38,6 @@ export async function getSupportRequests(page = 1, limit = 10) {
 
   const data = await res.json();
 
-  // Бэк может вернуть просто массив или объект с полями items / applications
   const rawItems = Array.isArray(data)
     ? data
     : (data.items || data.applications || []);
@@ -53,22 +45,21 @@ export async function getSupportRequests(page = 1, limit = 10) {
   const totalPages =
     (!Array.isArray(data) && (data.totalPages || data.pages)) || 1;
 
-  // Приводим к тому формату, который ждёт HelpPage
   const items = rawItems.map((app, index) => ({
     id: app.id,
     number: app.id ?? index + 1,
     topic: mapCategory(app.category),
     createdAt: app.createdAt,
     status: app.status,   // "open" | "in_progress" | "closed" | "canceled"
+    text: app.text,
+    full_name: app.fullName,
+    emailFeedBack: app.emailFeedBack,
+
   }));
 
   return { items, totalPages };
 }
 
-/**
- * Отмена обращения
- * (подставь сюда тот эндпоинт, который у тебя реально есть для отмены)
- */
 export async function cancelSupportRequest(id) {
   return fetch(`${BASE_URL}/applications/${id}/cancel`, {
     method: 'POST',

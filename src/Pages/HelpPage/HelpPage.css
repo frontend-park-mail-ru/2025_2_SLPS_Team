@@ -213,3 +213,7 @@
     }
 }
 
+.help-table__row {
+    cursor: pointer;
+}
+

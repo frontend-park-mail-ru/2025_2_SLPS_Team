@@ -213,54 +213,56 @@ export default class RegistrationForm {
         this.inputContainer.appendChild(dobLabel);
 
         const dobRow = document.createElement("div");
-        dobRow.classList.add("bth-container");
+        dobRow.classList.add("reg-bth-container");
         this.inputContainer.appendChild(dobRow);
 
         const dayContainer = document.createElement("div");
-        dayContainer.classList.add("bth-day");
+        dayContainer.classList.add("reg-bth-day");
         dobRow.appendChild(dayContainer);
 
         const days = Array.from({ length: 31 }, (_, i) => ({
             label: String(i + 1),
             value: String(i + 1),
+            active: i + 1 === 1,
         }));
 
-        this.inputs.bthDay = new SelectInput(dayContainer, {
-            header: "День",
-            values: days,
-        });
+        this.inputs.bthDay = new SelectInput(dayContainer, { values: days });
         await this.inputs.bthDay.render();
 
         const monthContainer = document.createElement("div");
-        monthContainer.classList.add("bth-month");
+        monthContainer.classList.add("reg-bth-month");
         dobRow.appendChild(monthContainer);
 
-        const months = MONTH_NAMES.map((name) => ({
-            label: name.slice(0, 3),
+        const months = MONTH_NAMES.map((name, index) => ({
+            label: name,
             value: name,
+            active: index === 0,
         }));
 
-        this.inputs.bthMonth = new SelectInput(monthContainer, {
-            header: "Месяц",
-            values: months,
-        });
+        this.inputs.bthMonth = new SelectInput(monthContainer, { values: months });
         await this.inputs.bthMonth.render();
 
         const yearContainer = document.createElement("div");
-        yearContainer.classList.add("bth-year");
+        yearContainer.classList.add("reg-bth-year");
         dobRow.appendChild(yearContainer);
 
+        const MIN_AGE = 14;
         const currentYear = new Date().getFullYear();
-        const years = Array.from({ length: 100 }, (_, i) => {
-            const year = currentYear - i;
-            return { label: String(year), value: String(year) };
-        });
+        const maxYear = currentYear - MIN_AGE;
+        const minYear = currentYear - 120;
 
-        this.inputs.bthYear = new SelectInput(yearContainer, {
-            header: "Год",
-            values: years,
-        });
+        const years = [];
+        for (let y = maxYear; y >= minYear; y--) {
+            years.push({
+                label: String(y),
+                value: String(y),
+                active: y === maxYear,
+            });
+        }
+
+        this.inputs.bthYear = new SelectInput(yearContainer, { values: years });
         await this.inputs.bthYear.render();
+
 
         const genderLabel = document.createElement("div");
         genderLabel.textContent = "Выберите пол";
