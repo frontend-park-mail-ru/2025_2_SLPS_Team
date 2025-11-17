@@ -29,7 +29,7 @@ function mapStatus(status) {
       return { text: 'Отменено', className: 'help-status--canceled' };
     case 'new':
     default:
-      return { text: 'Новый', className: 'help-status--new' };
+      return { text: 'В работе', className: 'help-status--in-progress' };
   }
 }
 
@@ -41,6 +41,8 @@ export class HelpPage extends BasePage {
     this.requests = [];
     this.wrapper = null;
     this.pageEl = null;
+
+    this.isAdmin = false;
   }
 
   async render() {
@@ -57,7 +59,31 @@ export class HelpPage extends BasePage {
     this.wrapper.appendChild(this.pageEl);
     this.rootElement.appendChild(this.wrapper);
 
+    await this.fetchUserRole();
+
     await this.loadPage(this.currentPage);
+  }
+
+  async fetchUserRole() {
+    try {
+      const res = await fetch('/api/auth/isloggedin', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+
+      if (!res.ok) {
+        console.warn('Не удалось получить роль пользователя');
+        return;
+      }
+
+      const data = await res.json();
+      this.isAdmin = data.role === 'admin';
+    } catch (err) {
+      console.error('Ошибка получения роли пользователя', err);
+    }
   }
 
   async loadPage(page) {
@@ -106,6 +132,23 @@ export class HelpPage extends BasePage {
         req.status
       );
 
+      let actionsCellHtml = '';
+
+      if (this.isAdmin) {
+        actionsCellHtml = `
+          <div class="friend-card__actions">
+            <img
+              class="fiend-actions-button"
+              src="/public/FriendsActions/MorePointsIcon.svg"
+              alt="Действия"
+            >
+            <div class="friend-actions-container"></div>
+          </div>
+        `;
+      } else {
+        actionsCellHtml = '';
+      }
+
       row.innerHTML = `
         <td class="help-table__cell">
           ${req.number ?? index + 1}
@@ -120,52 +163,47 @@ export class HelpPage extends BasePage {
           <span class="${statusClass}">${statusText}</span>
         </td>
         <td class="help-table__cell">
-          <div class="friend-card__actions">
-            <img
-              class="fiend-actions-button"
-              src="/public/FriendsActions/MorePointsIcon.svg"
-              alt="Действия"
-            >
-            <div class="friend-actions-container"></div>
-          </div>
+          ${actionsCellHtml}
         </td>
       `;
 
-      const dropButton = row.querySelector('.fiend-actions-button');
-      const actionsContainer = row.querySelector('.friend-actions-container');
+      if (this.isAdmin) {
+        const dropButton = row.querySelector('.fiend-actions-button');
+        const actionsContainer = row.querySelector('.friend-actions-container');
 
-      if (dropButton && actionsContainer) {
-        const dropdown = new DropDown(actionsContainer, {
-          values: [
-            {
-              label: 'Редактировать',
-              icon: '/public/globalImages/EditIcon.svg',
-              onClick: () => {
-                this.handleEdit(req);
+        if (dropButton && actionsContainer) {
+          const dropdown = new DropDown(actionsContainer, {
+            values: [
+              {
+                label: 'Редактировать',
+                icon: '/public/globalImages/EditIcon.svg',
+                onClick: () => {
+                  this.handleEdit(req);
+                },
               },
-            },
-            {
-              label: 'Отменить',
-              icon: '/public/globalImages/DeleteImg.svg',
-              onClick: async () => {
-                await this.handleCancel(req);
+              {
+                label: 'Отменить',
+                icon: '/public/globalImages/DeleteImg.svg',
+                onClick: async () => {
+                  await this.handleCancel(req);
+                },
               },
-            },
-          ],
-        });
+            ],
+          });
 
-        dropdown.render();
+          dropdown.render();
 
-        dropButton.addEventListener('mouseenter', () => dropdown.show());
-        dropdown.wrapper.addEventListener('mouseenter', () => dropdown.show());
+          dropButton.addEventListener('mouseenter', () => dropdown.show());
+          dropdown.wrapper.addEventListener('mouseenter', () => dropdown.show());
 
-        dropButton.addEventListener('mouseleave', () => {
-          setTimeout(() => {
-            if (!dropdown.wrapper.matches(':hover')) dropdown.hide();
-          }, 50);
-        });
+          dropButton.addEventListener('mouseleave', () => {
+            setTimeout(() => {
+              if (!dropdown.wrapper.matches(':hover')) dropdown.hide();
+            }, 50);
+          });
 
-        dropdown.wrapper.addEventListener('mouseleave', () => dropdown.hide());
+          dropdown.wrapper.addEventListener('mouseleave', () => dropdown.hide());
+        }
       }
 
       tbody.appendChild(row);

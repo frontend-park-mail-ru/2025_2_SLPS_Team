@@ -81,14 +81,27 @@ export async function renderPost(postData) {
     const text = postElement.querySelector(".js-post-text");
     const btn = postElement.querySelector(".js-toggle-btn");
 
-    btn.addEventListener("click", () => {
-    text.classList.toggle("expanded");
+    if (!text || !btn) return postElement;
 
-    if (text.classList.contains("expanded")) {
-        btn.textContent = "Скрыть";
-    } else {
-        btn.textContent = "Показать ещё";
-    }
+    requestAnimationFrame(() => {
+        const isClamped = text.scrollHeight > text.clientHeight + 1;
+
+        if (!isClamped) {
+            btn.style.display = "none";
+            return;
+        }
+
+        btn.addEventListener("click", () => {
+            text.classList.toggle("expanded");
+
+            if (text.classList.contains("expanded")) {
+                text.style.maxHeight = "none";
+                btn.textContent = "Скрыть";
+            } else {
+                text.style.maxHeight = "";
+                btn.textContent = "Показать ещё";
+            }
+        });
     });
 
     if (isOwner) {

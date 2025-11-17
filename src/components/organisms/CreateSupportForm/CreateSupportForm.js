@@ -12,11 +12,11 @@ const notifier = new NotificationManager();
 const CATEGORY_MAP = {
     'Приложение зависает/тормозит': 'app_freezing',
     'Не загружается страница': 'page_not_loading',
-    'Не работает чат': 'chat_profile_messenger_friends',
-    'Не работает профиль': 'chat_profile_messenger_friends',
-    'Не работает мессенджер': 'chat_profile_messenger_friends',
-    'Не работает страница друзья': 'chat_profile_messenger_friends',
-    'Проблема с авторизацией/входом': 'authorization_issue',
+    'Не работает чат': 'chat_not_working',
+    'Не работает профиль': 'profile_not_working',
+    'Не работает мессенджер': 'messenger_not_working',
+    'Не работает страница друзья': 'friend_not_working',
+    'Проблема с авторизацией/входом': 'auth_problem',
 };
 
 export class CreateSupportForm {
@@ -44,7 +44,6 @@ export class CreateSupportForm {
         );
         await this.inputs.regEmail.render();
 
-        // значения value делаем осмысленными, которые будем отправлять как category
         this.inputs.supportSelect = new SelectInput(
             this.wrapper.querySelector('.support-select-wrapper'),
             {
@@ -141,7 +140,6 @@ export class CreateSupportForm {
     }
 
     handleCancel() {
-        // по заданию: закрываем только виджет
         if (window.parent && window.parent !== window) {
             window.parent.postMessage({ type: 'support-widget:close' }, '*');
         }
@@ -155,13 +153,12 @@ export class CreateSupportForm {
             const contactEmailInput = this.wrapper.querySelector('.support-contact-email-input');
 
             const loginEmail = this.inputs.regEmail.getValue();
-            const topicLabel = this.inputs.supportSelect.getValue(); // текст
+            const topicLabel = this.inputs.supportSelect.getValue();
             const topic = CATEGORY_MAP[topicLabel]; 
             const description = this.inputs.aboutProblem.getValue();
             const name = this.inputs.nameInput.getValue();
             const contactEmail = this.inputs.emailInput.getValue();
 
-            // убираем старую подсветку
             this.wrapper
                 .querySelectorAll('.support-input-error')
                 .forEach((el) => el.classList.remove('support-input-error'));
@@ -173,7 +170,6 @@ export class CreateSupportForm {
                 hasError = true;
             };
 
-            // валидация — окно НЕ закрываем
             if (!loginEmail) markError(loginEmailInput);
             if (!topic || topic === 'none' || topic === 'Не выбрано') markError(topicSelect);
             if (!description) markError(descriptionInput);
@@ -191,10 +187,9 @@ export class CreateSupportForm {
 
             const now = new Date().toISOString();
 
-            // Полный payload, как в swagger-модели
             const payload = {
-                authorID: 'temp',          // заглушка, если автор берётся с сессии
-                category: topic,           // коды из SelectInput (app_freezing, ...)
+                authorID: 'temp',
+                category: topic,
                 createdAt: now,
                 emailFeedBack: contactEmail,
                 emailReg: loginEmail,
@@ -238,7 +233,6 @@ export class CreateSupportForm {
                 'success',
             );
 
-            // по ТЗ: после успешной отправки виджет закрывается
             if (window.parent && window.parent !== window) {
                 window.parent.postMessage(
                     { type: 'support-widget:submitted' },

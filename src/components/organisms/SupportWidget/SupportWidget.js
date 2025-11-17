@@ -37,11 +37,9 @@ export class SupportWidget {
 
     this.root.appendChild(this.container);
 
-    // Инициализируем нотификатор один раз
     this.notifier = new NotificationManager();
     this.notifier.init();
 
-    // Слушаем сообщения из iframe
     window.addEventListener('message', this.handleMessage);
   }
 
@@ -49,12 +47,10 @@ export class SupportWidget {
     const data = event.data || {};
 
     if (data.type === 'support-widget:close') {
-      // Отмена из формы
       this.hide();
     }
 
     if (data.type === 'support-widget:submitted') {
-      // Успешная отправка из формы
       this.hide();
       if (this.notifier) {
         this.notifier.show(
