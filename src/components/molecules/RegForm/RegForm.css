@@ -8,3 +8,16 @@
     font-size: 14px;
     color: var(--dark-gray);
 }
+.bth-container {
+    display: flex;
+    gap: 6px;
+}
+
+.bth-day {
+    width: 56px;
+}
+
+.bth-month,
+.bth-year {
+    width: 86px;
+}

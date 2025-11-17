@@ -44,10 +44,8 @@ export async function renderRegPage(container, options = {}) {
     } catch (e) {
       console.error('Ошибка регистрации:', e);
 
-      // ===== ОБРАБОТКА ЗАНЯТОГО EMAIL =====
       const backendMessage = e?.data?.message || e?.data?.error || "";
 
-      // вариант через статус 409 (конфликт)
       const isEmailAlreadyExists =
         e?.status === 409 ||
         backendMessage.toLowerCase().includes('already') ||
@@ -55,18 +53,15 @@ export async function renderRegPage(container, options = {}) {
         backendMessage.toLowerCase().includes('существ');
 
       if (isEmailAlreadyExists) {
-        // помечаем, что email занят
         regForm.emailError = true;
 
-        // возвращаем пользователя на первый шаг (если он не там)
         regForm.currentStep = 1;
         regForm.animationStatus = 'back';
-        regForm.renderStep(); // внутри renderStep1 вызовется validateStep1 и покажет ошибку
+        regForm.renderStep(); 
 
         return;
       }
 
-      // Любая другая ошибка регистрации
       alert(backendMessage || 'Произошла ошибка при регистрации. Попробуйте позже');
     }
   },

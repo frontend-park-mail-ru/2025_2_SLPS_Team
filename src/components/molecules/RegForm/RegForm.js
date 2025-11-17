@@ -3,7 +3,23 @@ import { renderFormButton } from "../../atoms/FormButtons/FormButtons.js";
 import RegFormTemplate from './RegForm.hbs'
 import { gsap } from "gsap";
 import { authService } from "../../../services/AuthService.js";
+import SelectInput from "../../atoms/SelectInput/SelectInput.js";
+import { ModalConfirm } from '../ModalConfirm/ModalConfirm.js';
 
+const MONTH_NAMES = [
+  "Январь",
+  "Февраль",
+  "Март",
+  "Апрель",
+  "Май",
+  "Июнь",
+  "Июль",
+  "Август",
+  "Сентябрь",
+  "Октябрь",
+  "Ноябрь",
+  "Декабрь",
+];
 
 /**
  * Класс для рендеринга многошаговой формы регистрации.
@@ -191,14 +207,60 @@ export default class RegistrationForm {
     }
 
     async renderStep3() {
-        this.inputs.age = new FormInput(this.inputContainer, {
-            name: "age",
-            label: "Возраст",
-            type: "text",
-            placeholder: "Введите возраст",
-            required: true,
+        const dobLabel = document.createElement("div");
+        dobLabel.textContent = "Дата рождения";
+        dobLabel.classList.add("small-lable");
+        this.inputContainer.appendChild(dobLabel);
+
+        const dobRow = document.createElement("div");
+        dobRow.classList.add("bth-container");
+        this.inputContainer.appendChild(dobRow);
+
+        const dayContainer = document.createElement("div");
+        dayContainer.classList.add("bth-day");
+        dobRow.appendChild(dayContainer);
+
+        const days = Array.from({ length: 31 }, (_, i) => ({
+            label: String(i + 1),
+            value: String(i + 1),
+        }));
+
+        this.inputs.bthDay = new SelectInput(dayContainer, {
+            header: "День",
+            values: days,
         });
-        await this.inputs.age.render();
+        await this.inputs.bthDay.render();
+
+        const monthContainer = document.createElement("div");
+        monthContainer.classList.add("bth-month");
+        dobRow.appendChild(monthContainer);
+
+        const months = MONTH_NAMES.map((name) => ({
+            label: name.slice(0, 3),
+            value: name,
+        }));
+
+        this.inputs.bthMonth = new SelectInput(monthContainer, {
+            header: "Месяц",
+            values: months,
+        });
+        await this.inputs.bthMonth.render();
+
+        const yearContainer = document.createElement("div");
+        yearContainer.classList.add("bth-year");
+        dobRow.appendChild(yearContainer);
+
+        const currentYear = new Date().getFullYear();
+        const years = Array.from({ length: 100 }, (_, i) => {
+            const year = currentYear - i;
+            return { label: String(year), value: String(year) };
+        });
+
+        this.inputs.bthYear = new SelectInput(yearContainer, {
+            header: "Год",
+            values: years,
+        });
+        await this.inputs.bthYear.render();
 
         const genderLabel = document.createElement("div");
         genderLabel.textContent = "Выберите пол";
@@ -206,7 +268,6 @@ export default class RegistrationForm {
 
         const genderContainer = document.createElement("div");
         genderContainer.classList.add("gender-container");
-
         genderContainer.innerHTML = `
             <label class="remember-me">
                 <input type="checkbox" name="gender" value="Мужской">
@@ -248,6 +309,8 @@ export default class RegistrationForm {
             this.renderStep();
         });
     }
+
+
 
     validateStep1() {
         let valid = true;
@@ -306,28 +369,65 @@ export default class RegistrationForm {
     }
 
     validateStep3() {
-        let valid = true;
-        const age = parseInt(this.inputs.age.input.value.trim(), 10);
+        const showError = (message) => {
+            const modal = new ModalConfirm(
+                'Ошибка валидации',
+                message,
+                () => {} 
+            );
+            modal.open();
+        };
 
-        this.inputs.age.hideError();
+        const day = Number(this.inputs.bthDay.getValue());
+        const monthName = this.inputs.bthMonth.getValue();
+        const year = Number(this.inputs.bthYear.getValue());
 
-        if (
-            !/^\d+$/.test(age) ||
-            Number(age) < 14 ||
-            Number(age) > 120
-        ) {
-            this.inputs.age.showError("Введите корректный возраст");
-            valid = false;
+        if (!day || !monthName || !year) {
+            showError('Заполните дату рождения');
+            return false;
         }
 
-        return valid;
+        const monthIndex = MONTH_NAMES.indexOf(monthName);
+        if (monthIndex === -1) {
+            showError('Выбран некорректный месяц');
+            return false;
+        }
+
+        const birthDate = new Date(Date.UTC(year, monthIndex, day));
+        const today = new Date();
+
+        let age = today.getUTCFullYear() - birthDate.getUTCFullYear();
+        const m = today.getUTCMonth() - birthDate.getUTCMonth();
+        if (m < 0 || (m === 0 && today.getUTCDate() < birthDate.getUTCDate())) {
+            age--;
+        }
+
+        if (age < 14 || age > 120) {
+            showError('Возраст должен быть от 14 до 120 лет');
+            return false;
+        }
+
+        const genderInput = this.form.querySelector('input[name="gender"]:checked');
+        if (!genderInput) {
+            showError('Выберите пол');
+            return false;
+        }
+
+        return true;
     }
 
+
+
+
     handleSubmit() {
-        const age = parseInt(this.inputs.age.input.value.trim(), 10);
-        const currentYear = new Date().getFullYear();
-        const birthYear = currentYear - age;
-        const dob = new Date(Date.UTC(birthYear, 0, 1, 0, 0, 0)).toISOString();
+        const day = Number(this.inputs.bthDay.getValue());
+        const monthName = this.inputs.bthMonth.getValue();
+        const year = Number(this.inputs.bthYear.getValue());
+        const monthIndex = MONTH_NAMES.indexOf(monthName);
+
+        const dob = new Date(Date.UTC(year, monthIndex, day)).toISOString();
+
+        const gender = this.form.querySelector('input[name="gender"]:checked')?.value || null;
 
         const data = {
             email: this.inputs.email.input.value.trim(),
@@ -336,7 +436,7 @@ export default class RegistrationForm {
             firstName: this.inputs.firstName.input.value.trim(),
             lastName: this.inputs.lastName.input.value.trim(),
             dob,
-            gender: this.form.querySelector('input[name="gender"]:checked')?.value || null,
+            gender,
         };
 
         if (this.options.onSubmit) {
