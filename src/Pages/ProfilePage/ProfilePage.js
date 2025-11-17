@@ -24,17 +24,6 @@ function formatDob(dobStr) {
   return { dobFormatted, age };
 }
 
-/*
-// Как будто можно занести из FriendsApi
-async function getFriendsDataMock() {
-  return {
-    count_friends: 12,
-    count_followers: 34,
-    count_follows: 56,
-  };
-}
-*/
-
 async function getFriendsData(userId) {
   const res = await getFriendsStats(userId);
 
@@ -58,11 +47,10 @@ export class ProfilePage extends BasePage {
     this.wrapper = null;
   }
 
-  async render() {
+    async render() {
     this.resolveUserId();
 
     this.profileData = await getProfile(this.userId);
-  // мок друзья
     this.friendsData = await getFriendsData(this.userId);
 
     const { dobFormatted, age } = formatDob(this.profileData.dob);
@@ -118,12 +106,18 @@ export class ProfilePage extends BasePage {
 
     this.rootElement.appendChild(this.wrapper);
 
-    EventBus.on('profile:newPost', async () => {
-      if (this.wrapper) {
-        await this.renderPostsBlock();
-      }
-    });
+    const rerenderProfileFeed = async () => {
+      if (!this.wrapper) return;
+      await this.renderPostsBlock();
+    };
+
+    EventBus.on('profile:newPost', rerenderProfileFeed);
+
+    EventBus.on('posts:created', rerenderProfileFeed);
+    EventBus.on('posts:updated', rerenderProfileFeed);
+    EventBus.on('posts:deleted', rerenderProfileFeed);
   }
+
 
   async renderPostsBlock() {
     this.posts = await getUserPosts(this.userId, 20);
@@ -138,7 +132,11 @@ export class ProfilePage extends BasePage {
 
     const feedContainer = this.wrapper.querySelector('.profile-feed-container');
     feedContainer.innerHTML = '';
-    const feedElement = await renderFeed(this.posts, this.isOwner);
+
+    const feedElement = await renderFeed(this.posts, this.isOwner, {
+      mode: 'profile',
+    });
+
     feedContainer.appendChild(feedElement);
   }
 

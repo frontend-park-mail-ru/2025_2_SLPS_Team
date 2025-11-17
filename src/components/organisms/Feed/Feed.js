@@ -7,7 +7,9 @@ import { getPosts } from "../../../shared/api/postsApi.js";
 const feedInstances = [];
 let subscribed = false;
 
-export async function renderFeed(posts, isOwner = true) {
+export async function renderFeed(posts, isOwner = true, options = {}) {
+  const { mode = "global" } = options;
+
   const html = FeedTemplate({ icon: "/public/globalImages/NewPostIcon.svg" });
   const wrapper = document.createElement("div");
   wrapper.innerHTML = html.trim();
@@ -30,26 +32,31 @@ export async function renderFeed(posts, isOwner = true) {
     newPostButton.addEventListener("click", () => modal.open());
   }
 
-  feedInstances.push({ postsContainer });
+  if (mode === "global") {
+    feedInstances.push({ postsContainer });
 
-  if (!subscribed) {
-    subscribed = true;
-    const reloadAllFeeds = async () => {
-      const fresh = await getPosts();
-      for (const inst of feedInstances) {
-        await renderPostsInto(inst.postsContainer, fresh);
-      }
-    };
-    EventBus.on("posts:created", reloadAllFeeds);
-    EventBus.on("posts:updated", reloadAllFeeds);
-    EventBus.on("posts:deleted", reloadAllFeeds);
+    if (!subscribed) {
+      subscribed = true;
+      const reloadAllFeeds = async () => {
+        const fresh = await getPosts();
+        for (const inst of feedInstances) {
+          await renderPostsInto(inst.postsContainer, fresh);
+        }
+      };
+      EventBus.on("posts:created", reloadAllFeeds);
+      EventBus.on("posts:updated", reloadAllFeeds);
+      EventBus.on("posts:deleted", reloadAllFeeds);
+    }
   }
 
   return feedEl;
 }
 
+
 async function renderPostsInto(container, posts) {
   const safe = Array.isArray(posts) ? posts : [];
   container.innerHTML = "";
-  for (const post of safe) container.appendChild(await renderPost(post));
+  for (const post of safe) {
+    container.appendChild(await renderPost(post));
+  }
 }
