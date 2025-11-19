@@ -102,7 +102,7 @@ export class HelpPage extends BasePage {
     notifier.show(
       'Редактирование',
       'Редактирование обращения пока не реализовано.',
-      'info',
+      'warning',
     );
   }
 
