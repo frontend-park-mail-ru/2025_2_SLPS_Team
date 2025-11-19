@@ -1,0 +1,11 @@
+<div class="help-page__pagination">
+  {{#each pages}}
+    <button
+      type="button"
+      class="help-page__page-btn {{#if isActive}}help-page__page-btn--active{{/if}}"
+      data-page="{{number}}"
+    >
+      {{number}}
+    </button>
+  {{/each}}
+</div>
