@@ -96,19 +96,27 @@ export class ImageInput {
             const slide = document.createElement('div');
             slide.className = 'slide';
 
-            const img = document.createElement('img');
-
             const file = this.selectedFiles[i];
+            let imgUrl = '';
+
             if (file instanceof File) {
-                img.src = URL.createObjectURL(file);
+                imgUrl = URL.createObjectURL(file);
             } else if (file.url) {
-                img.src = file.url;
+                imgUrl = file.url;
             } else {
                 continue;
             }
 
-            img.className = 'slide-image';
-            slide.appendChild(img);
+            const bg = document.createElement('img');
+            bg.src = imgUrl;
+            bg.className = 'slide-bg';
+
+            const fg = document.createElement('img');
+            fg.src = imgUrl;
+            fg.className = 'slide-fg';
+
+            slide.appendChild(bg);
+            slide.appendChild(fg);
 
             const removeBtn = await renderRemoveButton(() => {
                 this.removeImage(i);

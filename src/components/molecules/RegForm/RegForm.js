@@ -226,7 +226,7 @@ export default class RegistrationForm {
             active: i + 1 === 1,
         }));
 
-        this.inputs.bthDay = new SelectInput(dayContainer, { values: days });
+        this.inputs.bthDay = new SelectInput(dayContainer, { values: days, pressedStyle: true });
         await this.inputs.bthDay.render();
 
         const monthContainer = document.createElement("div");
@@ -239,7 +239,7 @@ export default class RegistrationForm {
             active: index === 0,
         }));
 
-        this.inputs.bthMonth = new SelectInput(monthContainer, { values: months });
+        this.inputs.bthMonth = new SelectInput(monthContainer, { values: months, pressedStyle: true });
         await this.inputs.bthMonth.render();
 
         const yearContainer = document.createElement("div");
@@ -260,7 +260,7 @@ export default class RegistrationForm {
             });
         }
 
-        this.inputs.bthYear = new SelectInput(yearContainer, { values: years });
+        this.inputs.bthYear = new SelectInput(yearContainer, { values: years, pressedStyle: true });
         await this.inputs.bthYear.render();
 
 

@@ -83,6 +83,7 @@ export class EditProfileForm {
 
     this.inputs.bthDay = new SelectInput(this.wrapper.querySelector('.bth-day'), {
       values: days,
+      pressedStyle: true
     });
     await this.inputs.bthDay.render();
 
@@ -109,6 +110,7 @@ export class EditProfileForm {
 
     this.inputs.bthMonth = new SelectInput(this.wrapper.querySelector('.bth-month'), {
       values: months,
+      pressedStyle: true
     });
     await this.inputs.bthMonth.render();
 
@@ -124,6 +126,7 @@ export class EditProfileForm {
 
     this.inputs.bthYear = new SelectInput(this.wrapper.querySelector('.bth-year'), {
       values: years,
+      pressedStyle: true
     });
     await this.inputs.bthYear.render();
 
@@ -134,7 +137,7 @@ export class EditProfileForm {
       values: [
         { label: 'Мужской', value: 'Мужской', active: genderValue === 'Мужской' },
         { label: 'Женский', value: 'Женский', active: genderValue === 'Женский' },
-      ],
+      ], pressedStyle: true
     });
     await this.inputs.gender.render();
 

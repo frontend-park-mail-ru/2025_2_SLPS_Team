@@ -15,7 +15,7 @@ function mapCategory(category) {
       return 'Не работает профиль';
     case 'messenger_not_working':
       return 'Не работает мессенджер';
-    case 'friends_not_working':
+    case 'friend_not_working':
       return 'Не работает страница друзья';
     case 'auth_problem':
       return 'Проблема с авторизацией/входом';
