@@ -1,12 +1,16 @@
 import CreateCommunityModalTemplate from './CreateCommunityModal.hbs';
 import './CreateCommunityModal.css';
+import BaseInput from '../../atoms/BaseInput/BaseInput.js';
+import BaseButton from '../../atoms/BaseButton/BaseButton.js';
 
 export class CreateCommunityModal {
   constructor({ onSubmit, onCancel } = {}) {
     this.onSubmit = onSubmit;
     this.onCancel = onCancel;
     this.root = null;
+    this.aboutInput = null;
     this.boundEscHandler = this.handleEsc.bind(this);
+    this.buttons = [];
   }
 
   open() {
@@ -38,6 +42,37 @@ export class CreateCommunityModal {
     }
 
     this.root = root;
+
+    this.aboutInput = new BaseInput(this.root.querySelector('.create-community-modal__about-field'),{
+      header: 'О Сообществе',
+      isBig: true,
+      type: 'text',
+      placeholder: 'Расскажите о чем ваше сообщество',
+      required: true,
+    });
+
+    this.aboutInput.render();
+
+    const buttonCountainer = this.root.querySelector('.create-community-modal__footer');
+    this.buttons.CancelBtn = new BaseButton(buttonCountainer, {
+        text: 'Отменить',
+        style: 'default',
+        onClick: () => {
+        this.handleCancel()
+        },
+    });
+
+    this.buttons.CancelBtn.render()
+
+    this.buttons.SaveBtn = new BaseButton(buttonCountainer, {
+        text: 'Сохранить',
+        style: 'primary',
+        onClick: () => {
+        this.handleSubmit();
+        },
+    })
+
+    this.buttons.SaveBtn.render()
 
     document.body.appendChild(this.root);
     this.bindEvents();
@@ -73,17 +108,6 @@ export class CreateCommunityModal {
       closeBtn.addEventListener('click', () => this.handleCancel());
     }
 
-    if (cancelBtn) {
-      cancelBtn.addEventListener('click', () => this.handleCancel());
-    }
-
-    if (form) {
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        this.handleSubmit();
-      });
-    }
-
     if (nameInput && counter) {
       const updateCounter = () => {
         const len = nameInput.value.length;
@@ -111,10 +135,9 @@ export class CreateCommunityModal {
 
   handleSubmit() {
     const nameInput = this.root.querySelector('#community-name-input');
-    const aboutInput = this.root.querySelector('#community-about-input');
-
     const name = nameInput ? nameInput.value.trim() : '';
-    const about = aboutInput ? aboutInput.value.trim() : '';
+
+    const about = this.aboutInput.getValue();
 
     if (!name) {
       if (nameInput) {

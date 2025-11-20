@@ -23,7 +23,9 @@
 }
 
 .community-created__name {
-  font-size: 14px;
-  color: #161616;
+  font-size: 16px;
+  color: var(--text-black);
   text-align: left;
+  font-weight: 330;
+  font-family: 'Nunito Sans';
 }

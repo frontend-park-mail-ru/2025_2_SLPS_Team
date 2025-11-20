@@ -93,19 +93,19 @@
 
           {{#if community.description}}
             <div class="community-about-card__row">
-              <div class="community-about-card__icon community-about-card__icon--about"></div>
+              <img class="community-about-card__icon community-about-card__icon--about" src="/public/globalImages/AboutComuunityIcon.svg">
 
               <div class="community-about-card__content">
                 <div
                   class="community-about-card__text-wrapper"
                   data-role="about-wrapper"
                 >
-                  <p
+                  <div
                     class="community-about-card__text"
                     data-role="about-text"
                   >
                     {{community.description}}
-                  </p>
+                  </div>
                 </div>
 
                 <button
@@ -121,7 +121,7 @@
 
           {{#if community.createdAtFormatted}}
             <div class="community-about-card__row community-about-card__row--created">
-              <div class="community-about-card__icon community-about-card__icon--created"></div>
+              <img class="community-about-card__icon community-about-card__icon--created" src="/public/globalImages/BigCheckIcon.svg">
 
               <div class="community-about-card__content">
                 <div class="community-about-card__created-title">

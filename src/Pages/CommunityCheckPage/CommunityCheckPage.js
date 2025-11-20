@@ -9,6 +9,7 @@ import { ModalConfirm } from '../../components/molecules/ModalConfirm/ModalConfi
 import { EventBus } from '../../services/EventBus.js';
 import { authService } from '../../services/AuthService.js';
 import { navigateTo } from '../../app/router/navigateTo.js';
+import DropDown from '../../components/atoms/dropDown/dropDown.js';
 
 // моковые api
 import {
@@ -76,23 +77,22 @@ export class CommunityCheckPage extends BasePage {
     );
     const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
 
-    const avatarPath =
-      !this.community.avatarPath || this.community.avatarPath === 'null'
-        ? '/public/globalImages/DefaultCommunity.svg'
-        : `${baseUrl}${this.community.avatarPath}`;
+//    const avatarPath =
+//      !this.community.avatarPath || this.community.avatarPath === 'null'
+//        ? '/public/globalImages/DefaultCommunity.svg'
+//        : `${baseUrl}${this.community.avatarPath}`;
+    
+    const avatarPath = '/public/testData/CommunityAvatar.png';
 
     const coverPath =
       !this.community.coverPath || this.community.coverPath === 'null'
-        ? '/public/globalImages/DefaultCover.svg'
+        ? '/public/globalImages/backgroud.png'
         : `${baseUrl}${this.community.coverPath}`;
 
     this.isOwner = this.community.ownerId === Number(authService.getUserId());
     this.isSubscribed = !!this.community.isSubscribed;
 
-    const createdAtFormatted = formatDate(
-      this.community.createdAt || this.community.created_at,
-    );
-
+    const createdAtFormatted = formatDate(this.community.createdAt);
     const templateData = {
       community: {
         ...this.community,

@@ -15,15 +15,20 @@
 }
 
 .create-community-modal__window {
-  position: relative;
-  z-index: 1;
-  width: 360px;
-  max-width: calc(100% - 32px);
-  background: #ffffff;
-  border-radius: 18px;
-  padding: 16px 20px 16px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
-  box-sizing: border-box;
+    position: relative;
+    z-index: 1;
+    width: 420px;
+    max-width: calc(100% - 32px);
+    background: var(--base-white);
+    border-radius: 16px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
+    box-sizing: border-box;
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0px;
+    gap: 14px;
 }
 
 .create-community-modal__header {
@@ -31,19 +36,18 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  margin-bottom: 10px;
 }
 
 .create-community-modal__title {
   font-size: 16px;
   font-weight: 500;
-  color: #262626;
+  color: var(--base-purple);
 }
 
 .create-community-modal__close {
   position: absolute;
-  right: -4px;
-  top: -4px;
+  right: 0px;
+  top: 18px;
   width: 24px;
   height: 24px;
   border-radius: 50%;
@@ -54,12 +58,11 @@
   cursor: pointer;
 }
 
-/* form */
-
 .create-community-modal__form {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  width: 380px;
 }
 
 .create-community-modal__field {
@@ -74,27 +77,29 @@
   align-items: center;
 }
 
-.create-community-modal__label {
-  font-size: 13px;
-  color: #7c7c7c;
-}
-
+.create-community-modal__label,
 .create-community-modal__counter {
-  font-size: 11px;
-  color: #a0a0a0;
+  font-size: 16px;
+  color: var(--dark-gray);
 }
 
 .create-community-modal__input {
-  height: 36px;
-  border-radius: 10px;
-  border: 1px solid var(--base-purple);
-  padding: 0 10px;
+  height: 25px;
+  border-radius: 6px;
+  border: 1px solid var(--light-border);
+  background-color: var(--light-gray);
+  padding: 4px 12px;
   font-size: 14px;
   outline: none;
 }
 
+.create-community-modal__input:focus {
+  border: 1px solid var(--base-purple);
+}
+
 .create-community-modal__input::placeholder {
-  color: #b4b4b4;
+  color: var(--dark-gray);
+  font-family: inherit;
 }
 
 .create-community-modal__textarea {
@@ -145,4 +150,16 @@
 
 .create-community-modal__btn--primary:hover {
   opacity: 0.95;
+}
+
+.create-modal-container {
+  width: 460px;
+  height: fit-content;
+  position: relative;
+}
+
+.create-community-modal__devider {
+  height: 1px;
+  background-color: var(--light-border);
+  width: 100%;
 }

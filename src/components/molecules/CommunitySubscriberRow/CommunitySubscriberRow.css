@@ -23,5 +23,7 @@
 }
 
 .community-subscriber-row__name {
-  font-size: 13px;
+  font-size: 16px;
+  font-family: 'Nunito Sans';
+  font-weight: 350;
 }

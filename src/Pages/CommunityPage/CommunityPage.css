@@ -6,7 +6,7 @@
   gap: 16px;
   width: 100%;
   box-sizing: border-box;
-  align-items: flex-start;
+  align-items: stretch;
 }
 
 .community-page__left {
@@ -14,14 +14,44 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  height: calc(100vh - 80px - 20px);
 }
 
 .community-search-block {
-  width: 100%;
+  flex-shrink: 0;
+}
+
+.community-list-block {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   background: var(--base-white);
   border-radius: 14px;
-  box-sizing: border-box;
+  padding: 10px;
+  overflow: hidden;
 }
+
+.community-page__tabs {
+  flex-shrink: 0;
+  display: flex;
+  gap: 16px;
+  padding: 6px 12px;
+}
+
+.community-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.community-list::-webkit-scrollbar {
+  display: none;
+}
+
 .community-search-input-wrapper {
   width: 100%;
   height: 48px;
@@ -59,20 +89,6 @@
   color: #b4b4b4;
 }
 
-.community-list-block {
-  background: var(--base-white);
-  border-radius: 14px;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-}
-
-.community-page__tabs {
-  display: flex;
-  gap: 16px;
-  padding: 6px 12px;
-}
-
 .community-tab {
   font-size: 18px;
   background: none;
@@ -80,19 +96,16 @@
   padding: 4px 10px;
   cursor: pointer;
   color: var(--text-black);
+  font-weight: 400;
+  font-family: 'Nunito Sans';
 }
 
 .community-tab--active {
   background: #f4ecff;
   border-radius: 8px;
-  color: #000000;
-  font-weight: 500;
-}
-
-.community-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  color: var(--text-black);
+  font-weight: 400;
+  font-family: 'Nunito Sans';
 }
 
 .community-empty {
@@ -102,9 +115,9 @@
 }
 
 .community-sidebar {
-  width: 300px;
-  background: #ffffff;
-  border-radius: 16px;
+  width: 330px;
+  background: var(--base-white);
+  border-radius: 14px;
   padding: 10px;
   box-sizing: border-box;
   display: flex;
@@ -117,14 +130,19 @@
 .community-sidebar__create-btn {
   width: 100%;
   padding: 8px 12px;
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px solid var(--base-purple);
-  background: #ffffff;
+  background: var(--base-white);
   color: var(--base-purple);
   font-weight: 500;
   text-align: center;
   cursor: pointer;
   transition: 0.2s;
+  height: 38px;
+}
+
+.community-sidebar__create-btn:hover {
+  background: var(--accent-purple);
 }
 
 .community-sidebar__title {
@@ -166,4 +184,10 @@
   font-size: 14px;
   color: #161616;
   text-align: left;
+}
+
+.community-page__main-contet {
+  display: flex;
+  align-items: flex-start;
+  height: calc(100vh - 80px - 16px);
 }

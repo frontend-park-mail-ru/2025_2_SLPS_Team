@@ -157,30 +157,29 @@
 }
 
 .community-about-card {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 10px 14px 12px;
-  font-size: 14px;
+  background: var(--base-white);
+  border-radius: 14px;
+  padding: 10px 13px;
+  width: 256px;
+  gap: 6px;
+  display: flex;
+  flex-direction: column;
 }
 
 .community-about-card__title {
-  font-weight: 500;
-  margin-bottom: 4px;
+  font-weight: 350;
+  font-size: 18px;
 }
 
 .community-about-card__row {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  margin-top: 8px;
 }
 
 .community-about-card__icon {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  background: var(--light-gray);
-  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
 }
 .community-about-card__text-wrapper {
   overflow: hidden;
@@ -196,6 +195,8 @@
   word-break: break-word;
   overflow-wrap: break-word;
   box-sizing: border-box;
+  font-size: 14px;
+  font-weight: 330;
 }
 
 .community-about-card__text--empty {
@@ -203,12 +204,14 @@
 }
 
 .community-about-card__more-btn {
-  margin-top: 4px;
   border: none;
   background: none;
   color: var(--base-purple);
   cursor: pointer;
   font-size: 13px;
+  padding: 0;
+  font-weight: 350;
+  font-family: inherit;
 }
 
 .community-about-card__created {
@@ -222,22 +225,25 @@
 }
 
 .community-subscribers-card {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 10px 14px 12px;
-  font-size: 14px;
+    background: var(--base-white);
+    border-radius: 14px;
+    padding: 10px 12px;
+    font-size: 14px;
+    width: 256px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .community-subscribers-card__header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  gap: 6px;
 }
 
 .community-subscribers-card__count {
-  font-size: 13px;
-  color: #969696;
+  font-size: 14px;
+  color: var(--dark-gray);
 }
 
 .community-subscribers-card__list {
@@ -249,4 +255,30 @@
 .community-subscribers-card__empty {
   font-size: 13px;
   color: #969696;
+}
+
+.community-about-card__content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.community-about-card__created-title {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 330;
+}
+
+.community-about-card__created-date {
+  font-size: 14px;
+  color: var(--dark-gray);
+  font-family: inherit;
+  font-weight: 330;
+}
+
+.community-subscribers-card__title {
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: 350;
 }
