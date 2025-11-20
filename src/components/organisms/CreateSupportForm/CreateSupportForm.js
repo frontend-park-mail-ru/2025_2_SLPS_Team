@@ -76,6 +76,19 @@ export class CreateSupportForm {
 
         this.inputs.imageInput = new ImageInputSmall(
             this.wrapper.querySelector('.support-screenshot-block'),
+            'Фото 1'
+        );
+        this.inputs.imageInput.render();
+
+        this.inputs.imageInput = new ImageInputSmall(
+            this.wrapper.querySelector('.support-screenshot-block'),
+            'Фото 2'
+        );
+        this.inputs.imageInput.render();
+
+        this.inputs.imageInput = new ImageInputSmall(
+            this.wrapper.querySelector('.support-screenshot-block'),
+            'Фото 3'
         );
         this.inputs.imageInput.render();
 

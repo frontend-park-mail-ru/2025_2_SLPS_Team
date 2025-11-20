@@ -1,9 +1,17 @@
-<div class="input-small-image-wrapper">
-    <div class="image-preview-list"></div>
+<div class="single-image-input">
+    <div class="small-image-input__header"> </div>
+    <input type="file" accept="image/*" class="single-image-file" hidden>
+    <div class="single-image-box">
+        <svg class="single-border-svg" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                    <rect x="0.5" y="0.5" width="89" height="89" rx="12" ry="12" fill="none" stroke="#99A2AD" stroke-dasharray="4 4" stroke-width="1" stroke-linecap="round"></rect>
+        </svg>
+        <img class="single-image-preview" src="" alt="" hidden>
 
-    <div class="image-add-btn">
-        <img class="add-image-icon" src="/public/CreatePostIcons/AddPhoto.svg">
-        Добавить Фото
-        <input type="file" accept="image/*" class="image-input" hidden>
+        <div class="single-image-placeholder">
+            <img src="/public/globalImages/BigAddIcon.svg" class="placeholder-icon">
+        </div>
+        <div class="single-overlay">
+            <img src="/public/globalImages/DeleteWhiteIcon.svg" class="delete-icon" alt="">
+        </div>
     </div>
 </div>

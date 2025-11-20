@@ -1,98 +1,89 @@
 import ImageInputTemplate from './InputImageSmall.hbs';
 
 export class ImageInputSmall {
-    constructor(rootElement) {
+    constructor(rootElement,header) {
         this.rootElement = rootElement;
-        this.selectedFiles = [];
-        this.maxImages = 3;
+        this.file = null;
+        this.header = header
     }
 
     render() {
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = ImageInputTemplate();
+        const temp = document.createElement('div');
+        temp.innerHTML = ImageInputTemplate().trim();
 
-        this.wrapper = tempDiv.querySelector('.input-small-image-wrapper');
-        this.previewList = this.wrapper.querySelector('.image-preview-list');
-        this.fileInput = this.wrapper.querySelector('.image-input');
-        this.addBtn = this.wrapper.querySelector('.image-add-btn');
+        this.wrapper = temp.firstElementChild;
+        this.box = this.wrapper.querySelector('.single-image-box');
+        this.fileInput = this.wrapper.querySelector('.single-image-file');
+        this.previewImg = this.wrapper.querySelector('.single-image-preview');
+        this.placeholder = this.wrapper.querySelector('.single-image-placeholder');
+        this.overlay = this.wrapper.querySelector('.single-overlay');
 
-        this.addEventListeners();
-
+        this.addListeners();
+        this.addHeader();
         this.rootElement.appendChild(this.wrapper);
     }
 
-    addEventListeners() {
-        this.addBtn.addEventListener('click', () => this.fileInput.click());
+    addListeners() {
+        this.box.addEventListener('click', (e) => {
+            if (!this.file) {
+                this.fileInput.click();
+            }
+        });
+
+        this.overlay.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.clearImage();
+        });
 
         this.fileInput.addEventListener('change', () => this.handleFileSelect());
     }
 
     handleFileSelect() {
-        const files = Array.from(this.fileInput.files);
-        if (!files.length) return;
+        if (!this.fileInput.files.length) return;
 
-        const imageFiles = files.filter(f => f.type.startsWith('image/'));
-        const allowedCount = this.maxImages - this.selectedFiles.length;
+        this.file = this.fileInput.files[0];
 
-        const toAdd = imageFiles.slice(0, allowedCount);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            this.previewImg.src = e.target.result;
+            this.previewImg.hidden = false;
+            this.placeholder.style.display = "none";
+            this.box.classList.add("has-image");
+        };
+        reader.readAsDataURL(this.file);
 
-        this.selectedFiles = [...this.selectedFiles, ...toAdd];
-        this.updatePreview();
-
-        this.fileInput.value = '';
+        this.changeHeader(this.file.name);
     }
 
-    updatePreview() {
-        this.previewList.innerHTML = '';
+    clearImage() {
+        this.file = null;
 
-        this.selectedFiles.forEach((file, index) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
+        this.previewImg.hidden = true;
+        this.previewImg.src = "";
+        this.placeholder.style.display = "flex";
+        this.box.classList.remove("has-image");
 
-                const wrapper = document.createElement('div');
-                wrapper.classList.add('preview-item');
-                wrapper.dataset.index = index;
+        this.fileInput.value = "";
 
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.classList.add('preview-thumb');
-
-                const overlay = document.createElement('div');
-                overlay.classList.add('preview-overlay');
-
-                const del = document.createElement('img');
-                del.src = "/public/globalImages/DeleteWhiteIcon.svg";
-                del.classList.add('delete-icon');
-
-                del.addEventListener('click', (ev) => {
-                    ev.stopPropagation();
-                    this.removeImage(index);
-                });
-
-                wrapper.appendChild(img);
-                wrapper.appendChild(overlay);
-                wrapper.appendChild(del);
-                this.previewList.appendChild(wrapper);
-            };
-
-            reader.readAsDataURL(file);
-        });
-
-        this.updateAddButtonState();
+        this.addHeader();
     }
 
-
-    updateAddButtonState() {
-        this.addBtn.style.display =
-            this.selectedFiles.length >= this.maxImages ? 'none' : 'flex';
+    addHeader(){
+        const headerCotainer = this.wrapper.querySelector('.small-image-input__header');
+        headerCotainer.textContent = this.truncate(this.header);
     }
 
-    removeImage(index) {
-        this.selectedFiles.splice(index, 1);
-        this.updatePreview();
+    changeHeader(newHeader){
+        const headerCotainer = this.wrapper.querySelector('.small-image-input__header');
+        headerCotainer.textContent = this.truncate(newHeader);
     }
 
-    getImages() {
-        return this.selectedFiles;
+    truncate(str, maxLen = 10) {
+        if (str.length <= maxLen) return str;
+        return str.slice(0, maxLen) + '...';
+    }
+
+    getImage() {
+        return this.file;
     }
 }

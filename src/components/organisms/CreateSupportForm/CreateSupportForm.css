@@ -101,7 +101,7 @@
 
 .support-screenshot-block {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 8px;
 }
 
