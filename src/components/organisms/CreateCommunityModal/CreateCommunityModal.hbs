@@ -1,0 +1,79 @@
+<div class="create-community-modal">
+  <div class="create-community-modal__overlay"></div>
+
+  <div class="create-community-modal__window">
+    <div class="create-community-modal__header">
+      <div class="create-community-modal__title">Создать сообщество</div>
+      <button
+        type="button"
+        class="create-community-modal__close"
+        data-role="close"
+      >
+        ×
+      </button>
+    </div>
+
+    <form class="create-community-modal__form">
+      <div class="create-community-modal__field">
+        <div class="create-community-modal__label-row">
+          <label
+            class="create-community-modal__label"
+            for="community-name-input"
+          >
+            Название
+          </label>
+          <span
+            class="create-community-modal__counter"
+            data-role="name-counter"
+          >
+            0/48
+          </span>
+        </div>
+
+        <input
+          id="community-name-input"
+          class="create-community-modal__input"
+          type="text"
+          name="name"
+          maxlength="48"
+          placeholder="Введите название"
+        />
+      </div>
+
+      <div class="create-community-modal__field">
+        <label
+          class="create-community-modal__label"
+          for="community-about-input"
+        >
+          О сообществе
+        </label>
+
+        <textarea
+          id="community-about-input"
+          class="create-community-modal__textarea"
+          name="about"
+          placeholder="Расскажите о чем ваше сообщество"
+          rows="3"
+        ></textarea>
+      </div>
+
+      <div class="create-community-modal__footer">
+        <button
+          type="button"
+          class="create-community-modal__btn create-community-modal__btn--secondary"
+          data-role="cancel"
+        >
+          Отменить
+        </button>
+
+        <button
+          type="submit"
+          class="create-community-modal__btn create-community-modal__btn--primary"
+          data-role="submit"
+        >
+          Создать
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

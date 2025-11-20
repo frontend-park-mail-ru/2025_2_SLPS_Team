@@ -1,0 +1,252 @@
+.community-page {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  box-sizing: border-box;
+  align-items: flex-start;
+}
+
+.community-page__content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  width: 100%;
+}
+
+
+.community-header-card {
+  width: 880px;
+  background: var(--base-white);
+  border-radius: 20px;
+  padding: 10px;
+  overflow: hidden;
+}
+
+.community-header-card__cover {
+  width: 100%;
+  height: 180px;
+  border-radius: 14px;
+  object-fit: cover;
+}
+
+.community-header-card__content {
+  margin-top: -50px;
+  padding: 0 20px 16px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.community-header-card__left {
+  display: flex;
+  gap: 14px;
+  align-items: flex-end;
+}
+
+.community-header-card__avatar-wrapper {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 4px solid var(--base-white);
+  background: var(--base-white);
+  overflow: hidden;
+}
+
+.community-header-card__avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.community-header-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.community-header-card__name {
+  font-size: 20px;
+  color: var(--text-black);
+}
+
+.community-header-card__subscribers {
+  font-size: 14px;
+  color: var(--dark-gray);
+}
+
+.community-subscribe-btn {
+  padding: 6px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--base-purple);
+  background: #ffffff;
+  color: var(--base-purple);
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.community-subscribe-btn--active {
+  background: var(--base-purple);
+  color: #ffffff;
+}
+
+.community-owner-actions {
+  position: relative;
+}
+
+.community-owner-menu-btn {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: none;
+  background: #ffffff;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.community-owner-menu {
+  position: absolute;
+  right: 0;
+  top: 32px;
+  min-width: 180px;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  padding: 6px 0;
+  display: none;
+  z-index: 10;
+}
+
+.community-owner-menu--open {
+  display: block;
+}
+
+.community-owner-menu__item {
+  width: 100%;
+  padding: 8px 14px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.community-owner-menu__item:hover {
+  background: var(--light-gray);
+}
+
+.community-owner-menu__item--danger {
+  color: var(--base-red);
+}
+
+.community-page__down {
+  display: flex;
+  gap: 16px;
+}
+
+.community-page__feed {
+  width: 602px;
+}
+
+.community-page__sidebar {
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.community-about-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 10px 14px 12px;
+  font-size: 14px;
+}
+
+.community-about-card__title {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.community-about-card__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.community-about-card__icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: var(--light-gray);
+  flex-shrink: 0;
+}
+.community-about-card__text-wrapper {
+  overflow: hidden;
+  max-width: 100%;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  box-sizing: border-box;
+}
+
+.community-about-card__text-wrapper {
+  overflow: hidden;
+  max-width: 100%;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  box-sizing: border-box;
+}
+
+.community-about-card__text--empty {
+  color: #a0a0a0;
+}
+
+.community-about-card__more-btn {
+  margin-top: 4px;
+  border: none;
+  background: none;
+  color: var(--base-purple);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.community-about-card__created {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--dark-gray);
+}
+
+.community-about-card__created span {
+  color: var(--text-black);
+}
+
+.community-subscribers-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 10px 14px 12px;
+  font-size: 14px;
+}
+
+.community-subscribers-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.community-subscribers-card__count {
+  font-size: 13px;
+  color: #969696;
+}
+
+.community-subscribers-card__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.community-subscribers-card__empty {
+  font-size: 13px;
+  color: #969696;
+}

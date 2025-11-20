@@ -1,6 +1,44 @@
 <div class="community-page">
-    <div class="community-page-container">
-        <img class="community-page-image" src="/public/globalImages/UniteLogo.svg">
-        Эта страница временно недоступна
+  <div class="community-page__left">
+    <div class="community-search-block">
+        <div class="community-search-input-wrapper">
+            <img
+            class="community-search-icon"
+            src="/public/globalImages/SearchIcon.svg"
+            alt="Поиск"
+            />
+            <input
+            type="text"
+            class="community-search-input"
+            placeholder="Поиск сообщества..."
+            />
+        </div>
     </div>
+
+    <div class="community-list-block">
+      <div class="community-page__tabs">
+        <button class="community-tab community-tab--active" data-type="subs">
+          Подписки
+        </button>
+        <button class="community-tab" data-type="reco">
+          Рекомендации
+        </button>
+      </div>
+
+      <div class="community-list"></div>
+    </div>
+  </div>
+
+  <aside class="community-sidebar">
+    <button class="community-sidebar__create-btn">
+      Создать сообщество
+    </button>
+
+    <div class="community-sidebar__title">
+      Созданные сообщества
+    </div>
+
+    <div class="community-sidebar__created-list">
+    </div>
+  </aside>
 </div>

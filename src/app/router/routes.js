@@ -8,6 +8,7 @@ import { FriendsPage } from '../../Pages/FriendsPage/FriendsPage.js';
 import { HelpPage } from '../../Pages/HelpPage/HelpPage.js';
 import { layout } from '../../Pages/LayoutManager.js';
 import { SupportFormPage } from '../../Pages/SupportFormPage/SupportFormPage.js';
+import { CommunityCheckPage } from '../../Pages/CommunityCheckPage/CommunityCheckPage.js'
 
 import { navigateTo } from './navigateTo.js'; 
 
@@ -73,5 +74,10 @@ export const routes = {
     renderFunc: async () => layout.renderPage(SupportFormPage),
     access: "auth-only",
     title: "Форма"
+  },
+  '/community/1': {
+    renderFunc: async (params) => layout.renderPage(CommunityCheckPage, params),
+    access: 'auth-only',
+    title: 'Сообщество',
   }
 };

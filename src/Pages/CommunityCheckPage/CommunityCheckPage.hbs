@@ -1,0 +1,157 @@
+<div class="community-page">
+  <div class="community-page__content">
+
+    {{!-- ХЕДЕР С ОБЛОЖКОЙ --}}
+    <div class="community-header-card">
+      <img
+        class="community-header-card__cover"
+        src="{{community.coverPath}}"
+        alt=""
+      />
+
+      <div class="community-header-card__content">
+        <div class="community-header-card__left">
+          <div class="community-header-card__avatar-wrapper">
+            <img
+              class="community-header-card__avatar"
+              src="{{community.avatarPath}}"
+              alt="{{community.name}}"
+            />
+          </div>
+
+          <div class="community-header-card__info">
+            <div class="community-header-card__name">
+              {{community.name}}
+            </div>
+            <div class="community-header-card__subscribers">
+              {{community.subscribersText}}
+            </div>
+          </div>
+        </div>
+
+        <div class="community-header-card__right">
+          {{#if community.isOwner}}
+            <div class="community-owner-actions">
+              <button
+                type="button"
+                class="community-owner-menu-btn"
+                data-role="owner-menu-toggle"
+              >
+                Ещё
+              </button>
+
+              <div
+                class="community-owner-menu"
+                data-role="owner-menu"
+              >
+                <button
+                  type="button"
+                  class="community-owner-menu__item"
+                  data-action="upload-cover"
+                >
+                  Загрузить обложку
+                </button>
+                <button
+                  type="button"
+                  class="community-owner-menu__item community-owner-menu__item--danger"
+                  data-action="delete-community"
+                >
+                  Удалить
+                </button>
+              </div>
+            </div>
+          {{else}}
+            <button
+              type="button"
+              class="community-subscribe-btn{{#if community.isSubscribed}} community-subscribe-btn--active{{/if}}"
+              data-role="subscribe-toggle"
+            >
+              {{#if community.isSubscribed}}
+                Вы подписаны
+              {{else}}
+                Подписаться
+              {{/if}}
+            </button>
+          {{/if}}
+        </div>
+      </div>
+    </div>
+
+    {{!-- НИЖНЯЯ ЧАСТЬ: ЛЕНТА + ПРАВЫЙ САЙДБАР --}}
+    <div class="community-page__down">
+      <div
+        class="community-page__feed"
+        data-role="community-feed"
+      ></div>
+
+      <aside class="community-page__sidebar">
+        {{!-- О сообществе --}}
+        <section class="community-about-card">
+          <div class="community-about-card__title">
+            О сообществе
+          </div>
+
+          {{#if community.description}}
+            <div class="community-about-card__row">
+              <div class="community-about-card__icon community-about-card__icon--about"></div>
+
+              <div class="community-about-card__content">
+                <div
+                  class="community-about-card__text-wrapper"
+                  data-role="about-wrapper"
+                >
+                  <p
+                    class="community-about-card__text"
+                    data-role="about-text"
+                  >
+                    {{community.description}}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  class="community-about-card__more-btn"
+                  data-role="about-more"
+                >
+                  Показать ещё
+                </button>
+              </div>
+            </div>
+          {{/if}}
+
+          {{#if community.createdAtFormatted}}
+            <div class="community-about-card__row community-about-card__row--created">
+              <div class="community-about-card__icon community-about-card__icon--created"></div>
+
+              <div class="community-about-card__content">
+                <div class="community-about-card__created-title">
+                  Сообщество создано
+                </div>
+                <div class="community-about-card__created-date">
+                  {{community.createdAtFormatted}}
+                </div>
+              </div>
+            </div>
+          {{/if}}
+        </section>
+
+        {{!-- Подписчики --}}
+        <section class="community-subscribers-card">
+          <div class="community-subscribers-card__header">
+            <div class="community-subscribers-card__title">
+              Подписчики
+            </div>
+            <div class="community-subscribers-card__count">
+              {{community.subscribersShort}}
+            </div>
+          </div>
+
+          <div
+            class="community-subscribers-card__list"
+            data-role="subscribers-list"
+          ></div>
+        </section>
+      </aside>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,30 @@
+<div class="community-card">
+  <div class="community-card__main-content">
+    <div class="community-card__avatar">
+      <img
+        class="community-card__img"
+        src="{{avatarPath}}"
+        alt="{{name}}"
+      />
+    </div>
+
+    <div class="community-card__info">
+      <div class="community-card__name">{{name}}</div>
+
+      {{#if description}}
+        <div class="community-card__desc">{{description}}</div>
+      {{/if}}
+
+      {{#if subscribers}}
+        <div class="community-card__subscribers">{{subscribers}}</div>
+      {{/if}}
+    </div>
+  </div>
+
+  <div class="community-card__actions">
+    <button class="community-card__btn">
+      {{buttonText}}
+    </button>
+  </div>
+</div>
+    

@@ -1,0 +1,29 @@
+.community-created {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.community-created__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.community-created__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.community-created__name {
+  font-size: 14px;
+  color: #161616;
+  text-align: left;
+}
