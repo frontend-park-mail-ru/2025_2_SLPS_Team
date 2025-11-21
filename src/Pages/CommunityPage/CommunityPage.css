@@ -43,7 +43,6 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 8px;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -55,7 +54,7 @@
 .community-search-input-wrapper {
   width: 100%;
   height: 48px;
-  background: #ffffff;
+  background: var(--base-white);
 
   border: 1px solid var(--light-border);
   border-radius: 12px;
@@ -111,7 +110,7 @@
 .community-empty {
   padding: 20px;
   text-align: center;
-  color: #777777;
+  color: var(--dark-gray);
 }
 
 .community-sidebar {

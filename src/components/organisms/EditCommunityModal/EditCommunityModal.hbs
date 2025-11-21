@@ -1,0 +1,70 @@
+<div class="edit-community-modal">
+  <div class="edit-community-modal__overlay"></div>
+  <div class="edit-modal-container">
+    <div class="edit-community-modal__window">
+    <div class="edit-community-modal__header">
+      <div class="edit-community-modal__title">Редактировать сообщество</div>
+    </div>
+    <div class="edit-community-modal__devider"></div>
+    <form class="edit-community-modal__form">
+    <div class="community-avatar-section">
+        <div class="community-avatar-upload">
+            <input 
+                type="file" 
+                class="community-avatar-input" 
+                accept="image/*"
+                hidden
+            />
+
+            <div class="community-avatar-preview">
+                <img 
+                    src="{{avatarPath}}" 
+                    alt="Community Avatar" 
+                    class="community-avatar-image"
+                />
+
+                <div class="community-avatar-overlay">
+                    <img src="/public/globalImages/EditAvatar.svg" class="community-avatar-icon">
+                </div>
+            </div>
+
+            <div class="community-avatar-menu"></div>
+        </div>
+              <div class="edit-community-modal__field">
+            <div class="edit-community-modal__label-row">
+            <label
+                class="edit-community-modal__label"
+                for="community-name-input"
+            >
+                Название
+            </label>
+            <span
+                class="edit-community-modal__counter"
+                data-role="name-counter"
+            >
+                0/48
+            </span>
+            </div>
+
+            <input
+            id="community-name-input"
+            class="edit-community-modal__input"
+            type="text"
+            name="name"
+            maxlength="48"
+            placeholder="Введите название"
+            />
+        </div>
+    </div>
+
+      <div class="edit-community-modal__about-field"></div>
+
+      <div class="edit-community-modal__footer"></div>
+    </form>
+  </div>
+  <img
+    src="/public/globalImages/CancelIcon.svg"
+    class="edit-community-modal__close"
+    data-role="close">
+</div>
+</div>

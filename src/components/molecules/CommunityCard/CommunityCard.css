@@ -44,7 +44,7 @@
 .community-card__desc, .community-card__subscribers {
   font-family: 'Nunito Sans';
   font-size: 13px;
-  color: #666666;
+  color: var(--dark-gray);
 }
 
 .community-card__actions {

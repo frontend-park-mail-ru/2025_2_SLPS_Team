@@ -106,7 +106,7 @@ export class CommunityPage extends BasePage {
 
         this.createModal.open();
     });
-    }
+  }
   initTabs() {
     const tabs = this.root.querySelectorAll('.community-tab');
 

@@ -31,35 +31,8 @@
 
         <div class="community-header-card__right">
           {{#if community.isOwner}}
-            <div class="community-owner-actions">
-              <button
-                type="button"
-                class="community-owner-menu-btn"
-                data-role="owner-menu-toggle"
-              >
-                Ещё
-              </button>
-
-              <div
-                class="community-owner-menu"
-                data-role="owner-menu"
-              >
-                <button
-                  type="button"
-                  class="community-owner-menu__item"
-                  data-action="upload-cover"
-                >
-                  Загрузить обложку
-                </button>
-                <button
-                  type="button"
-                  class="community-owner-menu__item community-owner-menu__item--danger"
-                  data-action="delete-community"
-                >
-                  Удалить
-                </button>
-              </div>
-            </div>
+              <div class="owner-menu-button"></div>
+              <div class="owner-menu-dropdown"></div>
           {{else}}
             <button
               type="button"
@@ -69,7 +42,8 @@
               {{#if community.isSubscribed}}
                 Вы подписаны
               {{else}}
-                Подписаться
+                <img class="community-subscribe-btn-icon" src="/public/globalImages/SmallCheckIcon.svg">
+                Вы подписаны
               {{/if}}
             </button>
           {{/if}}

@@ -1,5 +1,6 @@
 import CommunityCardTemplate from './CommunityCard.hbs';
 import './CommunityCard.css';
+import BaseButton from '../../atoms/BaseButton/BaseButton.js';
 
 export function renderCommunityCard(context = {}) {
   const {
@@ -11,6 +12,7 @@ export function renderCommunityCard(context = {}) {
     isSubscribed = false,
     onClick,
     onToggleSubscribe,
+    cardButton,
   } = context;
 
   const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
@@ -31,7 +33,6 @@ export function renderCommunityCard(context = {}) {
     description,
     subscribers,
     avatarPath: safeAvatarPath,
-    buttonText: isSubscribed ? 'Отписаться' : 'Подписаться',
   });
 
   const card = wrapper.firstElementChild;
@@ -44,15 +45,13 @@ export function renderCommunityCard(context = {}) {
     });
   }
 
-  const btn = card.querySelector('.community-card__btn');
-  if (btn) {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (onToggleSubscribe) {
-        onToggleSubscribe(id);
-      }
-    });
-  }
+  const btnContainer = card.querySelector('.community-card__actions');
+  context.cardButton = new BaseButton(btnContainer, {
+      text: isSubscribed ? 'Отписаться' : 'Подписаться',
+      style: 'normal',
+      onClick: () => onToggleSubscribe(id)}
+    );
+  context.cardButton.render();
 
   return card;
 }

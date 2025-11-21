@@ -6,7 +6,7 @@ let mockCommunity = {
     'Образовательный проект VKОбразовательный проект VKОбразовательный проект VKОбразовательный проект VKОбразовательный проект',
   subscribersCount: 254400,          
   createdAt: '2025-11-16T00:00:00Z',
-  ownerId: 1,                        // Поменяй id на свой чтобы смотреть от лица админа
+  ownerId: 5,                        // Поменяй id на свой чтобы смотреть от лица админа
   isSubscribed: false,               // состояние подписки
   avatarPath: '/public/testData/groupim2.jpg',                  // чето не работает
   coverPath: null,                   // обложка
