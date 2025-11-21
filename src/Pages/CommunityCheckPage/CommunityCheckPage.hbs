@@ -1,66 +1,14 @@
 <div class="community-page">
   <div class="community-page__content">
 
-    {{!-- ХЕДЕР С ОБЛОЖКОЙ --}}
-    <div class="community-header-card">
-      <img
-        class="community-header-card__cover"
-        src="{{community.coverPath}}"
-        alt=""
-      />
+    <div id="profile-card"></div>
 
-      <div class="community-header-card__content">
-        <div class="community-header-card__left">
-          <div class="community-header-card__avatar-wrapper">
-            <img
-              class="community-header-card__avatar"
-              src="{{community.avatarPath}}"
-              alt="{{community.name}}"
-            />
-          </div>
-
-          <div class="community-header-card__info">
-            <div class="community-header-card__name">
-              {{community.name}}
-            </div>
-            <div class="community-header-card__subscribers">
-              {{community.subscribersText}}
-            </div>
-          </div>
-        </div>
-
-        <div class="community-header-card__right">
-          {{#if community.isOwner}}
-              <div class="owner-menu-button"></div>
-              <div class="owner-menu-dropdown"></div>
-          {{else}}
-            <button
-              type="button"
-              class="community-subscribe-btn{{#if community.isSubscribed}} community-subscribe-btn--active{{/if}}"
-              data-role="subscribe-toggle"
-            >
-              {{#if community.isSubscribed}}
-                Вы подписаны
-              {{else}}
-                <img class="community-subscribe-btn-icon" src="/public/globalImages/SmallCheckIcon.svg">
-                Вы подписаны
-              {{/if}}
-            </button>
-          {{/if}}
-        </div>
-      </div>
-    </div>
-
-    {{!-- НИЖНЯЯ ЧАСТЬ: ЛЕНТА + ПРАВЫЙ САЙДБАР --}}
     <div class="community-page__down">
-      <div
-        class="community-page__feed"
-        data-role="community-feed"
-      ></div>
+      <div class="community-page__feed" data-role="community-feed"></div>
 
-      <aside class="community-page__sidebar">
-        {{!-- О сообществе --}}
-        <section class="community-about-card">
+      <div class="community-page__sidebar">
+
+       <section class="community-about-card">
           <div class="community-about-card__title">
             О сообществе
           </div>
@@ -109,23 +57,21 @@
           {{/if}}
         </section>
 
-        {{!-- Подписчики --}}
-        <section class="community-subscribers-card">
+        <div class="community-subscribers-card">
           <div class="community-subscribers-card__header">
-            <div class="community-subscribers-card__title">
-              Подписчики
-            </div>
-            <div class="community-subscribers-card__count">
+            <span class="community-subscribers-card__title">Подписчики</span>
+            <span class="community-subscribers-card__count">
               {{community.subscribersShort}}
-            </div>
+            </span>
           </div>
-
           <div
             class="community-subscribers-card__list"
             data-role="subscribers-list"
           ></div>
-        </section>
-      </aside>
+        </div>
+
+      </div>
     </div>
+
   </div>
 </div>

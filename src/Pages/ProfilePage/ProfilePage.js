@@ -10,7 +10,15 @@ import { EventBus } from '../../services/EventBus.js';
 import { navigateTo } from '../../app/router/navigateTo.js';
 
 import { getFriendsStats } from '../../shared/api/friendsApi.js';
-import { getProfile, getUserPosts, getProfileFriendStatus, sendProfileFriendRequest, openChatWithUser } from '../../shared/api/profileApi.js';
+import {
+  getProfile,
+  getUserPosts,
+  getProfileFriendStatus,
+  sendProfileFriendRequest,
+  openChatWithUser,
+} from '../../shared/api/profileApi.js';
+
+import { renderHeaderCard } from '../../components/molecules/HeaderCard/HeaderCard.js';
 
 const notifier = new NotificationManager();
 
@@ -47,7 +55,7 @@ export class ProfilePage extends BasePage {
     this.wrapper = null;
   }
 
-    async render() {
+  async render() {
     this.resolveUserId();
 
     this.profileData = await getProfile(this.userId);
@@ -62,9 +70,10 @@ export class ProfilePage extends BasePage {
     }
 
     const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
-    const avatarPath = !this.profileData.avatarPath || this.profileData.avatarPath === 'null'
-      ? '/public/globalImages/DefaultAvatar.svg'
-      : `${baseUrl}${this.profileData.avatarPath}`;
+    const avatarPath =
+      !this.profileData.avatarPath || this.profileData.avatarPath === 'null'
+        ? '/public/globalImages/DefaultAvatar.svg'
+        : `${baseUrl}${this.profileData.avatarPath}`;
 
     const templateData = {
       user: {
@@ -73,7 +82,7 @@ export class ProfilePage extends BasePage {
         dobFormatted,
         age,
         isOwner: this.isOwner,
-        avatarPath: avatarPath,
+        avatarPath,
       },
       showCancelRequest: this.friendsStatus === 'pending',
       showMessage: this.friendsStatus === 'accepted',
@@ -85,17 +94,41 @@ export class ProfilePage extends BasePage {
     this.wrapper = document.createElement('div');
     this.wrapper.innerHTML = ProfilePageTemplate(templateData);
 
+    const headerRoot = this.wrapper.querySelector('#profile-card');
+
+    renderHeaderCard(headerRoot, {
+      coverPath: '/public/globalImages/backgroud.png',
+      avatarPath: templateData.user.avatarPath,
+      title: templateData.user.fullName,
+      subtitle: `${templateData.user.age} лет`,
+      showMoreButton: true,
+
+      isProfile: true,
+      isOwner: templateData.user.isOwner,
+      showCancelRequest: templateData.showCancelRequest,
+      showMessage: templateData.showMessage,
+      showAddFriend: templateData.showAddFriend,
+      showBlocked: templateData.showBlocked,
+    });
+
+
     const mainContainer = this.wrapper.querySelector('.profile-page');
 
-    this.wrapper.querySelector('.profile-toggle-btn').addEventListener('click', () => {
-      this.wrapper.querySelector('.profile-info').classList.toggle('expanded');
-    });
+    const moreBtn = this.wrapper.querySelector('.profile-toggle-btn');
+    if (moreBtn) {
+      moreBtn.addEventListener('click', () => {
+        this.wrapper.querySelector('.profile-info').classList.toggle('expanded');
+      });
+    }
 
     await this.renderPostsBlock();
 
     const editButton = this.wrapper.querySelector('.edit-open');
     if (editButton) {
-      const EditProfileModal = new EditProfileForm(this.rootElement, templateData.user);
+      const EditProfileModal = new EditProfileForm(
+        this.rootElement,
+        templateData.user,
+      );
       editButton.addEventListener('click', () => EditProfileModal.open());
     }
 
@@ -112,12 +145,10 @@ export class ProfilePage extends BasePage {
     };
 
     EventBus.on('profile:newPost', rerenderProfileFeed);
-
     EventBus.on('posts:created', rerenderProfileFeed);
     EventBus.on('posts:updated', rerenderProfileFeed);
     EventBus.on('posts:deleted', rerenderProfileFeed);
   }
-
 
   async renderPostsBlock() {
     this.posts = await getUserPosts(this.userId, 20);
@@ -159,12 +190,23 @@ export class ProfilePage extends BasePage {
         'click',
         async () => {
           try {
-            const res = await sendProfileFriendRequest(this.userId, authService.getCsrfToken());
+            const res = await sendProfileFriendRequest(
+              this.userId,
+              authService.getCsrfToken(),
+            );
             if (!res.ok) {
-              notifier.show('Ошибка', 'Не удалось отправить заявку, попробуйте позже', 'error');
+              notifier.show(
+                'Ошибка',
+                'Не удалось отправить заявку, попробуйте позже',
+                'error',
+              );
               return;
             }
-            notifier.show('Заявка отправлена', 'Заявка в друзья отправлена успешно', 'success');
+            notifier.show(
+              'Заявка отправлена',
+              'Заявка в друзья отправлена успешно',
+              'success',
+            );
             addFriendBtn.textContent = 'Заявка отправлена';
             addFriendBtn.classList.remove('add-friend-btn');
             addFriendBtn.classList.add('request-text');
@@ -173,7 +215,7 @@ export class ProfilePage extends BasePage {
             console.error(err);
           }
         },
-        { once: true }
+        { once: true },
       );
     }
 
@@ -207,25 +249,31 @@ export class ProfilePage extends BasePage {
               notifier.show(
                 'Пользователь разблокирован',
                 `Вы разблокировали пользователя ${userData.fullName}`,
-                'success'
+                'success',
               );
               const newBtn = document.createElement('button');
               newBtn.textContent = 'Добавить в друзья';
               newBtn.classList.add('add-friend-btn');
               unblockButton.replaceWith(newBtn);
-              newBtn.addEventListener('click', () => sendProfileFriendRequest(this.userId), {
-                once: true,
-              });
+              newBtn.addEventListener(
+                'click',
+                () => sendProfileFriendRequest(this.userId),
+                {
+                  once: true,
+                },
+              );
             } catch (err) {
-              notifier.show('Ошибка', 'Не удалось разблокировать пользователя', 'error');
+              notifier.show(
+                'Ошибка',
+                'Не удалось разблокировать пользователя',
+                'error',
+              );
               console.error(err);
             }
-          }
+          },
         );
         blockConfirm.open();
       });
     }
   }
 }
-
-

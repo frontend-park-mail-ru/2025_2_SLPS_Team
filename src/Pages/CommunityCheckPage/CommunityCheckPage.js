@@ -13,7 +13,6 @@ import DropDown from '../../components/atoms/dropDown/dropDown.js';
 import BaseButton from '../../components/atoms/BaseButton/BaseButton.js';
 import { EditCommunityModal } from '../../components/organisms/EditCommunityModal/EditCommunityModal.js';
 
-// моковые api
 import {
   getCommunity,
   getCommunityPosts,
@@ -21,6 +20,8 @@ import {
   toggleCommunitySubscription,
   deleteCommunity,
 } from '../../shared/api/communityApi.js';
+
+import { renderHeaderCard } from '../../components/molecules/HeaderCard/HeaderCard.js';
 
 const notifier = new NotificationManager();
 
@@ -79,11 +80,7 @@ export class CommunityCheckPage extends BasePage {
     );
     const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
 
-//    const avatarPath =
-//      !this.community.avatarPath || this.community.avatarPath === 'null'
-//        ? '/public/globalImages/DefaultCommunity.svg'
-//        : `${baseUrl}${this.community.avatarPath}`;
-    
+    // пока тестовый аватар
     const avatarPath = '/public/testData/CommunityAvatar.png';
 
     const coverPath =
@@ -114,6 +111,20 @@ export class CommunityCheckPage extends BasePage {
     this.wrapper.innerHTML = CommunityCheckPageTemplate(templateData);
 
     this.root = this.wrapper.querySelector('.community-page');
+
+    // рендерим общую шапку в #profile-card
+    const headerRoot = this.wrapper.querySelector('#profile-card');
+    renderHeaderCard(headerRoot, {
+      coverPath: templateData.community.coverPath,
+      avatarPath: templateData.community.avatarPath,
+      title: templateData.community.name,
+      subtitle: templateData.community.subscribersText,
+      showMoreButton: false,
+
+      isCommunity: true,
+      isOwner: this.isOwner,
+    });
+
     this.rootElement.appendChild(this.wrapper);
 
     this.initAboutBlock();
@@ -199,33 +210,32 @@ export class CommunityCheckPage extends BasePage {
     list.innerHTML = '';
 
     if (!subscribers || !subscribers.length) {
-        const empty = document.createElement('div');
-        empty.className = 'community-subscribers-card__empty';
-        empty.textContent = 'Пока нет подписчиков';
-        list.appendChild(empty);
-        return;
+      const empty = document.createElement('div');
+      empty.className = 'community-subscribers-card__empty';
+      empty.textContent = 'Пока нет подписчиков';
+      list.appendChild(empty);
+      return;
     }
 
     subscribers.forEach((user) => {
-        const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
-        const avatarPath =
+      const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
+      const avatarPath =
         !user.avatarPath || user.avatarPath === 'null'
-            ? '/public/globalImages/DefaultAvatar.svg'
-            : `${baseUrl}${user.avatarPath}`;
+          ? '/public/globalImages/DefaultAvatar.svg'
+          : `${baseUrl}${user.avatarPath}`;
 
-        const row = renderCommunitySubscriberRow({
+      const row = renderCommunitySubscriberRow({
         id: user.id,
         fullName: user.fullName,
         avatarPath,
         onClick: (id) => {
-            navigateTo(`/profile/${id}`);
+          navigateTo(`/profile/${id}`);
         },
-        });
+      });
 
-        list.appendChild(row);
+      list.appendChild(row);
     });
-    }
-
+  }
 
   initHeaderActions() {
     if (this.isOwner) {
@@ -274,64 +284,66 @@ export class CommunityCheckPage extends BasePage {
   }
 
   initOwnerMenu() {
-      const buttonContainer = this.root.querySelector('.owner-menu-button');
-      const dropdownContainer = this.root.querySelector('.owner-menu-dropdown');
+    const buttonContainer = this.root.querySelector('.owner-menu-button');
+    const dropdownContainer = this.root.querySelector('.owner-menu-dropdown');
 
-      if (!buttonContainer || !dropdownContainer) return;
+    if (!buttonContainer || !dropdownContainer) return;
 
-      const dropdown = new DropDown(dropdownContainer, {
-          values: [
-              {
-                  label: "Редактировать сообщество",
-                  onClick: () => {
-                      const communityModal = new EditCommunityModal({
-                        onSubmit: () => {}, 
-                        onCancel: () => {},
-                        FormData: {
-                        ...this.community,
-                        avatarPath: '/public/testData/CommunityAvatar.png',
-                        name: this.community.name,
-                        description: this.community.description,
-                      },
-                    });
-                      communityModal.open();
-                  },
-                  icon: '/public/globalImages/EditIcon.svg',
+    const dropdown = new DropDown(dropdownContainer, {
+      values: [
+        {
+          label: 'Редактировать сообщество',
+          onClick: () => {
+            const communityModal = new EditCommunityModal({
+              onSubmit: () => {},
+              onCancel: () => {},
+              FormData: {
+                ...this.community,
+                avatarPath: '/public/testData/CommunityAvatar.png',
+                name: this.community.name,
+                description: this.community.description,
               },
-              {
-                  label: "Удалить сообщество",
-                  icon: '/public/globalImages/DeleteImg.svg',
-                  onClick: () => {
-                      const modal = new ModalConfirm(
-                          "Удалить сообщество?",
-                          `Вы уверены, что хотите удалить «${this.community.name}»?`,
-                          async () => {
-                              await deleteCommunity(this.communityId, authService.getCsrfToken());
-                              navigateTo("/community");
-                          }
-                      );
-                      modal.open();
-                  }
-              }
-          ]
-      });
+            });
+            communityModal.open();
+          },
+          icon: '/public/globalImages/EditIcon.svg',
+        },
+        {
+          label: 'Удалить сообщество',
+          icon: '/public/globalImages/DeleteImg.svg',
+          onClick: () => {
+            const modal = new ModalConfirm(
+              'Удалить сообщество?',
+              `Вы уверены, что хотите удалить «${this.community.name}»?`,
+              async () => {
+                await deleteCommunity(
+                  this.communityId,
+                  authService.getCsrfToken(),
+                );
+                navigateTo('/community');
+              },
+            );
+            modal.open();
+          },
+        },
+      ],
+    });
 
-      dropdown.render();
-      dropdown.hide();
+    dropdown.render();
+    dropdown.hide();
 
-      const btn = new BaseButton(buttonContainer, {
-          text: "Настроить",
-          style: "normal",
-          onClick: () => dropdown.toggle(),
-      });
+    const btn = new BaseButton(buttonContainer, {
+      text: 'Настроить',
+      style: 'normal',
+      onClick: () => dropdown.toggle(),
+    });
 
-      btn.render();
+    btn.render();
 
-      document.addEventListener("click", (e) => {
-          const actions = this.root.querySelector('.community-owner-actions');
+    document.addEventListener('click', (e) => {
+      const actions = this.root.querySelector('.community-owner-actions');
 
-          if (!actions.contains(e.target)) dropdown.hide();
-      });
+      if (!actions.contains(e.target)) dropdown.hide();
+    });
   }
-
 }
