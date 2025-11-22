@@ -54,3 +54,4 @@ jobs:
               --restart unless-stopped \
               -p 80:80 \
               ${{ secrets.DOCKER_USERNAME }}/myapp_front:latest
+            docker image prune -f
