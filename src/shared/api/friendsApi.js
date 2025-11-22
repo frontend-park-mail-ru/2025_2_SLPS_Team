@@ -1,48 +1,35 @@
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8080';
-
-async function parseJsonSafe(res) {
-  const text = await res.text();
-  return text ? JSON.parse(text) : null;
-}
+import { api, apiRaw } from './client.js';
 
 export async function getFriendRequests(page = 1, limit = 20) {
-  const res = await fetch(
-    `${API_BASE_URL}/api/friends/requests?page=${page}&limit=${limit}`,
-    { credentials: 'include' }
+  const data = await api(
+    `/api/friends/requests?page=${page}&limit=${limit}`,
+    { method: 'GET' },
   );
-  const data = await parseJsonSafe(res);
-  if (!res.ok) throw { status: res.status, data };
+
   return Array.isArray(data) ? data : data.requests || [];
 }
 
 export async function getFriends(page = 1, limit = 20) {
-  const res = await fetch(
-    `${API_BASE_URL}/api/friends?page=${page}&limit=${limit}`,
-    { credentials: 'include' }
+  const data = await api(
+    `/api/friends?page=${page}&limit=${limit}`,
+    { method: 'GET' },
   );
-  const data = await parseJsonSafe(res);
-  if (!res.ok) throw { status: res.status, data };
-  return Array.isArray(data) ? data : (data.friends || []);
+
+  return Array.isArray(data) ? data : data.friends || [];
 }
 
 export async function getPossibleFriends(page = 1, limit = 20) {
-  const res = await fetch(
-    `${API_BASE_URL}/api/friends/users/all?page=${page}&limit=${limit}`,
-    { credentials: 'include' }
+  const data = await api(
+    `/api/friends/users/all?page=${page}&limit=${limit}`,
+    { method: 'GET' },
   );
-  const data = await parseJsonSafe(res);
-  if (!res.ok) throw { status: res.status, data };
+
   return Array.isArray(data) ? data : [];
 }
 
-export async function deleteFriend(userId, csrf) {
-  return fetch(`${API_BASE_URL}/api/friends/${userId}`, {
+export function deleteFriend(userId, _csrf) {
+  return apiRaw(`/api/friends/${userId}`, {
     method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(csrf ? { 'X-CSRF-Token': csrf } : {}),
-    },
-    credentials: 'include',
   });
 }
 
@@ -52,13 +39,10 @@ export async function getFriendsStats(userId) {
     const results = {};
 
     for (const type of types) {
-      const res = await fetch(
-        `${API_BASE_URL}/api/friends/${userId}/count?type=${type}`,
-        { credentials: 'include' }
+      const data = await api(
+        `/api/friends/${userId}/count?type=${type}`,
+        { method: 'GET' },
       );
-
-      const data = await parseJsonSafe(res);
-      if (!res.ok) throw { status: res.status, data };
 
       results[type] = data?.count ?? 0;
     }
@@ -70,24 +54,15 @@ export async function getFriendsStats(userId) {
   }
 }
 
-export async function acceptFriend(userId, csrf) {
-  return fetch(`${API_BASE_URL}/api/friends/${userId}/accept`, {
+export function acceptFriend(userId, _csrf) {
+  return apiRaw(`/api/friends/${userId}/accept`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(csrf ? { 'X-CSRF-Token': csrf } : {}),
-    },
-    credentials: 'include',
   });
 }
 
-export async function sendFriendRequest(userId, csrf) {
-  return fetch(`${API_BASE_URL}/api/friends/${userId}`, {
+
+export function sendFriendRequest(userId, _csrf) {
+  return apiRaw(`/api/friends/${userId}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(csrf ? { 'X-CSRF-Token': csrf } : {}),
-    },
-    credentials: 'include',
   });
 }

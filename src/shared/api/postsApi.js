@@ -1,33 +1,15 @@
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8080';
+import { apiRaw } from './client.js';
 
 export async function getPosts() {
-  const res = await fetch(`${API_BASE_URL}/api/posts`, {
-    method: 'GET',
-    credentials: 'include',
-  });
-
+  const res = await apiRaw('/api/posts', { method: 'GET' });
   const text = await res.text();
-  const data = text ? JSON.parse(text) : null;
-
-  if (!res.ok) {
-    throw { status: res.status, data };
-  }
-
-  return data || [];
+  return text ? JSON.parse(text) : [];
 }
 
-export async function createPost(formData, csrf) {
-  const headers = {};
-
-  if (csrf) {
-    headers['X-CSRF-Token'] = csrf;
-  }
-
-  const res = await fetch(`${API_BASE_URL}/api/posts`, {
+export async function createPost(formData) {
+  const res = await apiRaw('/api/posts', {
     method: 'POST',
-    headers,
     body: formData,
-    credentials: 'include',
   });
 
   const text = await res.text();
@@ -47,10 +29,9 @@ export async function createPost(formData, csrf) {
 }
 
 export async function updatePost(postId, formData) {
-  const res = await fetch(`${API_BASE_URL}/api/posts/${postId}`, {
+  const res = await apiRaw(`/api/posts/${postId}`, {
     method: 'PUT',
     body: formData,
-    credentials: 'include',
   });
 
   const text = await res.text();

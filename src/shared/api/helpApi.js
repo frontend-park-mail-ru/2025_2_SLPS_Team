@@ -1,7 +1,4 @@
-// src/shared/api/helpApi.js
-import { cachedFetch } from '../../services/CacheService.js';
-
-const BASE_URL = process.env.API_BASE_URL || '';
+import { api, apiRaw } from './client.js';
 
 function mapCategory(category) {
   switch (category) {
@@ -26,17 +23,9 @@ function mapCategory(category) {
 
 
 export async function getSupportRequests(page = 1, limit = 10) {
-  const url = `${BASE_URL}/api/applications?page=${page}&limit=${limit}`;
-
-  const res = await cachedFetch(url, {
-    credentials: 'include',
+  const data = await api(`/api/applications?page=${page}&limit=${limit}`, {
+    method: 'GET',
   });
-
-  if (!res.ok) {
-    throw new Error('Failed to load applications');
-  }
-
-  const data = await res.json();
 
   const rawItems = Array.isArray(data)
     ? data
@@ -50,19 +39,17 @@ export async function getSupportRequests(page = 1, limit = 10) {
     number: app.id ?? index + 1,
     topic: mapCategory(app.category),
     createdAt: app.createdAt,
-    status: app.status,   // "open" | "in_progress" | "closed" | "canceled"
+    status: app.status, // "open" | "in_progress" | "closed" | "canceled"
     text: app.text,
     full_name: app.fullName,
     emailFeedBack: app.emailFeedBack,
-
   }));
 
   return { items, totalPages };
 }
 
-export async function cancelSupportRequest(id) {
-  return fetch(`${BASE_URL}/applications/${id}/cancel`, {
+export function cancelSupportRequest(id) {
+  return apiRaw(`/api/applications/${id}/cancel`, {
     method: 'POST',
-    credentials: 'include',
   });
 }
