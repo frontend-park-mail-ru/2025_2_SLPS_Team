@@ -17,20 +17,29 @@ export async function getPosts() {
 }
 
 export async function createPost(formData, csrf) {
+  const headers = {};
+
+  if (csrf) {
+    headers['X-CSRF-Token'] = csrf;
+  }
+
   const res = await fetch(`${API_BASE_URL}/api/posts`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(csrf ? { 'X-CSRF-Token': csrf } : {}),
-    },
+    headers,
     body: formData,
     credentials: 'include',
   });
 
   const text = await res.text();
-  const data = text ? JSON.parse(text) : null;
+  let data = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = text;
+  }
 
   if (!res.ok) {
+    console.error('createPost error', res.status, data);
     throw { status: res.status, data };
   }
 
