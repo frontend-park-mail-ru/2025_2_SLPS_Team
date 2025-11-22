@@ -73,9 +73,20 @@ class AuthService {
 
   async logout() {
     try {
+      const csrf = this.getCsrfToken?.();
+
+      const headers = {
+        Accept: "application/json",
+      };
+
+      if (csrf) {
+        headers["X-CSRF-Token"] = csrf;
+      }
+
       const res = await fetch(`${process.env.API_BASE_URL}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
+        headers,
       });
 
       if (!res.ok) {
