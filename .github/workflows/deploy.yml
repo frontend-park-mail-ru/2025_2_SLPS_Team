@@ -25,7 +25,6 @@ jobs:
 
       - name: Push Docker image
         run: |
-          docker tag ${{ secrets.DOCKER_USERNAME }}/myapp_front:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/myapp_front:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/myapp_front:latest
 
   deploy:
