@@ -16,9 +16,13 @@ export async function getPosts() {
   return data || [];
 }
 
-export async function createPost(formData) {
+export async function createPost(formData, csrf) {
   const res = await fetch(`${API_BASE_URL}/api/posts`, {
     method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(csrf ? { 'X-CSRF-Token': csrf } : {}),
+    },
     body: formData,
     credentials: 'include',
   });
