@@ -72,7 +72,6 @@ export default {
       favicon: './public/globalImages/favicon.svg',
     }),
 
-    // 👇 вот тут теперь он реально увидит то, что в .env
     new webpack.DefinePlugin({
       'process.env.API_BASE_URL': JSON.stringify(process.env.API_BASE_URL || 'http://localhost:8080'),
       'process.env.WS_URL': JSON.stringify(process.env.WS_URL || 'ws://localhost:8080/api/ws'),

@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "webpack serve --config webpack.config.mjs --mode development",
     "build": "webpack --mode production",
     "start": "node server.mjs",
     "jsdoc": "jsdoc -c jsdoc.json",
