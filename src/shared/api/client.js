@@ -5,7 +5,7 @@ const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8080';
 function buildUrl(path) {
   if (!path) {
     throw new Error('client: path is required');
-  }
+  }  
 
   if (path.startsWith('http')) return path;
 
@@ -39,28 +39,28 @@ function needsCsrf(method) {
  *   headers: доп. заголовки
  *   credentials: по умолчанию 'include'
  */
-async function request(path, options = {}) {
-  const url = buildUrl(path);
+export async function api(url, options = {}) {
   const method = (options.method || 'GET').toUpperCase();
   const body = options.body;
+
   const isFormData = body instanceof FormData;
 
-  const headers = {
-    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
-    Accept: 'application/json',
-    ...(options.headers || {}),
-  };
+  const headers = new Headers(options.headers || {});
 
-  if (needsCsrf(method)) {
-    const csrf = authService.getCsrfToken();
-    if (csrf) {
-      headers['X-CSRF-Token'] = csrf;
+  if (!isFormData && body != null && !['GET', 'HEAD'].includes(method)) {
+    if (!headers.has('Content-Type')) {
+      headers.set('Content-Type', 'application/json');
     }
+  }
+
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+    const csrf = await authService.getCSRFToken().catch(() => null);
+    if (csrf) headers.set('X-CSRF-Token', csrf);
   }
 
   const res = await fetch(url, {
     method,
-    credentials: options.credentials || 'include',
+    credentials: 'include',
     headers,
     body: isFormData
       ? body
@@ -69,7 +69,11 @@ async function request(path, options = {}) {
       : undefined,
   });
 
-  return res;
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : null;
+
+  if (!res.ok) throw { status: res.status, data };
+  return data;
 }
 
 export async function api(path, options = {}) {
