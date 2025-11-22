@@ -4,7 +4,7 @@ import BaseButton from '../../atoms/BaseButton/BaseButton.js';
 import { NotificationManager } from '../NotificationsBlock/NotificationsManager.js';
 import { EventBus } from '../../../services/EventBus.js';
 import { createPost, updatePost } from '../../../shared/api/postsApi.js';
-
+import { authService } from '../../../services/AuthService.js';
 
 const notifier = new NotificationManager();
 
@@ -129,7 +129,7 @@ export class CreatePostForm {
         formData.append('photos', file)
       );
 
-      await createPost(formData);
+      await createPost(formData, authService.getCsrfToken());
 
       notifier.show(
         'Пост создан',
