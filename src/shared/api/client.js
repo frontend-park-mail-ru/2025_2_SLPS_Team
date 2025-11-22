@@ -1,11 +1,6 @@
 import { authService } from '../../services/AuthService.js';
 
-const API_BASE_URL =
-  (typeof process !== 'undefined' &&
-    process.env &&
-    process.env.API_BASE_URL) ||
-  (typeof window !== 'undefined' && window.API_BASE_URL) ||
-  'http://185.86.146.77:8080';
+const API_BASE_URL = 'http://185.86.146.77:8080';
 
 function buildUrl(path) {
   if (!path) {
