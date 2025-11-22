@@ -9,7 +9,6 @@ import { ModalConfirm } from '../../components/molecules/ModalConfirm/ModalConfi
 import { EventBus } from '../../services/EventBus.js';
 import { navigateTo } from '../../app/router/navigateTo.js';
 
-import { getFriendsStats } from '../../shared/api/friendsApi.js';
 import {
   getProfile,
   getUserPosts,
@@ -32,15 +31,6 @@ function formatDob(dobStr) {
   return { dobFormatted, age };
 }
 
-async function getFriendsData(userId) {
-  const res = await getFriendsStats(userId);
-
-  return {
-    count_friends: res.accepted,
-    count_followers: res.pending,
-    count_follows: res.sent,
-  };
-}
 
 export class ProfilePage extends BasePage {
   constructor(rootElement, params) {
@@ -59,7 +49,6 @@ export class ProfilePage extends BasePage {
     this.resolveUserId();
 
     this.profileData = await getProfile(this.userId);
-    this.friendsData = await getFriendsData(this.userId);
 
     const { dobFormatted, age } = formatDob(this.profileData.dob);
 
@@ -68,6 +57,14 @@ export class ProfilePage extends BasePage {
     if (!this.isOwner) {
       this.friendsStatus = await getProfileFriendStatus(this.userId);
     }
+
+    const rc = this.profileData.relationsCount || {};
+    this.friendsData = {
+      count_friends: rc.countAccepted ?? 0,
+      count_followers: rc.countPending ?? 0,
+      count_follows: rc.countSent ?? 0,
+      count_blocked: rc.countBlocked ?? 0,
+    };
 
     const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
     const avatarPath =

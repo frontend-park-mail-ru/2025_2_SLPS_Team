@@ -6,6 +6,8 @@ import { NotificationManager } from '../NotificationsBlock/NotificationsManager.
 import SelectInput from '../../atoms/SelectInput/SelectInput.js';
 import BaseInput from '../../atoms/BaseInput/BaseInput.js';
 import { ImageInputSmall } from '../../molecules/InputImageSmall/InputImageSmall.js';
+import { createSupportRequest } from '../../../shared/api/helpApi.js';
+
 
 const notifier = new NotificationManager();
 
@@ -159,108 +161,100 @@ export class CreateSupportForm {
     }
 
     async handleSubmit() {
-            const loginEmailInput = this.wrapper.querySelector('.support-email-input');
-            const topicSelect = this.wrapper.querySelector('.support-topic-select');
-            const descriptionInput = this.wrapper.querySelector('.support-description-input');
-            const nameInput = this.wrapper.querySelector('.support-name-input');
-            const contactEmailInput = this.wrapper.querySelector('.support-contact-email-input');
+        const loginEmailInput = this.wrapper.querySelector('.support-email-input');
+        const topicSelect = this.wrapper.querySelector('.support-topic-select');
+        const descriptionInput = this.wrapper.querySelector('.support-description-input');
+        const nameInput = this.wrapper.querySelector('.support-name-input');
+        const contactEmailInput = this.wrapper.querySelector('.support-contact-email-input');
 
-            const loginEmail = this.inputs.regEmail.getValue();
-            const topicLabel = this.inputs.supportSelect.getValue();
-            const topic = CATEGORY_MAP[topicLabel]; 
-            const description = this.inputs.aboutProblem.getValue();
-            const name = this.inputs.nameInput.getValue();
-            const contactEmail = this.inputs.emailInput.getValue();
+        const loginEmail = this.inputs.regEmail.getValue();
+        const topicLabel = this.inputs.supportSelect.getValue();
+        const topic = CATEGORY_MAP[topicLabel];
+        const description = this.inputs.aboutProblem.getValue();
+        const name = this.inputs.nameInput.getValue();
+        const contactEmail = this.inputs.emailInput.getValue();
 
-            this.wrapper
-                .querySelectorAll('.support-input-error')
-                .forEach((el) => el.classList.remove('support-input-error'));
+        this.wrapper
+        .querySelectorAll('.support-input-error')
+        .forEach((el) => el.classList.remove('support-input-error'));
 
-            let hasError = false;
-            const markError = (el) => {
-                if (!el) return;
-                el.classList.add('support-input-error');
-                hasError = true;
-            };
+        let hasError = false;
+        const markError = (el) => {
+        if (!el) return;
+        el.classList.add('support-input-error');
+        hasError = true;
+        };
 
-            if (!loginEmail) markError(loginEmailInput);
-            if (!topic || topic === 'none' || topic === 'Не выбрано') markError(topicSelect);
-            if (!description) markError(descriptionInput);
-            if (!name) markError(nameInput);
-            if (!contactEmail) markError(contactEmailInput);
+        if (!loginEmail) markError(loginEmailInput);
+        if (!topic || topic === 'none' || topic === 'Не выбрано') markError(topicSelect);
+        if (!description) markError(descriptionInput);
+        if (!name) markError(nameInput);
+        if (!contactEmail) markError(contactEmailInput);
 
-            if (hasError) {
-                notifier.show(
-                    'Заполните все поля',
-                    'Все поля формы обязательны для заполнения',
-                    'error',
-                );
-                return;
-            }
+        if (hasError) {
+        notifier.show(
+            'Заполните все поля',
+            'Все поля формы обязательны для заполнения',
+            'error',
+        );
+        return;
+        }
 
-            const now = new Date().toISOString();
+        const now = new Date().toISOString();
 
-            const images = this.inputs.imageInput.getImages();
-            const base64Images = [];
-            for (const file of images) {
-                const base64 = await this.fileToBase64(file);
-                base64Images.push(base64);
-            }
+        const images = this.inputs.imageInput.getImages();
+        const base64Images = [];
+        for (const file of images) {
+        const base64 = await this.fileToBase64(file);
+        base64Images.push(base64);
+        }
 
-            const payload = {
-                authorID: 'temp',
-                category: topic,
-                createdAt: now,
-                emailFeedBack: contactEmail,
-                emailReg: loginEmail,
-                fullName: name,
-                id: 0,
-                status: 'open',
-                text: description,
-                updatedAt: now,
-                images: base64Images,
-            };
+        const payload = {
+        authorID: 'temp',
+        category: topic,
+        createdAt: now,
+        emailFeedBack: contactEmail,
+        emailReg: loginEmail,
+        fullName: name,
+        id: 0,
+        status: 'open',
+        text: description,
+        updatedAt: now,
+        images: base64Images,
+        };
 
-            console.log('[SUPPORT PAYLOAD]', payload);
+        console.log('[SUPPORT PAYLOAD]', payload);
 
-            const res = await fetch(`${process.env.API_BASE_URL}/api/applications`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    accept: 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify(payload),
-            });
+        try {
+        await createSupportRequest(payload);
 
-            if (!res.ok) {
-                const errText = await res.text().catch(() => '');
-                console.error(
-                    `[Support] create application failed: ${res.status} ${res.statusText}`,
-                    errText,
-                );
+        notifier.show(
+            'Обращение отправлено',
+            'Мы получили ваше обращение и скоро свяжемся с вами.',
+            'success',
+        );
 
-                notifier.show(
-                    'Ошибка',
-                    'Не удалось отправить обращение. Попробуйте снова.',
-                    'error',
-                );
-                return;
-            }
-
-            notifier.show(
-                'Обращение отправлено',
-                'Мы получили ваше обращение и скоро свяжемся с вами.',
-                'success',
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage(
+            { type: 'support-widget:submitted' },
+            '*',
             );
+        }
+        } catch (err) {
+        console.error(
+            '[Support] create application failed:',
+            err.status,
+            err.data || err,
+        );
 
-            if (window.parent && window.parent !== window) {
-                window.parent.postMessage(
-                    { type: 'support-widget:submitted' },
-                    '*',
-                );
-            }
+        notifier.show(
+            'Ошибка',
+            'Не удалось отправить обращение. Попробуйте снова.',
+            'error',
+        );
+        }
     }
+
 
     fileToBase64(file) {
     return new Promise((resolve, reject) => {

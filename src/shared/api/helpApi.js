@@ -53,3 +53,10 @@ export function cancelSupportRequest(id) {
     method: 'POST',
   });
 }
+
+export function createSupportRequest(payload) {
+  return api('/api/applications', {
+    method: 'POST',
+    body: payload,
+  });
+}
