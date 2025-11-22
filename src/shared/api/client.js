@@ -1,17 +1,21 @@
 import { authService } from '../../services/AuthService.js';
 
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8080';
+const API_BASE_URL =
+  (typeof process !== 'undefined' &&
+    process.env &&
+    process.env.API_BASE_URL) ||
+  '';
 
 function buildUrl(path) {
   if (!path) {
     throw new Error('client: path is required');
-  }  
+  }
 
   if (path.startsWith('http')) return path;
 
   if (path.startsWith('/api')) return `${API_BASE_URL}${path}`;
 
-  return `${API_BASE_URL}/${path.replace(/^\/+/, '')}`;
+  return path;
 }
 
 async function parseJsonSafe(res) {
@@ -31,36 +35,47 @@ function needsCsrf(method) {
 }
 
 /**
+ * Базовый запрос
  *
  * @param {string} path - '/api/...' или полный URL
  * @param {object} options
- *   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'...
+ *   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
  *   body: object (JSON) или FormData
  *   headers: доп. заголовки
  *   credentials: по умолчанию 'include'
  */
-export async function api(url, options = {}) {
+async function request(path, options = {}) {
+  const url = buildUrl(path);
   const method = (options.method || 'GET').toUpperCase();
   const body = options.body;
-
   const isFormData = body instanceof FormData;
 
-  const headers = new Headers(options.headers || {});
+  const headers = { ...(options.headers || {}) };
 
-  if (!isFormData && body != null && !['GET', 'HEAD'].includes(method)) {
-    if (!headers.has('Content-Type')) {
-      headers.set('Content-Type', 'application/json');
-    }
+  if (!headers.Accept) {
+    headers.Accept = 'application/json';
   }
 
-  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
-    const csrf = await authService.getCSRFToken().catch(() => null);
-    if (csrf) headers.set('X-CSRF-Token', csrf);
+  if (
+    !isFormData &&
+    body != null &&
+    !headers['Content-Type'] &&
+    method !== 'GET' &&
+    method !== 'HEAD'
+  ) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  if (needsCsrf(method)) {
+    const csrf = authService.getCsrfToken();
+    if (csrf) {
+      headers['X-CSRF-Token'] = csrf;
+    }
   }
 
   const res = await fetch(url, {
     method,
-    credentials: 'include',
+    credentials: options.credentials || 'include',
     headers,
     body: isFormData
       ? body
@@ -69,11 +84,7 @@ export async function api(url, options = {}) {
       : undefined,
   });
 
-  const text = await res.text();
-  const data = text ? JSON.parse(text) : null;
-
-  if (!res.ok) throw { status: res.status, data };
-  return data;
+  return res;
 }
 
 export async function api(path, options = {}) {
