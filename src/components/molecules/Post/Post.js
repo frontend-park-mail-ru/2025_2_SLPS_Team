@@ -93,9 +93,7 @@ export async function renderPost(postData) {
     postFooter.appendChild(ShareButton);
 
     const likeImg = LikeButton.querySelector("img");
-    const likeCountNode =
-        LikeButton.querySelector(".icon-button__count") ||
-        LikeButton.querySelector("span:last-child"); 
+    const likeCountNode = LikeButton.querySelector("span");
     function updateLikeView() {
         if (likeImg) {
             likeImg.src = currentIsLiked ? likeIconActive : likeIconDefault;
