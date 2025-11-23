@@ -150,13 +150,18 @@ export class ProfilePage extends BasePage {
   async renderPostsBlock() {
     this.posts = await getUserPosts(this.userId, 20);
     this.posts = this.posts.map((post) => ({
-      ...post,
+      post,
       author: {
         id: this.userId,
         fullName: `${this.profileData.firstName} ${this.profileData.lastName}`,
         avatarPath: this.profileData.avatarPath,
       },
+      likes: post.likeCount ?? post.like_count ?? 0,
+      comments: post.commentCount ?? post.comment_count ?? 0,
+      reposts: post.repostCount ?? post.repost_count ?? 0,
+      isLiked: post.isLiked ?? false,
     }));
+
 
     const feedContainer = this.wrapper.querySelector('.profile-feed-container');
     feedContainer.innerHTML = '';
