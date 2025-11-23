@@ -26,7 +26,6 @@ export async function renderPost(postData) {
         postData = {
             ...post,
             author: postData.author,
-            // новые поля likeCount / isLiked + старые snake_case
             likes: postData.likes ?? post.likeCount ?? post.like_count ?? 0,
             comments: postData.comments ?? post.commentCount ?? post.comment_count ?? 0,
             reposts: postData.reposts ?? post.repostCount ?? post.repost_count ?? 0,
@@ -85,6 +84,28 @@ export async function renderPost(postData) {
     postFooter.appendChild(LikeButton);
     postFooter.appendChild(CommentButton);
     postFooter.appendChild(ShareButton);
+
+    function updateLikeView() {
+        const iconImg = LikeButton.querySelector("img");
+        const countNode =
+            LikeButton.querySelector(".icon-button__count") ||
+            LikeButton.querySelector("span:last-child");
+
+        if (iconImg) {
+            iconImg.src = currentIsLiked ? likeIconActive : likeIconDefault;
+        }
+        if (countNode) {
+            countNode.textContent = String(currentLikes);
+        }
+    }
+    const likeListener = (payload) => {
+    if (!payload || payload.postId !== postData.id) return;
+        currentIsLiked = payload.isLiked;
+        currentLikes = payload.likeCount;
+        updateLikeView();
+    };
+
+    EventBus.on("post:like-changed", likeListener);
 
     LikeButton.addEventListener('click', async (e) => {
         e.preventDefault();
