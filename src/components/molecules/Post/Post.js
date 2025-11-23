@@ -135,7 +135,18 @@ export async function renderPost(postData) {
             currentLikes += currentIsLiked ? 1 : -1;
             if (currentLikes < 0) currentLikes = 0;
 
+            let direction = null;
+            if (currentLikes > prevLikes) {
+                direction = 'up';
+            } else if (currentLikes < prevLikes) {
+                direction = 'down';
+            }
+
             updateLikeView();
+
+            if (direction) {
+                animateLikeChange(direction);
+            }
 
             EventBus.emit("post:like-changed", {
                 postId: postData.id,
@@ -152,6 +163,7 @@ export async function renderPost(postData) {
             notifier.show("Ошибка", "Не удалось обновить лайк", "error");
         }
     });
+
 
     const text = postElement.querySelector(".js-post-text");
     const btn = postElement.querySelector(".js-toggle-btn");
@@ -248,5 +260,24 @@ async function PostDelete(postId) {
         return res;
     } catch (error) {
         notifier.show("Ошибка", "Не удалось удалить пост", 'error');
+    }
+}
+
+function animateLikeChange(direction) {
+    LikeButton.classList.remove('icon-button--bump');
+    likeCountNode.classList.remove(
+        'icon-button-counter--spin-up',
+        'icon-button-counter--spin-down'
+    );
+
+
+    LikeButton.offsetWidth;
+
+    LikeButton.classList.add('icon-button--bump');
+
+    if (direction === 'up') {
+        likeCountNode.classList.add('icon-button-counter--spin-up');
+    } else if (direction === 'down') {
+        likeCountNode.classList.add('icon-button-counter--spin-down');
     }
 }

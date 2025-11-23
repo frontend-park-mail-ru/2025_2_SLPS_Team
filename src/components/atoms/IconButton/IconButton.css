@@ -43,3 +43,53 @@
     color: var(--accent-color, #ff4b81);
     font-weight: 500;
 }
+.icon-button .icon,
+.icon-button-counter {
+    transition: transform 0.15s ease-out, color 0.15s ease-out;
+}
+
+@keyframes like-bump {
+    0% {
+        transform: translateY(0) scale(1);
+    }
+    35% {
+        transform: translateY(-4px) scale(1.1);
+    }
+    100% {
+        transform: translateY(0) scale(1);
+    }
+}
+
+.icon-button--bump .icon {
+    animation: like-bump 0.22s ease-out;
+}
+
+@keyframes counter-spin-up {
+    0% {
+        transform: translateY(6px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes counter-spin-down {
+    0% {
+        transform: translateY(-6px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.icon-button-counter--spin-up {
+    animation: counter-spin-up 0.18s ease-out;
+}
+
+.icon-button-counter--spin-down {
+    animation: counter-spin-down 0.18s ease-out;
+}
