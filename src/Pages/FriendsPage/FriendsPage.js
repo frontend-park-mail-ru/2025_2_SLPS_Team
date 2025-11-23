@@ -105,8 +105,8 @@ export class FriendsPage extends BasePage {
     }));
 
     const possibleRaw = await getPossibleFriends();
-    const filtered = (possibleRaw || []).filter((u) => u.status === null);
-    const possible = filtered.map((user) => ({
+
+    const possible = (possibleRaw || []).map((user) => ({
       userID: user.userID,
       name: user.fullName,
       avatarPath: user.avatarPath || null,
