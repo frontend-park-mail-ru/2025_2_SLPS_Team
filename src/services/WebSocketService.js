@@ -35,7 +35,7 @@ class WebSocketService {
                 if (type) {
                     this.emit(type, payload);
                 } else {
-                    this.emit('message', payload);
+                    this.emit('new_message', payload);
                 }
             } catch (e) {
                 console.error('[WS] Invalid message format:', event.data, e);
