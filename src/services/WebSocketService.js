@@ -23,25 +23,24 @@ class WebSocketService {
         };
 
         this.ws.onmessage = (event) => {
-            try {
-                const raw = event.data;
-                const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        try {
+            const raw = event.data;
+            const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
 
-                console.log('[WS RAW]', parsed);
+            console.log('[WS RAW]', parsed);
 
-                const type = parsed.type || parsed.Type;
-                const payload = parsed.data ?? parsed.Data ?? parsed;
+            const type = parsed.type || parsed.Type || null;
+            const data = parsed.data ?? parsed.Data ?? null;
 
-                if (!type) {
-                    console.warn('[WS] message without type', parsed);
-                    return;
-                }
-
-                this.emit(type, payload);
-            } catch (e) {
-                console.error('[WS] Invalid message format:', event.data, e);
+            if (type) {
+                this.emit(type, data);
             }
-        };
+
+            this.emit('new_message', { type, data });
+        } catch (e) {
+            console.error('[WS] Invalid message format:', event.data, e);
+        }
+    };
 
         this.ws.onclose = () => {
             console.warn('[WS] Connection closed. Reconnecting...');

@@ -42,7 +42,7 @@ export class Chat {
 
     const mainContainer = wrapper.querySelector('.chat-container');
 
-    const rawData = await getChatMessages(this.chatInfo, 100);
+    const rawData = await getChatMessages(this.chatInfo, 1);
     const rawMessages = rawData.Messages || [];
     const authors = rawData.Authors || {};
 
@@ -110,16 +110,23 @@ export class Chat {
 
     this.scrollToLastRead();
 
-    this.wsHandler = (data) => {
-        console.log('[WS new_message in Chat]', data, 'current chat:', this.chatInfo);
+        this.wsHandler = (packet) => {
+        console.log('[WS message in Chat]', packet, 'current chat:', this.chatInfo);
 
+        if (!packet || packet.type !== 'new_message') {
+            return; // это вообще не new_message
+        }
+
+        const data = packet.data;
         if (!data) return;
 
         const chatIdFromEvent =
             data.chatId ??
             data.chatID ??
             data.chat_id ??
-            data.lastMessage?.chatID;  
+            data.lastMessage?.chatID;
+
+        console.log('[WS new_message] chatIdFromEvent =', chatIdFromEvent, 'this.chatInfo =', this.chatInfo);
 
         if (chatIdFromEvent !== this.chatInfo) {
             return;
@@ -129,7 +136,11 @@ export class Chat {
         const author = data.lastMessageAuthor;
 
         if (!last || !author) {
-            console.warn('[Chat] WS new_message пришел без lastMessage', data);
+            console.warn('[Chat] WS new_message без lastMessage/lastMessageAuthor', data);
+            return;
+        }
+
+        if (this.messages.some((m) => m.id === last.id)) {
             return;
         }
 
@@ -153,8 +164,8 @@ export class Chat {
             true,
             true,
         );
-
         msg.render(true);
+
         this.messages.push(messageData);
 
         if (!isMine) {
@@ -169,7 +180,8 @@ export class Chat {
         this.scrollToBottom();
     };
 
-        wsService.on('new_message', this.wsHandler);
+    wsService.on('new_message', this.wsHandler);
+
   }
 
 
