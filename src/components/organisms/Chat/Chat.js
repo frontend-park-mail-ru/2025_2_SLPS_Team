@@ -102,9 +102,13 @@ export class Chat {
     });
 
     wsService.on('new_message', (data) => {
-      if (data.id !== this.chatInfo && data.chatId !== this.chatInfo) {
-        return;
-      }
+      console.log('[WS new_message in Chat]', data, 'current chat:', this.chatInfo);
+
+      const chatIdFromEvent = data.chatId ?? data.chatID ?? data.chat_id ?? data.id;
+
+        if (chatIdFromEvent !== this.chatInfo) {
+            return;
+        }
 
       const messageData = {
         id: data.id,
