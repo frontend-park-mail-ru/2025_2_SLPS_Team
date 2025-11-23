@@ -101,50 +101,61 @@ export class Chat {
       this.sendEvent(e);
     });
 
-    wsService.on('new_message', (data) => {
-      console.log('[WS new_message in Chat]', data, 'current chat:', this.chatInfo);
+    wsService.on('message', (packet) => {
+        const data = packet.Data || packet;
+        console.log('[WS message in Chat]', data, 'current chat:', this.chatInfo);
 
-      const chatIdFromEvent = data.chatId ?? data.chatID ?? data.chat_id ?? data.id;
+        if (!data) return;
+
+        const chatIdFromEvent =
+            data.chatId ?? data.chatID ?? data.chat_id ?? data.id;
 
         if (chatIdFromEvent !== this.chatInfo) {
             return;
         }
 
-      const messageData = {
-        id: data.id,
-        text: data.lastMessage.text,
-        created_at: data.lastMessage.createdAt,
-        User: {
-          id: data.authorID,
-          full_name: data.fullName || 'Unknown',
-          avatar: data.avatarPath || '',
-        },
-      };
+        if (!data.lastMessage && !data.text) {
+            return;
+        }
 
-      const isMine = messageData.User.id === this.myUserId;
+        const lastMsg = data.lastMessage || data.message || data;
 
-      const msg = new Message(
-        this.messagesContainer,
-        messageData,
-        isMine,
-        true,
-        true,
-      );
-      msg.render(true);
+        const messageData = {
+            id: lastMsg.id ?? data.messageId ?? data.id,
+            text: lastMsg.text ?? data.text,
+            created_at: lastMsg.createdAt ?? data.createdAt,
+            User: {
+            id: lastMsg.authorID ?? data.authorID,
+            full_name: data.fullName || lastMsg.authorName || 'Unknown',
+            avatar: data.avatarPath || '',
+            },
+        };
 
-      this.messages.push(messageData);
+        const isMine = messageData.User.id === this.myUserId;
 
-      if (!isMine) {
-        this.unreadMessageIds.add(messageData.id);
-        EventBus.emit('chatReadUpdated', {
-          chatId: this.chatInfo,
-          unreadCount: this.unreadMessageIds.size,
-          lastReadMessageId: this.lastReadMessageId,
+        const msg = new Message(
+            this.messagesContainer,
+            messageData,
+            isMine,
+            true,
+            true,
+        );
+        msg.render(true);
+
+        this.messages.push(messageData);
+
+        if (!isMine) {
+            this.unreadMessageIds.add(messageData.id);
+            EventBus.emit('chatReadUpdated', {
+            chatId: this.chatInfo,
+            unreadCount: this.unreadMessageIds.size,
+            lastReadMessageId: this.lastReadMessageId,
+            });
+        }
+
+        this.scrollToBottom();
         });
-      }
 
-      this.scrollToBottom();
-    });
 
     this.addScrollButton();
 

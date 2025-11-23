@@ -27,8 +27,11 @@ class WebSocketService {
                 const raw = event.data;
                 const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
 
+                console.log('[WS RAW]', data);
+
                 if (data.Type) {
                     this.emit(data.Type, data.Data);
+                    this.emit('message', data);
                 } else {
                     this.emit('message', data);
                 }
@@ -73,4 +76,4 @@ class WebSocketService {
     }
 }
 
-export const wsService = new WebSocketService("ws://185.86.146.77:8080/api/ws");
+export const wsService = new WebSocketService('ws://185.86.146.77:8080/api/ws');

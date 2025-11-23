@@ -56,9 +56,17 @@ export class MessengerPage extends BasePage {
 
     this.rootElement.appendChild(this.wrapper);
 
-    wsService.on('new_message', (data) => {
-      this.UpdateChat(data.id);
-    });
+    wsService.on('message', (packet) => {
+    console.log('[WS message in MessengerPage]', packet);
+
+    const data = packet.Data || packet;
+
+    if (!data || typeof data.id === 'undefined') {
+      return;
+    }
+
+    this.UpdateChat(data.id);
+  });
 
     EventBus.on('openChat', async ({ data }) => {
       try {
