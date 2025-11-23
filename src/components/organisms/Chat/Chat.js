@@ -84,6 +84,7 @@ export class Chat {
       message.render();
     });
 
+    // трекинг непрочитанных
     this.initUnreadTracking();
 
     this.inputMes = new MessageInput(
@@ -101,61 +102,54 @@ export class Chat {
       this.sendEvent(e);
     });
 
-    wsService.on('message', (packet) => {
-        const data = packet.Data || packet;
-        console.log('[WS message in Chat]', data, 'current chat:', this.chatInfo);
+    wsService.on('new_message', (data) => {
+      console.log('[WS new_message in Chat]', data, 'current chat:', this.chatInfo);
 
-        if (!data) return;
+      const chatIdFromEvent =
+        data.chatId ?? data.chatID ?? data.chat_id ?? data.id;
 
-        const chatIdFromEvent =
-            data.chatId ?? data.chatID ?? data.chat_id ?? data.id;
+      if (chatIdFromEvent !== this.chatInfo) {
+        // это обновление другого чата
+        return;
+      }
 
-        if (chatIdFromEvent !== this.chatInfo) {
-            return;
-        }
+      const lastMsg = data.lastMessage || data.message || data;
 
-        if (!data.lastMessage && !data.text) {
-            return;
-        }
+      const messageData = {
+        id: lastMsg.id ?? data.messageId ?? data.id,
+        text: lastMsg.text ?? data.text,
+        created_at: lastMsg.createdAt ?? data.createdAt,
+        User: {
+          id: lastMsg.authorID ?? data.authorID,
+          full_name: data.fullName || lastMsg.authorName || 'Unknown',
+          avatar: data.avatarPath || '',
+        },
+      };
 
-        const lastMsg = data.lastMessage || data.message || data;
+      const isMine = messageData.User.id === this.myUserId;
 
-        const messageData = {
-            id: lastMsg.id ?? data.messageId ?? data.id,
-            text: lastMsg.text ?? data.text,
-            created_at: lastMsg.createdAt ?? data.createdAt,
-            User: {
-            id: lastMsg.authorID ?? data.authorID,
-            full_name: data.fullName || lastMsg.authorName || 'Unknown',
-            avatar: data.avatarPath || '',
-            },
-        };
+      const msg = new Message(
+        this.messagesContainer,
+        messageData,
+        isMine,
+        true,
+        true,
+      );
+      msg.render(true);
 
-        const isMine = messageData.User.id === this.myUserId;
+      this.messages.push(messageData);
 
-        const msg = new Message(
-            this.messagesContainer,
-            messageData,
-            isMine,
-            true,
-            true,
-        );
-        msg.render(true);
-
-        this.messages.push(messageData);
-
-        if (!isMine) {
-            this.unreadMessageIds.add(messageData.id);
-            EventBus.emit('chatReadUpdated', {
-            chatId: this.chatInfo,
-            unreadCount: this.unreadMessageIds.size,
-            lastReadMessageId: this.lastReadMessageId,
-            });
-        }
-
-        this.scrollToBottom();
+      if (!isMine) {
+        this.unreadMessageIds.add(messageData.id);
+        EventBus.emit('chatReadUpdated', {
+          chatId: this.chatInfo,
+          unreadCount: this.unreadMessageIds.size,
+          lastReadMessageId: this.lastReadMessageId,
         });
+      }
 
+      this.scrollToBottom();
+    });
 
     this.addScrollButton();
 

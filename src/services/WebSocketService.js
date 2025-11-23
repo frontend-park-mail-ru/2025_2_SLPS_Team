@@ -29,11 +29,13 @@ class WebSocketService {
 
                 console.log('[WS RAW]', data);
 
-                if (data.Type) {
-                    this.emit(data.Type, data.Data);
-                    this.emit('message', data);
+                const type = data.Type || data.type;
+                const payload = data.Data ?? data.data ?? data;
+
+                if (type) {
+                    this.emit(type, payload);
                 } else {
-                    this.emit('message', data);
+                    this.emit('message', payload);
                 }
             } catch (e) {
                 console.error('[WS] Invalid message format:', event.data, e);
