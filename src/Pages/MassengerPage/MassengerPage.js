@@ -77,6 +77,13 @@ export class MessengerPage extends BasePage {
     EventBus.on('chatUpdated', ({ chatId }) => {
       this.UpdateChat(chatId);
     });
+    EventBus.on('chatReadUpdated', ({ chatId, unreadCount, lastReadMessageId }) => {
+      const item = this.chatItems.find((i) => i.chatData.id === chatId);
+      if (!item) return;
+
+      item.setUnreadCount(unreadCount);
+      item.chatData.lastReadMessageId = lastReadMessageId;
+    });
   }
 
   async OpenChat(data) {

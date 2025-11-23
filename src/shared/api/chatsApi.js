@@ -24,3 +24,10 @@ export function sendChatMessage(chatId, text) {
     body: { text },
   });
 }
+
+export function updateChatReadState(chatId, lastReadMessageId) {
+  return api(`/api/chats/${chatId}/last-read`, {
+    method: 'PUT',
+    body: { lastReadMessageID: lastReadMessageId },
+  });
+}

@@ -9,7 +9,6 @@ export class ChatItem {
         this.photoWrapper = null;
         this.photoElement = null;
         this.mesCounter  = null;
-        this.counter = 0;
     }
 
     render() {
@@ -17,35 +16,43 @@ export class ChatItem {
         tempDiv.innerHTML = ChatItemTemplate(this.chatData);
         this.wrapper = tempDiv.querySelector('.chat-item');
 
-        this.photoWrapper = this.wrapper.querySelector('.user-avatar-container')
+        this.photoWrapper = this.wrapper.querySelector('.user-avatar-container');
         this.photoElement = new UserPhotoItem(this.photoWrapper, this.chatData.avatarPath);
         this.photoElement.render();
 
         this.mesCounter = this.wrapper.querySelector('.new-mess-counter');
+        this.setUnreadCount(this.chatData.unreadCount || 0);
 
         this.rootElement.appendChild(this.wrapper);
     }
 
     makeActive() {
         this.wrapper.classList.add('active');
-        this.hideCounter();
+        this.setUnreadCount(0);
     }
 
     rmActive() {
         this.wrapper.classList.remove('active');
-        this.hideCounter();
+    }
+
+    setUnreadCount(count) {
+        this.chatData.unreadCount = count;
+        if (!this.mesCounter) return;
+
+        if (count > 0) {
+            this.mesCounter.textContent = String(count);
+            this.mesCounter.classList.remove('hide');
+        } else {
+            this.mesCounter.textContent = '';
+            this.mesCounter.classList.add('hide');
+        }
     }
 
     showCounter() {
-        this.mesCounter.classList.remove('hide');
+        this.setUnreadCount((this.chatData.unreadCount || 0) + 1);
     }
 
     hideCounter() {
-        this.mesCounter.classList.add('hide');
+        this.setUnreadCount(0);
     }
-
-    updateCounter() {
-        this.mesCounter.textContent = this.counter;
-    }
-
 }

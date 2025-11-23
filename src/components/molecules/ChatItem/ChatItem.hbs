@@ -1,11 +1,14 @@
 <div class="chat-item">
-    <div class="user-avatar-container">
-    </div>
+    <div class="user-avatar-container"></div>
     <div class="chat-item-info">
         <div class="user-name">{{name}}</div>
         <div class="chats-info-block">
-            <div class="last-messege">{{lastMessageAuthor.fullName}}: {{lastMessage.text}}</div>
-            <div class="new-mess-counter hide"></div>
+            <div class="last-messege">
+                {{lastMessageAuthor.fullName}}: {{lastMessage.text}}
+            </div>
+            <div class="new-mess-counter {{#unless unreadCount}}hide{{/unless}}">
+                {{unreadCount}}
+            </div>
         </div>
     </div>
 </div>

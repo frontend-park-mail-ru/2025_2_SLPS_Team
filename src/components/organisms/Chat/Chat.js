@@ -9,8 +9,8 @@ import { EventBus } from '../../../services/EventBus.js';
 import {
   getChatMessages,
   sendChatMessage,
+  updateChatReadState,
 } from '../../../shared/api/chatsApi.js';
-
 
 export class Chat {
   constructor(rootElement, myUserId, myUserName, myUserAvatar, data) {
@@ -25,16 +25,18 @@ export class Chat {
     this.messagesContainer = null;
     this.scrollButton = null;
     this.data = data;
+
+    this.lastReadMessageId =
+      data.lastReadMessageId || data.lastReadMessageID || null;
+    this.unreadMessageIds = new Set();
+    this.readUpdateInFlight = false;
   }
 
   async render() {
     const wrapper = document.createElement('div');
-    console.log(this.chatInfo);
     wrapper.innerHTML = ChatTemplate(this.chatInfo);
 
     const mainContainer = wrapper.querySelector('.chat-container');
-    console.log(this.myUserAvatar);
-    console.log(this.chatInfo);
 
     const rawData = await getChatMessages(this.chatInfo, 1);
     const rawMessages = rawData.Messages || [];
@@ -52,7 +54,6 @@ export class Chat {
     }));
 
     this.messages = messages;
-    console.log(this.data);
 
     this.chatHeader = new ChatHeader(
       mainContainer.querySelector('.chat-header-container'),
@@ -82,6 +83,8 @@ export class Chat {
       );
       message.render();
     });
+
+    this.initUnreadTracking();
 
     this.inputMes = new MessageInput(
       mainContainer.querySelector('.messege-input'),
@@ -116,24 +119,138 @@ export class Chat {
 
       const isMine = messageData.User.id === this.myUserId;
 
-      new Message(
+      const msg = new Message(
         this.messagesContainer,
         messageData,
         isMine,
         true,
         true,
-      ).render(true);
-      this.messagesContainer.scrollTop =
-        this.messagesContainer.scrollHeight;
+      );
+      msg.render(true);
+
+      this.messages.push(messageData);
+
+      if (!isMine) {
+        this.unreadMessageIds.add(messageData.id);
+        EventBus.emit('chatReadUpdated', {
+          chatId: this.chatInfo,
+          unreadCount: this.unreadMessageIds.size,
+          lastReadMessageId: this.lastReadMessageId,
+        });
+      }
+
+      this.scrollToBottom();
     });
 
     this.addScrollButton();
 
+    this.messagesContainer.addEventListener('scroll', () => {
+      this.handleScrollRead();
+    });
+
     this.rootElement.appendChild(wrapper.firstElementChild);
 
+    this.scrollToLastRead();
+  }
+
+
+  initUnreadTracking() {
+    this.unreadMessageIds.clear();
+
+    this.messages.forEach((m) => {
+      const isMine = m.User.id === this.myUserId;
+      if (isMine) return;
+
+      if (!this.lastReadMessageId || m.id > this.lastReadMessageId) {
+        this.unreadMessageIds.add(m.id);
+      }
+    });
+
+    this.handleScrollRead(true);
+  }
+
+  handleScrollRead(isInitial = false) {
+    if (this.unreadMessageIds.size === 0) return;
+
+    const containerTop = this.messagesContainer.scrollTop;
+    const containerBottom =
+      containerTop + this.messagesContainer.clientHeight;
+
+    let newLastReadId = this.lastReadMessageId || 0;
+    const toDelete = [];
+
+    this.unreadMessageIds.forEach((id) => {
+      const el = this.messagesContainer.querySelector(
+        `[data-message-id="${id}"]`,
+      );
+      if (!el) return;
+
+      const top = el.offsetTop;
+      const bottom = top + el.offsetHeight;
+
+      if (bottom <= containerBottom) {
+        if (id > newLastReadId) {
+          newLastReadId = id;
+        }
+        toDelete.push(id);
+      }
+    });
+
+    if (newLastReadId !== this.lastReadMessageId) {
+      this.lastReadMessageId = newLastReadId;
+      toDelete.forEach((id) => this.unreadMessageIds.delete(id));
+
+      if (!isInitial) {
+        this.pushReadState();
+      }
+
+      EventBus.emit('chatReadUpdated', {
+        chatId: this.chatInfo,
+        unreadCount: this.unreadMessageIds.size,
+        lastReadMessageId: this.lastReadMessageId,
+      });
+    }
+  }
+
+  async pushReadState() {
+    if (!this.lastReadMessageId) return;
+    if (this.readUpdateInFlight) return;
+    this.readUpdateInFlight = true;
+
+    try {
+      await updateChatReadState(this.chatInfo, this.lastReadMessageId);
+    } catch (e) {
+      console.error('Не удалось обновить lastReadMessageId', e);
+    } finally {
+      this.readUpdateInFlight = false;
+    }
+  }
+
+  scrollToBottom() {
     this.messagesContainer.scrollTop =
       this.messagesContainer.scrollHeight -
       this.messagesContainer.clientHeight;
+  }
+
+  scrollToLastRead() {
+    if (!this.lastReadMessageId) {
+      this.scrollToBottom();
+      return;
+    }
+
+    const el = this.messagesContainer.querySelector(
+      `[data-message-id="${this.lastReadMessageId}"]`,
+    );
+
+    if (!el) {
+      this.scrollToBottom();
+      return;
+    }
+
+    const targetTop =
+      el.offsetTop - this.messagesContainer.clientHeight * 0.3;
+
+    this.messagesContainer.scrollTop = Math.max(targetTop, 0);
   }
 
   addScrollButton() {
@@ -192,10 +309,26 @@ export class Chat {
         },
       };
 
-      new Message(this.messagesContainer, message, true).render(true);
+      const msg = new Message(this.messagesContainer, message, true);
+      msg.render(true);
+
+      this.messages.push(message);
+
       this.inputMes.clear();
 
       EventBus.emit('chatUpdated', { chatId: this.chatInfo });
+
+      // свои сообщения считаем сразу прочитанными до конца
+      this.lastReadMessageId = message.id;
+      this.unreadMessageIds.clear();
+      this.pushReadState();
+      EventBus.emit('chatReadUpdated', {
+        chatId: this.chatInfo,
+        unreadCount: 0,
+        lastReadMessageId: this.lastReadMessageId,
+      });
+
+      this.scrollToBottom();
     } catch (err) {
       console.error('Ошибка при отправке сообщения:', err);
     }
