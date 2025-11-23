@@ -79,27 +79,37 @@ export async function renderPost(postData) {
         currentIsLiked ? likeIconActive : likeIconDefault,
         currentLikes
     );
-    const CommentButton = await renderIconButton("/public/IconButtons/CommentButton.svg", postData.comments);
-    const ShareButton = await renderIconButton("/public/IconButtons/ShareButton.svg", postData.reposts);
+    const CommentButton = await renderIconButton(
+        "/public/IconButtons/CommentButton.svg",
+        postData.comments
+    );
+    const ShareButton = await renderIconButton(
+        "/public/IconButtons/ShareButton.svg",
+        postData.reposts
+    );
+
     postFooter.appendChild(LikeButton);
     postFooter.appendChild(CommentButton);
     postFooter.appendChild(ShareButton);
 
+    const likeImg = LikeButton.querySelector("img");
+    const likeCountNode =
+        LikeButton.querySelector(".icon-button__count") ||
+        LikeButton.querySelector("span:last-child"); 
     function updateLikeView() {
-        const iconImg = LikeButton.querySelector("img");
-        const countNode =
-            LikeButton.querySelector(".icon-button__count") ||
-            LikeButton.querySelector("span:last-child");
-
-        if (iconImg) {
-            iconImg.src = currentIsLiked ? likeIconActive : likeIconDefault;
+        if (likeImg) {
+            likeImg.src = currentIsLiked ? likeIconActive : likeIconDefault;
         }
-        if (countNode) {
-            countNode.textContent = String(currentLikes);
+        if (likeCountNode) {
+            likeCountNode.textContent = String(currentLikes);
         }
     }
+
+    updateLikeView();
+
     const likeListener = (payload) => {
-    if (!payload || payload.postId !== postData.id) return;
+        if (!payload || payload.postId !== postData.id) return;
+
         currentIsLiked = payload.isLiked;
         currentLikes = payload.likeCount;
         updateLikeView();
@@ -107,9 +117,12 @@ export async function renderPost(postData) {
 
     EventBus.on("post:like-changed", likeListener);
 
-    LikeButton.addEventListener('click', async (e) => {
+    LikeButton.addEventListener("click", async (e) => {
         e.preventDefault();
         e.stopPropagation();
+
+        const prevIsLiked = currentIsLiked;
+        const prevLikes = currentLikes;
 
         try {
             await togglePostLike(postData.id);
@@ -118,20 +131,21 @@ export async function renderPost(postData) {
             currentLikes += currentIsLiked ? 1 : -1;
             if (currentLikes < 0) currentLikes = 0;
 
-            const iconImg = LikeButton.querySelector('img');
-            const countNode =
-                LikeButton.querySelector('.icon-button__count') ||
-                LikeButton.querySelector('span:last-child');
+            updateLikeView();
 
-            if (iconImg) {
-                iconImg.src = currentIsLiked ? likeIconActive : likeIconDefault;
-            }
-            if (countNode) {
-                countNode.textContent = String(currentLikes);
-            }
+            EventBus.emit("post:like-changed", {
+                postId: postData.id,
+                isLiked: currentIsLiked,
+                likeCount: currentLikes,
+            });
         } catch (error) {
-            console.error('toggle like error', error);
-            notifier.show('Ошибка', 'Не удалось обновить лайк', 'error');
+            console.error("toggle like error", error);
+
+            currentIsLiked = prevIsLiked;
+            currentLikes = prevLikes;
+            updateLikeView();
+
+            notifier.show("Ошибка", "Не удалось обновить лайк", "error");
         }
     });
 
