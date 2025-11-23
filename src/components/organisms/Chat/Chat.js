@@ -1,4 +1,4 @@
-import ChatTemplate from './Chat.hbs'
+import ChatTemplate from './Chat.hbs';
 import { ChatHeader } from '../../molecules/ChatHeader/ChatHeader.js';
 import { Message } from '../../atoms/Message/Message.js';
 import { MessageInput } from '../../molecules/MessageInput/MessageInput.js';
@@ -19,17 +19,22 @@ export class Chat {
     this.myUserId = myUserId;
     this.myUserName = myUserName;
     this.myUserAvatar = myUserAvatar;
-    this.messages = null;
+
+    this.messages = [];
     this.chatHeader = null;
     this.inputMes = null;
     this.messagesContainer = null;
     this.scrollButton = null;
+
     this.data = data;
 
     this.lastReadMessageId =
       data.lastReadMessageId || data.lastReadMessageID || null;
     this.unreadMessageIds = new Set();
     this.readUpdateInFlight = false;
+
+    // чтобы потом можно было снять подписку, если понадобится
+    this.wsHandler = null;
   }
 
   async render() {
@@ -42,7 +47,7 @@ export class Chat {
     const rawMessages = rawData.Messages || [];
     const authors = rawData.Authors || {};
 
-    const messages = rawMessages.map((msg) => ({
+    this.messages = rawMessages.map((msg) => ({
       id: msg.id,
       text: msg.text,
       created_at: msg.createdAt,
@@ -52,8 +57,6 @@ export class Chat {
         avatar: authors[msg.authorID]?.avatarPath || '',
       },
     }));
-
-    this.messages = messages;
 
     this.chatHeader = new ChatHeader(
       mainContainer.querySelector('.chat-header-container'),
@@ -65,6 +68,7 @@ export class Chat {
 
     this.messagesContainer = mainContainer.querySelector('.chat-messeges');
 
+    // первый рендер истории
     this.messages.forEach((messageData, index) => {
       const isMine = messageData.User.id === this.myUserId;
 
@@ -72,19 +76,17 @@ export class Chat {
       const isLastInGroup =
         !nextMessage || nextMessage.User.id !== messageData.User.id;
 
-      const withAnimation = false;
-
       const message = new Message(
         this.messagesContainer,
         messageData,
         isMine,
         isLastInGroup,
-        withAnimation,
+        false,
       );
       message.render();
     });
 
-    // трекинг непрочитанных
+    // непрочитанные
     this.initUnreadTracking();
 
     this.inputMes = new MessageInput(
@@ -102,15 +104,19 @@ export class Chat {
       this.sendEvent(e);
     });
 
-    wsService.on('new_message', (data) => {
+    // ---- WS: получаем новые сообщения ----
+    this.wsHandler = (data) => {
       console.log('[WS new_message in Chat]', data, 'current chat:', this.chatInfo);
 
+      if (!data) return;
+
+      // сервер в data присылает обновлённый чат:
+      // { id, chatId?, lastMessage: { id, text, createdAt, authorID }, authorID, fullName, avatarPath, ... }
       const chatIdFromEvent =
         data.chatId ?? data.chatID ?? data.chat_id ?? data.id;
 
       if (chatIdFromEvent !== this.chatInfo) {
-        // это обновление другого чата
-        return;
+        return; // это событие другого чата
       }
 
       const lastMsg = data.lastMessage || data.message || data;
@@ -149,7 +155,9 @@ export class Chat {
       }
 
       this.scrollToBottom();
-    });
+    };
+
+    wsService.on('new_message', this.wsHandler);
 
     this.addScrollButton();
 
@@ -162,6 +170,7 @@ export class Chat {
     this.scrollToLastRead();
   }
 
+  // -------- непрочитанные / lastRead --------
 
   initUnreadTracking() {
     this.unreadMessageIds.clear();
@@ -262,6 +271,8 @@ export class Chat {
     this.messagesContainer.scrollTop = Math.max(targetTop, 0);
   }
 
+  // -------- кнопка «вниз» --------
+
   addScrollButton() {
     this.scrollButton =
       this.messagesContainer.querySelector('.scroll-to-bottom-btn');
@@ -297,6 +308,8 @@ export class Chat {
     });
   }
 
+  // -------- отправка сообщения --------
+
   async sendEvent(e) {
     e.preventDefault();
     const text = this.inputMes.getValue();
@@ -327,7 +340,7 @@ export class Chat {
 
       EventBus.emit('chatUpdated', { chatId: this.chatInfo });
 
-      // свои сообщения считаем сразу прочитанными до конца
+      // свои сообщения считаем сразу прочитанными
       this.lastReadMessageId = message.id;
       this.unreadMessageIds.clear();
       this.pushReadState();
