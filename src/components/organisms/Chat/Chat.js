@@ -163,9 +163,6 @@ export class Chat {
     };
 
 
-
-    wsService.on('new_message', this.wsHandler);
-
     this.addScrollButton();
 
     this.messagesContainer.addEventListener('scroll', () => {
@@ -175,6 +172,8 @@ export class Chat {
     this.rootElement.appendChild(wrapper.firstElementChild);
 
     this.scrollToLastRead();
+    
+    wsService.on('new_message', this.wsHandler);
   }
 
   initUnreadTracking() {
