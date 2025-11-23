@@ -24,3 +24,22 @@
 .icon-button .icon:hover{
     filter: brightness(0.9);
 }
+
+.icon-button .icon,
+.icon-button-counter {
+    transition:
+        transform 0.18s ease-out,
+        color 0.18s ease-out,
+        filter 0.18s ease-out;
+}
+
+.icon-button--liked .icon {
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 4px rgba(255, 105, 180, 0.4));
+}
+
+.icon-button--liked .icon-button-counter {
+    transform: translateY(-1px) scale(1.05);
+    color: var(--accent-color, #ff4b81);
+    font-weight: 500;
+}

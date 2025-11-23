@@ -102,6 +102,11 @@ export async function renderPost(postData) {
         if (likeCountNode) {
             likeCountNode.textContent = String(currentLikes);
         }
+        if (currentIsLiked) {
+            LikeButton.classList.add('icon-button--liked');
+        } else {
+            LikeButton.classList.remove('icon-button--liked');
+        }
     }
 
     updateLikeView();
