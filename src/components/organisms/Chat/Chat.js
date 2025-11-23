@@ -104,79 +104,81 @@ export class Chat {
       this.sendEvent(e);
     });
 
-        this.wsHandler = async (data) => {
-      console.log('[WS new_message in Chat] payload:', data, 'current chat:', this.chatInfo);
+    this.wsHandler = async (packet) => {
+        console.log('[WS new_message in Chat] payload:', packet, 'current chat:', this.chatInfo);
 
-      if (!data) return;
+        if (!packet) return;
 
-      // В payload от WS лежит объект чата
-      // { id, isGroup, name, avatarPath, ... }
-      const chatIdFromEvent =
-        data.chatId ??
-        data.chatID ??
-        data.chat_id ??
-        data.chat?.id ??
-        data.id;
+        // Бэкенд шлёт объект чата: { id, name, avatarPath, ... }
+        // id === chatId
+        const chatIdFromEvent = 
+            packet.chatId ??
+            packet.chatID ??
+            packet.chat_id ??
+            packet.chat?.id ??
+            packet.id;
 
-      console.log('[WS new_message] chatIdFromEvent =', chatIdFromEvent, 'this.chatInfo =', this.chatInfo);
+        console.log('[WS] chatIdFromEvent =', chatIdFromEvent, 'this.chatInfo =', this.chatInfo);
 
-      if (chatIdFromEvent !== this.chatInfo) {
-        return;
-      }
-
-      try {
-        const raw = await getChatMessages(this.chatInfo, 1);
-        const rawMessages = raw.Messages || [];
-        const authors = raw.Authors || {};
-
-        if (!rawMessages.length) {
-          return;
+        if (chatIdFromEvent !== this.chatInfo) {
+            return; // событие не для этого чата
         }
 
-        const last = rawMessages[rawMessages.length - 1];
+        try {
+            // Берём обновлённые сообщения из бэка
+            const raw = await getChatMessages(this.chatInfo, 1);
+            const rawMessages = raw.Messages || [];
+            const authors = raw.Authors || {};
 
-        if (this.messages.some((m) => m.id === last.id)) {
-          return;
+            if (!rawMessages.length) return;
+
+            // Последнее сообщение в массиве — новое
+            const last = rawMessages[rawMessages.length - 1];
+
+            // Если сообщение уже есть — значит оно было создано нами → игнорируем
+            if (this.messages.some((m) => m.id === last.id)) {
+            return;
+            }
+
+            const messageData = {
+            id: last.id,
+            text: last.text,
+            created_at: last.createdAt,
+            User: {
+                id: last.authorID,
+                full_name: authors[last.authorID]?.fullName || '',
+                avatar: authors[last.authorID]?.avatarPath || '',
+            },
+            };
+
+            const isMine = messageData.User.id === this.myUserId;
+
+            const msg = new Message(
+            this.messagesContainer,
+            messageData,
+            isMine,
+            true,
+            true,
+            );
+            msg.render(true);
+
+            this.messages.push(messageData);
+
+            if (!isMine) {
+            this.unreadMessageIds.add(messageData.id);
+            EventBus.emit('chatReadUpdated', {
+                chatId: this.chatInfo,
+                unreadCount: this.unreadMessageIds.size,
+                lastReadMessageId: this.lastReadMessageId,
+            });
+            }
+
+            this.scrollToBottom();
+        } catch (err) {
+            console.error('[Chat] Ошибка при обновлении сообщений:', err);
         }
-
-        const messageData = {
-          id: last.id,
-          text: last.text,
-          created_at: last.createdAt,
-          User: {
-            id: last.authorID,
-            full_name: authors[last.authorID]?.fullName || '',
-            avatar: authors[last.authorID]?.avatarPath || '',
-          },
         };
 
-        const isMine = messageData.User.id === this.myUserId;
-
-        const msg = new Message(
-          this.messagesContainer,
-          messageData,
-          isMine,
-          true,   // последний в группе
-          true,   // с анимацией
-        );
-        msg.render(true);
-
-        this.messages.push(messageData);
-
-        if (!isMine) {
-          this.unreadMessageIds.add(messageData.id);
-          EventBus.emit('chatReadUpdated', {
-            chatId: this.chatInfo,
-            unreadCount: this.unreadMessageIds.size,
-            lastReadMessageId: this.lastReadMessageId,
-          });
-        }
-
-        this.scrollToBottom();
-      } catch (err) {
-        console.error('[Chat] Ошибка при подгрузке новых сообщений:', err);
-      }
-    };
 
 
     wsService.on('new_message', this.wsHandler);
