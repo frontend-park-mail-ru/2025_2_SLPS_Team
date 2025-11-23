@@ -104,81 +104,59 @@ export class Chat {
       this.sendEvent(e);
     });
 
-    this.wsHandler = async (packet) => {
-        console.log('[WS new_message in Chat] payload:', packet, 'current chat:', this.chatInfo);
+    this.wsHandler = (packet) => {
+        console.log('[WS new_message in Chat]', packet, 'current chat:', this.chatInfo);
 
-        if (!packet) return;
+        if (!packet || !packet.lastMessage) return;
 
-        // Бэкенд шлёт объект чата: { id, name, avatarPath, ... }
-        // id === chatId
         const chatIdFromEvent = 
             packet.chatId ??
             packet.chatID ??
             packet.chat_id ??
-            packet.chat?.id ??
             packet.id;
 
-        console.log('[WS] chatIdFromEvent =', chatIdFromEvent, 'this.chatInfo =', this.chatInfo);
-
         if (chatIdFromEvent !== this.chatInfo) {
-            return; // событие не для этого чата
+            return;
         }
 
-        try {
-            // Берём обновлённые сообщения из бэка
-            const raw = await getChatMessages(this.chatInfo, 1);
-            const rawMessages = raw.Messages || [];
-            const authors = raw.Authors || {};
+        const last = packet.lastMessage;
+        const author = packet.lastMessageAuthor;
 
-            if (!rawMessages.length) return;
-
-            // Последнее сообщение в массиве — новое
-            const last = rawMessages[rawMessages.length - 1];
-
-            // Если сообщение уже есть — значит оно было создано нами → игнорируем
-            if (this.messages.some((m) => m.id === last.id)) {
-            return;
-            }
-
-            const messageData = {
+        const messageData = {
             id: last.id,
             text: last.text,
             created_at: last.createdAt,
             User: {
-                id: last.authorID,
-                full_name: authors[last.authorID]?.fullName || '',
-                avatar: authors[last.authorID]?.avatarPath || '',
+            id: author.userID,
+            full_name: author.fullName,
+            avatar: author.avatarPath || '',
             },
-            };
+        };
 
-            const isMine = messageData.User.id === this.myUserId;
+        const isMine = messageData.User.id === this.myUserId;
 
-            const msg = new Message(
+        const msg = new Message(
             this.messagesContainer,
             messageData,
             isMine,
             true,
-            true,
-            );
-            msg.render(true);
+            true
+        );
+        msg.render(true);
 
-            this.messages.push(messageData);
+        this.messages.push(messageData);
 
-            if (!isMine) {
+        if (!isMine) {
             this.unreadMessageIds.add(messageData.id);
             EventBus.emit('chatReadUpdated', {
-                chatId: this.chatInfo,
-                unreadCount: this.unreadMessageIds.size,
-                lastReadMessageId: this.lastReadMessageId,
+            chatId: this.chatInfo,
+            unreadCount: this.unreadMessageIds.size,
+            lastReadMessageId: this.lastReadMessageId,
             });
-            }
-
-            this.scrollToBottom();
-        } catch (err) {
-            console.error('[Chat] Ошибка при обновлении сообщений:', err);
         }
-        };
 
+        this.scrollToBottom();
+        };
 
 
     wsService.on('new_message', this.wsHandler);
