@@ -105,61 +105,69 @@ export class Chat {
     });
 
     this.wsHandler = (packet) => {
-        console.log('[WS new_message in Chat]', packet, 'current chat:', this.chatInfo);
+    console.log('[WS message in Chat]', packet, 'current chat:', this.chatInfo);
 
-        if (!packet || !packet.lastMessage) return;
+    if (!packet || packet.type !== 'new_message') {
+        return; // это не событие нового сообщения
+    }
 
-        const chatIdFromEvent = 
-            packet.chatId ??
-            packet.chatID ??
-            packet.chat_id ??
-            packet.id;
+    const data = packet.data; // то, что было в поле data WS RAW
 
-        if (chatIdFromEvent !== this.chatInfo) {
-            return;
-        }
+    if (!data || !data.lastMessage || !data.lastMessageAuthor) {
+        return;
+    }
 
-        const last = packet.lastMessage;
-        const author = packet.lastMessageAuthor;
+    const chatIdFromEvent =
+        data.chatId ??
+        data.chatID ??
+        data.chat_id ??
+        data.id;
 
-        const messageData = {
-            id: last.id,
-            text: last.text,
-            created_at: last.createdAt,
-            User: {
-            id: author.userID,
-            full_name: author.fullName,
-            avatar: author.avatarPath || '',
-            },
-        };
+    if (chatIdFromEvent !== this.chatInfo) {
+        return; // событие не для этого чата
+    }
 
-        const isMine = messageData.User.id === this.myUserId;
+    const last = data.lastMessage;
+    const author = data.lastMessageAuthor;
 
-        const msg = new Message(
-            this.messagesContainer,
-            messageData,
-            isMine,
-            true,
-            true
-        );
-        msg.render(true);
+    const messageData = {
+        id: last.id,
+        text: last.text,
+        created_at: last.createdAt,
+        User: {
+        id: author.userID,
+        full_name: author.fullName,
+        avatar: author.avatarPath || '',
+        },
+    };
 
-        this.messages.push(messageData);
+    const isMine = messageData.User.id === this.myUserId;
 
-        if (!isMine) {
-            this.unreadMessageIds.add(messageData.id);
-            EventBus.emit('chatReadUpdated', {
-            chatId: this.chatInfo,
-            unreadCount: this.unreadMessageIds.size,
-            lastReadMessageId: this.lastReadMessageId,
-            });
-        }
+    const msg = new Message(
+        this.messagesContainer,
+        messageData,
+        isMine,
+        true,
+        true,
+    );
+    msg.render(true);
 
-        this.scrollToBottom();
-        };
+    this.messages.push(messageData);
+
+    if (!isMine) {
+        this.unreadMessageIds.add(messageData.id);
+        EventBus.emit('chatReadUpdated', {
+        chatId: this.chatInfo,
+        unreadCount: this.unreadMessageIds.size,
+        lastReadMessageId: this.lastReadMessageId,
+        });
+    }
+
+    this.scrollToBottom();
+    };
 
 
-    wsService.on('new_message', this.wsHandler);
+    wsService.on('message', this.wsHandler);
 
     this.addScrollButton();
 
