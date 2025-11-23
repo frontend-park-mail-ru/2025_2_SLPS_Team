@@ -108,6 +108,24 @@ export async function renderPost(postData) {
             LikeButton.classList.remove('icon-button--liked');
         }
     }
+    function animateLikeChange(direction) {
+        LikeButton.classList.remove('icon-button--bump');
+        likeCountNode.classList.remove(
+            'icon-button-counter--spin-up',
+            'icon-button-counter--spin-down'
+        );
+
+
+        LikeButton.offsetWidth;
+
+        LikeButton.classList.add('icon-button--bump');
+
+        if (direction === 'up') {
+            likeCountNode.classList.add('icon-button-counter--spin-up');
+        } else if (direction === 'down') {
+            likeCountNode.classList.add('icon-button-counter--spin-down');
+        }
+    }
 
     updateLikeView();
 
@@ -263,21 +281,3 @@ async function PostDelete(postId) {
     }
 }
 
-function animateLikeChange(direction) {
-    LikeButton.classList.remove('icon-button--bump');
-    likeCountNode.classList.remove(
-        'icon-button-counter--spin-up',
-        'icon-button-counter--spin-down'
-    );
-
-
-    LikeButton.offsetWidth;
-
-    LikeButton.classList.add('icon-button--bump');
-
-    if (direction === 'up') {
-        likeCountNode.classList.add('icon-button-counter--spin-up');
-    } else if (direction === 'down') {
-        likeCountNode.classList.add('icon-button-counter--spin-down');
-    }
-}
