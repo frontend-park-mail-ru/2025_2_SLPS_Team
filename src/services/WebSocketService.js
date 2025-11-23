@@ -25,18 +25,19 @@ class WebSocketService {
         this.ws.onmessage = (event) => {
             try {
                 const raw = event.data;
-                const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+                const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
 
-                console.log('[WS RAW]', data);
+                console.log('[WS RAW]', parsed);
 
-                const type = data.Type || data.type;
-                const payload = data.Data ?? data.data ?? data;
+                const type = parsed.type || parsed.Type;
+                const payload = parsed.data ?? parsed.Data ?? parsed;
 
-                if (type) {
-                    this.emit(type, payload);
-                } else {
-                    this.emit('new_message', payload);
+                if (!type) {
+                    console.warn('[WS] message without type', parsed);
+                    return;
                 }
+
+                this.emit(type, payload);
             } catch (e) {
                 console.error('[WS] Invalid message format:', event.data, e);
             }
@@ -54,8 +55,8 @@ class WebSocketService {
     }
 
     send(type, payload) {
-        const message = JSON.stringify({ type, payload });
-        if (this.ws.readyState === WebSocket.OPEN) {
+        const message = JSON.stringify({ type, data: payload });
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             this.ws.send(message);
         } else {
             console.warn('[WS] Not ready, message dropped:', message);
@@ -74,7 +75,7 @@ class WebSocketService {
     }
 
     emit(eventType, payload) {
-        this.listeners.get(eventType)?.forEach(cb => cb(payload));
+        this.listeners.get(eventType)?.forEach((cb) => cb(payload));
     }
 }
 
