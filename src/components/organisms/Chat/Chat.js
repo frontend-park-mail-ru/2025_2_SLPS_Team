@@ -104,58 +104,80 @@ export class Chat {
       this.sendEvent(e);
     });
 
-    // ---- WS: получаем новые сообщения ----
-    this.wsHandler = (data) => {
-      console.log('[WS new_message in Chat]', data, 'current chat:', this.chatInfo);
+        this.wsHandler = async (data) => {
+      console.log('[WS new_message in Chat] payload:', data, 'current chat:', this.chatInfo);
 
       if (!data) return;
 
-      // сервер в data присылает обновлённый чат:
-      // { id, chatId?, lastMessage: { id, text, createdAt, authorID }, authorID, fullName, avatarPath, ... }
+      // В payload от WS лежит объект чата
+      // { id, isGroup, name, avatarPath, ... }
       const chatIdFromEvent =
-        data.chatId ?? data.chatID ?? data.chat_id ?? data.id;
+        data.chatId ??
+        data.chatID ??
+        data.chat_id ??
+        data.chat?.id ??
+        data.id;
+
+      console.log('[WS new_message] chatIdFromEvent =', chatIdFromEvent, 'this.chatInfo =', this.chatInfo);
 
       if (chatIdFromEvent !== this.chatInfo) {
-        return; // это событие другого чата
+        return;
       }
 
-      const lastMsg = data.lastMessage || data.message || data;
+      try {
+        const raw = await getChatMessages(this.chatInfo, 1);
+        const rawMessages = raw.Messages || [];
+        const authors = raw.Authors || {};
 
-      const messageData = {
-        id: lastMsg.id ?? data.messageId ?? data.id,
-        text: lastMsg.text ?? data.text,
-        created_at: lastMsg.createdAt ?? data.createdAt,
-        User: {
-          id: lastMsg.authorID ?? data.authorID,
-          full_name: data.fullName || lastMsg.authorName || 'Unknown',
-          avatar: data.avatarPath || '',
-        },
-      };
+        if (!rawMessages.length) {
+          return;
+        }
 
-      const isMine = messageData.User.id === this.myUserId;
+        const last = rawMessages[rawMessages.length - 1];
 
-      const msg = new Message(
-        this.messagesContainer,
-        messageData,
-        isMine,
-        true,
-        true,
-      );
-      msg.render(true);
+        if (this.messages.some((m) => m.id === last.id)) {
+          return;
+        }
 
-      this.messages.push(messageData);
+        const messageData = {
+          id: last.id,
+          text: last.text,
+          created_at: last.createdAt,
+          User: {
+            id: last.authorID,
+            full_name: authors[last.authorID]?.fullName || '',
+            avatar: authors[last.authorID]?.avatarPath || '',
+          },
+        };
 
-      if (!isMine) {
-        this.unreadMessageIds.add(messageData.id);
-        EventBus.emit('chatReadUpdated', {
-          chatId: this.chatInfo,
-          unreadCount: this.unreadMessageIds.size,
-          lastReadMessageId: this.lastReadMessageId,
-        });
+        const isMine = messageData.User.id === this.myUserId;
+
+        const msg = new Message(
+          this.messagesContainer,
+          messageData,
+          isMine,
+          true,   // последний в группе
+          true,   // с анимацией
+        );
+        msg.render(true);
+
+        this.messages.push(messageData);
+
+        if (!isMine) {
+          this.unreadMessageIds.add(messageData.id);
+          EventBus.emit('chatReadUpdated', {
+            chatId: this.chatInfo,
+            unreadCount: this.unreadMessageIds.size,
+            lastReadMessageId: this.lastReadMessageId,
+          });
+        }
+
+        this.scrollToBottom();
+      } catch (err) {
+        console.error('[Chat] Ошибка при подгрузке новых сообщений:', err);
       }
-
-      this.scrollToBottom();
     };
+
 
     wsService.on('new_message', this.wsHandler);
 
@@ -169,8 +191,6 @@ export class Chat {
 
     this.scrollToLastRead();
   }
-
-  // -------- непрочитанные / lastRead --------
 
   initUnreadTracking() {
     this.unreadMessageIds.clear();
@@ -271,8 +291,6 @@ export class Chat {
     this.messagesContainer.scrollTop = Math.max(targetTop, 0);
   }
 
-  // -------- кнопка «вниз» --------
-
   addScrollButton() {
     this.scrollButton =
       this.messagesContainer.querySelector('.scroll-to-bottom-btn');
@@ -307,8 +325,6 @@ export class Chat {
       }, 20);
     });
   }
-
-  // -------- отправка сообщения --------
 
   async sendEvent(e) {
     e.preventDefault();

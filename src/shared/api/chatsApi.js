@@ -12,7 +12,7 @@ export function getChatWithUser(userId) {
   });
 }
 
-export function getChatMessages(chatId, page = 1) {
+export function getChatMessages(chatId, page = 2) {
   return api(`/api/chats/${chatId}/messages?page=${page}`, {
     method: 'GET',
   });
