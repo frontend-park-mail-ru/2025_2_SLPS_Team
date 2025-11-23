@@ -61,6 +61,10 @@
     white-space: nowrap;
 }
 
+.help-table__empty-row--hidden {
+  display: none;
+}
+
 .help-table__th--id {
     width: 120px;
 }

@@ -76,23 +76,20 @@ export class CreateSupportForm {
         );
         await this.inputs.aboutProblem.render();
 
-        this.inputs.imageInput = new ImageInputSmall(
-            this.wrapper.querySelector('.support-screenshot-block'),
-            'Фото 1'
-        );
-        this.inputs.imageInput.render();
+        new ImageInputSmall(
+        this.wrapper.querySelector('.support-screenshot-block'),
+        'Фото 1'
+        ).render();
 
-        this.inputs.imageInput = new ImageInputSmall(
-            this.wrapper.querySelector('.support-screenshot-block'),
-            'Фото 2'
-        );
-        this.inputs.imageInput.render();
+        new ImageInputSmall(
+        this.wrapper.querySelector('.support-screenshot-block'),
+        'Фото 2'
+        ).render();
 
-        this.inputs.imageInput = new ImageInputSmall(
-            this.wrapper.querySelector('.support-screenshot-block'),
-            'Фото 3'
-        );
-        this.inputs.imageInput.render();
+        new ImageInputSmall(
+        this.wrapper.querySelector('.support-screenshot-block'),
+        'Фото 3'
+        ).render();
 
         this.inputs.nameInput = new BaseInput(
             this.wrapper.querySelector('.support-contacts-name'),
@@ -205,9 +202,10 @@ export class CreateSupportForm {
         const images = this.inputs.imageInput.getImages();
         const base64Images = [];
         for (const file of images) {
-        const base64 = await this.fileToBase64(file);
-        base64Images.push(base64);
+            const base64 = await this.fileToBase64(file);
+            base64Images.push(base64);
         }
+
 
         const payload = {
         authorID: 'temp',

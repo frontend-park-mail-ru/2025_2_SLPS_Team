@@ -11,3 +11,16 @@ export function getChatWithUser(userId) {
     method: 'GET',
   });
 }
+
+export function getChatMessages(chatId, page = 1) {
+  return api(`/api/chats/${chatId}/messages?page=${page}`, {
+    method: 'GET',
+  });
+}
+
+export function sendChatMessage(chatId, text) {
+  return api(`/api/chats/${chatId}/message`, {
+    method: 'POST',
+    body: { text },
+  });
+}

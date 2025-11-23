@@ -67,11 +67,11 @@ export class HelpPage extends BasePage {
     tbody.querySelectorAll('tr:not(.help-table__empty-row)').forEach((row) => row.remove());
 
     if (!this.requests.length) {
-      emptyRow.style.display = '';
+      emptyRow.classList.remove('help-table__empty-row--hidden');
       return;
     }
 
-    emptyRow.style.display = 'none';
+    emptyRow.classList.add('help-table__empty-row--hidden');
 
     this.requests.forEach((req, index) => {
       const row = createHelpRequestRow(req, index, {
