@@ -49,3 +49,9 @@
     color: var(--dark-gray);
 }
 
+
+@media (max-width: 738px) {
+    .form-logo {
+        display: none;
+    }
+}

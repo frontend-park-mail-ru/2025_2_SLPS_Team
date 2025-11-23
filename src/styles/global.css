@@ -5,14 +5,16 @@
   font-style: normal;
 }
 
-body{
-    display: flex;
-    flex-direction: column;
+body {
     margin: 0;
-    background-color: var(--base-background);
     font-family: "Nunito Sans";
-    gap: 16px;
+    background-color: var(--base-background);
     overflow-x: hidden;
+    display: flex;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
 }
 
 .main-container {
