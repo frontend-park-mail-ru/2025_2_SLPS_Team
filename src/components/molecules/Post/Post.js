@@ -7,6 +7,7 @@ import { ModalConfirm } from '../ModalConfirm/ModalConfirm.js';
 import { NotificationManager } from '../../organisms/NotificationsBlock/NotificationsManager.js';
 import { CreatePostForm } from '../../organisms/CreatePost/CreatePost.js';
 import { EventBus } from '../../../services/EventBus.js';
+import { togglePostLike } from '../../../shared/api/postsApi.js';
 
 const notifier = new NotificationManager();
 
@@ -16,24 +17,20 @@ const notifier = new NotificationManager();
  * @async
  * @function renderPost
  * @param {Object} postData - Данные поста.
- * @param {string} postData.id - Уникальный идентификатор поста.
- * @param {string} postData.author - Автор поста.
- * @param {string} postData.text - Текст поста.
- * @param {Array<string>|string} [postData.photos] - Массив путей к фотографиям или одна фотография (будет преобразована в массив).
- * @param {string} [postData.imagePath] - Альтернативный путь к изображению, если `photos` не задан.
- * @param {number} [postData.like_count=0] - Количество лайков.
- * @returns {Promise<HTMLElement>} Promise, который разрешается в HTML-элемент поста.
- *
  */
 export async function renderPost(postData) {
     console.log(postData)
     if (postData.post && postData.author) {
+        const post = postData.post;
+
         postData = {
-            ...postData.post,
+            ...post,
             author: postData.author,
-            likes: postData.likes ?? postData.post.like_count ?? 0,
-            comments: postData.comments ?? postData.post.comment_count ?? 0,
-            reposts: postData.reposts ?? postData.post.repost_count ?? 0,
+            // новые поля likeCount / isLiked + старые snake_case
+            likes: postData.likes ?? post.likeCount ?? post.like_count ?? 0,
+            comments: postData.comments ?? post.commentCount ?? post.comment_count ?? 0,
+            reposts: postData.reposts ?? post.repostCount ?? post.repost_count ?? 0,
+            isLiked: postData.isLiked ?? post.isLiked ?? false,
         };
     }
 
@@ -47,6 +44,7 @@ export async function renderPost(postData) {
     } else {
         communityAvatar = `${baseUrl}${postData.author.avatarPath}`;
     }
+
     const templateData = {
         ...postData,
         isOwner: isOwner,
@@ -63,20 +61,58 @@ export async function renderPost(postData) {
 
     const postElement = wrapper.firstElementChild;
     const postHeader = postElement.querySelector(".post-header");
-    postData.photos = Array.isArray(postData.photos) 
-    ? postData.photos 
-    : postData.imagePath ? [postData.imagePath] : [];
+
+    postData.photos = Array.isArray(postData.photos)
+        ? postData.photos
+        : postData.imagePath ? [postData.imagePath] : [];
     const photoElement = await renderPostPhoto(postData.photos)
     postHeader.insertAdjacentElement("afterend", photoElement);
 
     const postFooter = postElement.querySelector(".post-footer").querySelector('.post-actions-container');
 
-    const LikeButton = await renderIconButton("/public/IconButtons/LikeButton.svg",postData.likes);
-    const CommentButton = await renderIconButton("/public/IconButtons/CommentButton.svg",postData.comments);
-    const ShareButton = await renderIconButton("/public/IconButtons/ShareButton.svg",postData.reposts);
+    let currentLikes = postData.likes ?? 0;
+    let currentIsLiked = !!postData.isLiked;
+
+    const likeIconDefault = "/public/IconButtons/LikeButton.svg";
+    const likeIconActive = "/public/IconButtons/ActiveLikeButton.svg";
+
+    const LikeButton = await renderIconButton(
+        currentIsLiked ? likeIconActive : likeIconDefault,
+        currentLikes
+    );
+    const CommentButton = await renderIconButton("/public/IconButtons/CommentButton.svg", postData.comments);
+    const ShareButton = await renderIconButton("/public/IconButtons/ShareButton.svg", postData.reposts);
     postFooter.appendChild(LikeButton);
     postFooter.appendChild(CommentButton);
     postFooter.appendChild(ShareButton);
+
+    LikeButton.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        try {
+            await togglePostLike(postData.id);
+
+            currentIsLiked = !currentIsLiked;
+            currentLikes += currentIsLiked ? 1 : -1;
+            if (currentLikes < 0) currentLikes = 0;
+
+            const iconImg = LikeButton.querySelector('img');
+            const countNode =
+                LikeButton.querySelector('.icon-button__count') ||
+                LikeButton.querySelector('span:last-child');
+
+            if (iconImg) {
+                iconImg.src = currentIsLiked ? likeIconActive : likeIconDefault;
+            }
+            if (countNode) {
+                countNode.textContent = String(currentLikes);
+            }
+        } catch (error) {
+            console.error('toggle like error', error);
+            notifier.show('Ошибка', 'Не удалось обновить лайк', 'error');
+        }
+    });
 
     const text = postElement.querySelector(".js-post-text");
     const btn = postElement.querySelector(".js-toggle-btn");
@@ -109,27 +145,35 @@ export async function renderPost(postData) {
         const postActionsMenu = postElement.querySelector('.post-actions-menu');
         const postActions = new DropDown(postActionsMenu, {
             values: [
-                { label: 'Удалить пост', icon: '/public/globalImages/DeleteImg.svg', onClick: () => {
-                    console.log('Удаление поста')
-                    const blockConfirm = new ModalConfirm(
-                        "Подтвердите действие",
-                        `Вы уверены что хотите удалить пост?`,
-                        async () => {
-                            console.log(postData.id)
-                            const request = await PostDelete(postData.id);
-                            if (request.ok){
-                                notifier.show('Пост удален', `Ваш пост успешно удален`, "error")
-                                EventBus.emit('posts:deleted');
+                {
+                    label: 'Удалить пост',
+                    icon: '/public/globalImages/DeleteImg.svg',
+                    onClick: () => {
+                        console.log('Удаление поста')
+                        const blockConfirm = new ModalConfirm(
+                            "Подтвердите действие",
+                            `Вы уверены что хотите удалить пост?`,
+                            async () => {
+                                console.log(postData.id)
+                                const request = await PostDelete(postData.id);
+                                if (request.ok) {
+                                    notifier.show('Пост удален', `Ваш пост успешно удален`, "error")
+                                    EventBus.emit('posts:deleted');
+                                }
                             }
-                        }
-                    );
-                    blockConfirm.open();
-                } },
-                { label: 'Редактировать', icon: '/public/globalImages/EditIcon.svg', onClick: () => {
-                    console.log('Тут открываем форму редактирования поста')
-                    const editPostFrom = new CreatePostForm(document.body, authService.getUserId(), 'edit', postData);
-                    editPostFrom.open();
-                } }
+                        );
+                        blockConfirm.open();
+                    }
+                },
+                {
+                    label: 'Редактировать',
+                    icon: '/public/globalImages/EditIcon.svg',
+                    onClick: () => {
+                        console.log('Тут открываем форму редактирования поста')
+                        const editPostFrom = new CreatePostForm(document.body, authService.getUserId(), 'edit', postData);
+                        editPostFrom.open();
+                    }
+                }
             ]
         });
 
@@ -145,10 +189,9 @@ export async function renderPost(postData) {
         });
         postActions.wrapper.addEventListener('mouseleave', () => postActions.hide());
     }
-    
+
     return postElement
 }
-
 
 async function PostDelete(postId) {
     try {
@@ -161,11 +204,10 @@ async function PostDelete(postId) {
             credentials: 'include',
         });
         if (res.ok) {
-           EventBus.emit('posts:deleted');
+            EventBus.emit('posts:deleted');
         }
         return res;
     } catch (error) {
         notifier.show("Ошибка", "Не удалось удалить пост", 'error');
     }
 }
-

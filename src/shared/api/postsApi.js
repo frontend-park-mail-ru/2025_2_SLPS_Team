@@ -43,3 +43,24 @@ export async function updatePost(postId, formData) {
 
   return data;
 }
+
+export async function togglePostLike(postId) {
+  const res = await apiRaw(`/api/posts/${postId}/like`, {
+    method: 'PUT',
+  });
+
+  const text = await res.text();
+  let data = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = text;
+  }
+
+  if (!res.ok) {
+    console.error('togglePostLike error', res.status, data);
+    throw { status: res.status, data };
+  }
+
+  return data;
+}
