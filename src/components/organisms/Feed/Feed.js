@@ -7,8 +7,15 @@ import { getPosts } from "../../../shared/api/postsApi.js";
 const feedInstances = [];
 let subscribed = false;
 
+/**
+ * @param {Array} posts - список постов
+ * @param {boolean} isOwner - можно ли этому пользователю создавать посты в этой ленте
+ * @param {Object} options
+ *   - mode: "global" | "community" | ...
+ *   - communityId: number | null
+ */
 export async function renderFeed(posts, isOwner = true, options = {}) {
-  const { mode = "global" } = options;
+  const { mode = "global", communityId = null } = options;
 
   const html = FeedTemplate({ icon: "/public/globalImages/NewPostIcon.svg" });
   const wrapper = document.createElement("div");
@@ -23,12 +30,26 @@ export async function renderFeed(posts, isOwner = true, options = {}) {
   }
 
   const newPostButton = feedEl.querySelector(".feed-post-button");
+
   await renderPostsInto(postsContainer, posts);
 
   if (!isOwner && newPostButton) {
     newPostButton.style.display = "none";
   } else if (isOwner && newPostButton) {
-    const modal = new CreatePostForm(document.body);
+    let modal;
+
+    if (mode === "community" && communityId) {
+      modal = new CreatePostForm(
+      document.body,
+      authService.getUserId?.(), // можно и null, конструктору всё равно
+      'create',
+      null,
+      { communityId: this.communityId }, // ← важное поле
+    );
+    } else {
+      modal = new CreatePostForm(document.body);
+    }
+
     newPostButton.addEventListener("click", () => modal.open());
   }
 
@@ -51,7 +72,6 @@ export async function renderFeed(posts, isOwner = true, options = {}) {
 
   return feedEl;
 }
-
 
 async function renderPostsInto(container, posts) {
   const safe = Array.isArray(posts) ? posts : [];

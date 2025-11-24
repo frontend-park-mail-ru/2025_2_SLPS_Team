@@ -9,13 +9,32 @@ import { authService } from '../../../services/AuthService.js';
 const notifier = new NotificationManager();
 
 export class CreatePostForm {
-  constructor(rootElement, profileData, mode = 'create', postData = null) {
+  /**
+   * @param {HTMLElement} rootElement
+   * @param {number|null} profileData  - id пользователя (может быть undefined/null)
+   * @param {'create'|'edit'} mode
+   * @param {Object|null} postData     - данные поста при редактировании
+   * @param {Object} options
+   *   - communityId?: number          - если задано, пост создаётся в сообществе
+   */
+  constructor(
+    rootElement,
+    profileData,
+    mode = 'create',
+    postData = null,
+    options = {},
+  ) {
     this.rootElement = rootElement;
     this.user_id = profileData;
     this.wrapper = null;
     this.input = null;
     this.mode = mode;
     this.postData = postData;
+
+    this.options = options || {};
+    this.communityId = this.options.communityId ?? null;
+
+    this.outsideClickHandler = null;
   }
 
   async render() {
@@ -52,7 +71,7 @@ export class CreatePostForm {
     }
 
     const buttonContainer = this.wrapper.querySelector(
-      '.new-post-actions__container'
+      '.new-post-actions__container',
     );
 
     const cancelButton = new BaseButton(buttonContainer, {
@@ -78,56 +97,56 @@ export class CreatePostForm {
     this.rootElement.insertAdjacentElement('beforeend', this.wrapper);
   }
 
-    open() {
-        document.body.style.overflow = 'hidden';
+  open() {
+    document.body.style.overflow = 'hidden';
 
-        this.render().then(() => {
-            const modal = this.wrapper.querySelector('.new-post-modal');
+    this.render().then(() => {
+      const modal = this.wrapper.querySelector('.new-post-modal');
 
-            if (window.innerWidth <= 768 && modal) {
-                setTimeout(() => modal.classList.add('open'), 10);
-            } else {
-                modal.classList.add('open');
-            }
-        });
+      if (window.innerWidth <= 768 && modal) {
+        setTimeout(() => modal.classList.add('open'), 10);
+      } else if (modal) {
+        modal.classList.add('open');
+      }
+    });
 
-        this.outsideClickHandler = (event) => {
-            const modalContent = this.wrapper.querySelector('.new-post-container');
+    this.outsideClickHandler = (event) => {
+      const modalContent = this.wrapper.querySelector('.new-post-container');
 
-            if (modalContent && !modalContent.contains(event.target)) {
-                this.close();
-            }
-        };
+      if (modalContent && !modalContent.contains(event.target)) {
+        this.close();
+      }
+    };
 
-        document.addEventListener('mousedown', this.outsideClickHandler);
+    document.addEventListener('mousedown', this.outsideClickHandler);
+  }
+
+  close() {
+    const modal = this.wrapper?.querySelector('.new-post-modal');
+
+    document.body.style.overflow = '';
+
+    if (this.outsideClickHandler) {
+      document.removeEventListener('mousedown', this.outsideClickHandler);
+      this.outsideClickHandler = null;
     }
 
-    close() {
-        const modal = this.wrapper?.querySelector('.new-post-modal');
+    if (window.innerWidth <= 768 && modal) {
+      modal.classList.remove('open');
 
-        document.body.style.overflow = '';
+      setTimeout(() => {
+        this.wrapper?.remove();
+        this.wrapper = null;
+      }, 300);
 
-        if (this.outsideClickHandler) {
-            document.removeEventListener('mousedown', this.outsideClickHandler);
-            this.outsideClickHandler = null;
-        }
-
-        if (window.innerWidth <= 768 && modal) {
-            modal.classList.remove('open');
-
-            setTimeout(() => {
-                this.wrapper?.remove();
-                this.wrapper = null;
-            }, 300);
-
-            return;
-        }
-
-        if (this.wrapper) {
-            this.wrapper.remove();
-            this.wrapper = null;
-        }
+      return;
     }
+
+    if (this.wrapper) {
+      this.wrapper.remove();
+      this.wrapper = null;
+    }
+  }
 
   async saveData() {
     try {
@@ -148,15 +167,19 @@ export class CreatePostForm {
       }
 
       this.input.selectedFiles.forEach((file) =>
-        formData.append('photos', file)
+        formData.append('photos', file),
       );
+
+      if (this.communityId) {
+        formData.append('communityID', this.communityId);
+      }
 
       await createPost(formData, authService.getCsrfToken());
 
       notifier.show(
         'Пост создан',
         'Вы создали пост, можете посмотреть его в профиле',
-        'success'
+        'success',
       );
 
       EventBus.emit('posts:created');
@@ -171,7 +194,7 @@ export class CreatePostForm {
       notifier.show(
         'Ошибка',
         'Не удалось создать пост. Попробуйте снова.',
-        'error'
+        'error',
       );
     }
   }
@@ -202,6 +225,16 @@ export class CreatePostForm {
         }
       }
 
+      const communityIdFromPost =
+        this.communityId ??
+        this.postData?.post?.communityID ??
+        this.postData?.communityID ??
+        null;
+
+      if (communityIdFromPost) {
+        formData.append('communityID', communityIdFromPost);
+      }
+
       const postId = this.postData.post?.id ?? this.postData.id;
 
       await updatePost(postId, formData);
@@ -216,7 +249,7 @@ export class CreatePostForm {
       notifier.show(
         'Ошибка',
         'Не удалось изменить пост. Попробуйте снова.',
-        'error'
+        'error',
       );
     }
   }
