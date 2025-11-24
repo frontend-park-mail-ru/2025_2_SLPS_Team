@@ -105,6 +105,10 @@ export class EditCommunityModal {
 
     this.buttons.SaveBtn.render();
 
+    setTimeout(() => {
+        this.root.classList.add('open');
+    }, 10);
+
     this.avatarInput = this.root.querySelector('.community-avatar-input');
     this.avatarPreview = this.root.querySelector('.community-avatar-image');
     this.avatarOverlay = this.root.querySelector('.community-avatar-overlay');
