@@ -116,9 +116,23 @@ export class EditCommunityModal {
       '.community-avatar-menu',
     );
 
-    if (this.avatarPreview && this.FormData.avatarPath) {
-      this.avatarPreview.src = this.FormData.avatarPath;
+    if (this.avatarPreview) {
+      let previewSrc = this.defaultAvatar;
+
+      if (this.FormData.avatarPath) {
+        const raw = this.FormData.avatarPath;
+
+        if (raw.startsWith('http') || raw.startsWith('/')) {
+          previewSrc = raw;
+        } else {
+          const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
+          previewSrc = `${baseUrl}${raw}`;
+        }
+      }
+
+      this.avatarPreview.src = previewSrc;
     }
+
 
     if (this.avatarInput) {
       this.avatarInput.addEventListener('change', (e) => {
