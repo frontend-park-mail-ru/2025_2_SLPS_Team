@@ -4,6 +4,7 @@
   display: flex;
   box-sizing: border-box;
   align-items: flex-start;
+  overflow: auto;
 }
 
 .community-page__content {
