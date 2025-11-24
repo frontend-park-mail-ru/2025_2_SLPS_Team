@@ -120,8 +120,12 @@ export class CommunityCheckPage extends BasePage {
     this.wrapper.innerHTML = CommunityCheckPageTemplate(templateData);
 
     this.root = this.wrapper.querySelector('.community-page');
+    if (this.root) {
+      this.root.classList.add('community-check-page');
+    }
 
     const headerRoot = this.wrapper.querySelector('#profile-card');
+
     renderHeaderCard(headerRoot, {
       coverPath: templateData.community.coverPath,
       avatarPath: templateData.community.avatarPath,
