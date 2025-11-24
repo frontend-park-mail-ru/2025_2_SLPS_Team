@@ -326,9 +326,7 @@ export class CommunityCheckPage extends BasePage {
                 ...this.community,
                 name: this.community.name,
                 description: this.community.description,
-                avatarPath: this.community.avatarPath
-                  ? `${process.env.API_BASE_URL}/uploads/${this.community.avatarPath}`
-                  : '/public/globalImages/DefaultAvatar.svg',
+                avatarPath: this.community.avatarPath || null,
               },
             });
             communityModal.open();
