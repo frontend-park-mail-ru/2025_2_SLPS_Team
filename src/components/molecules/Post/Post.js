@@ -105,42 +105,51 @@ export async function renderPost(postData) {
     };
   }
 
-  const isCommunityPost =
+    const isCommunityPost =
     postData.communityID != null ||
     postData.communityId != null ||
     !!postData.communityName;
 
-  const communityName =
+    const communityName =
     postData.communityName ??
     postData.community_name ??
     null;
 
-  const communityAvatar =
+    let communityAvatar =
     postData.communityAvatar ??
     postData.community_avatar ??
     null;
 
-  const authorName =
+    if (!communityAvatar || communityAvatar === 'null') {
+    communityAvatar = null;
+    }
+
+    const authorName =
     postData.authorName ??
     postData.author_name ??
     postData.author?.fullName ??
     '';
 
-  const authorAvatar =
+    let authorAvatar =
     postData.authorAvatar ??
     postData.author_avatar ??
     postData.author?.avatarPath ??
     null;
 
-  postData.author = {
+    if (!authorAvatar || authorAvatar === 'null') {
+    authorAvatar = null;
+    }
+
+    postData.author = {
     id: postData.authorID ?? postData.author?.id ?? null,
     fullName: isCommunityPost
-      ? (communityName || authorName || '')
-      : (authorName || communityName || ''),
+        ? (communityName || authorName || '')
+        : (authorName || communityName || ''),
     avatarPath: isCommunityPost
-      ? (communityAvatar ?? authorAvatar ?? null)
-      : (authorAvatar ?? communityAvatar ?? null),
-  };
+        ? communityAvatar   
+        : (authorAvatar ?? communityAvatar ?? null),
+    };
+
 
   const template = PostTemplate;
   const isOwner = Number(authService.getUserId()) === postData.authorID;
