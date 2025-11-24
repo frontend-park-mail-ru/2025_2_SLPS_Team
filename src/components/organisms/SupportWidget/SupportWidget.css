@@ -36,3 +36,9 @@
 .support-widget__button:hover {
     filter: brightness(1.05);
 }
+
+@media (max-width: 768px) {
+    .support-widget {
+        display: none;
+    }
+}

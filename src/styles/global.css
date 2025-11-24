@@ -46,3 +46,11 @@ body {
   display: flex;
   gap: 16px;
 }
+
+@media (max-width: 768px) {
+  .layout-wrapper {
+    margin: 0;
+    padding: 0;
+    column-gap: 0;
+  }
+}
