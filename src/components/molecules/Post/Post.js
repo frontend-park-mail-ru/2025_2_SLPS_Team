@@ -19,7 +19,6 @@ const notifier = new NotificationManager();
  * @param {Object} postData - Данные поста.
  */
 export async function renderPost(postData) {
-    console.log(postData)
     if (postData.post && postData.author) {
         const post = postData.post;
 
@@ -31,32 +30,55 @@ export async function renderPost(postData) {
             reposts: postData.reposts ?? post.repostCount ?? post.repost_count ?? 0,
             isLiked: postData.isLiked ?? post.isLiked ?? false,
         };
+    } else {
+        const likes = postData.likes ?? postData.likeCount ?? postData.like_count ?? 0;
+        const comments = postData.comments ?? postData.commentCount ?? postData.comment_count ?? 0;
+        const reposts = postData.reposts ?? postData.repostCount ?? postData.repost_count ?? 0;
+        const isLiked = postData.isLiked ?? false;
+
+        if (!postData.author) {
+            postData.author = {
+                id: postData.authorID ?? null,
+                fullName: postData.authorName ?? postData.communityName ?? '',
+                avatarPath:
+                    postData.authorAvatar ??
+                    postData.communityAvatar ??
+                    null,
+            };
+        }
+
+        postData = {
+            ...postData,
+            likes,
+            comments,
+            reposts,
+            isLiked,
+        };
     }
 
     const template = PostTemplate;
     const isOwner = Number(authService.getUserId()) === postData.authorID;
     const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
-    let communityAvatar;
 
-    if (!postData.author.avatarPath || postData.author.avatarPath === "null") {
-        communityAvatar = `/public/globalImages/DefaultAvatar.svg`;
+    let authorAvatar;
+    if (!postData.author.avatarPath || postData.author.avatarPath === 'null') {
+        authorAvatar = '/public/globalImages/DefaultAvatar.svg';
     } else {
-        communityAvatar = `${baseUrl}${postData.author.avatarPath}`;
+        authorAvatar = `${baseUrl}${postData.author.avatarPath}`;
     }
 
     const templateData = {
         ...postData,
-        isOwner: isOwner,
-        communityAvatar: communityAvatar,
+        isOwner,
+        communityAvatar: authorAvatar,
         groupName: postData.author.fullName,
         text: postData.text,
     };
-    console.log(postData.author.avatarPath);
 
     const html = template(templateData);
 
     const wrapper = document.createElement("div");
-    wrapper.innerHTML = html.trim()
+    wrapper.innerHTML = html.trim();
 
     const postElement = wrapper.firstElementChild;
     const postHeader = postElement.querySelector(".post-header");
@@ -64,7 +86,8 @@ export async function renderPost(postData) {
     postData.photos = Array.isArray(postData.photos)
         ? postData.photos
         : postData.imagePath ? [postData.imagePath] : [];
-    const photoElement = await renderPostPhoto(postData.photos)
+
+    const photoElement = await renderPostPhoto(postData.photos);
     postHeader.insertAdjacentElement("afterend", photoElement);
 
     const postFooter = postElement.querySelector(".post-footer").querySelector('.post-actions-container');
@@ -108,13 +131,13 @@ export async function renderPost(postData) {
             LikeButton.classList.remove('icon-button--liked');
         }
     }
+
     function animateLikeChange(direction) {
         LikeButton.classList.remove('icon-button--bump');
         likeCountNode.classList.remove(
             'icon-button-counter--spin-up',
             'icon-button-counter--spin-down'
         );
-
 
         LikeButton.offsetWidth;
 
@@ -181,7 +204,6 @@ export async function renderPost(postData) {
             notifier.show("Ошибка", "Не удалось обновить лайк", "error");
         }
     });
-
 
     const text = postElement.querySelector(".js-post-text");
     const btn = postElement.querySelector(".js-toggle-btn");
@@ -259,8 +281,9 @@ export async function renderPost(postData) {
         postActions.wrapper.addEventListener('mouseleave', () => postActions.hide());
     }
 
-    return postElement
+    return postElement;
 }
+
 
 async function PostDelete(postId) {
     try {

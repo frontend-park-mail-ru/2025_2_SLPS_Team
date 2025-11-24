@@ -15,11 +15,12 @@ import { EditCommunityModal } from '../../components/organisms/EditCommunityModa
 
 import {
   getCommunity,
-  getCommunityPosts,
   getCommunitySubscribers,
   toggleCommunitySubscription,
   deleteCommunity,
 } from '../../shared/api/communityApi.js';
+
+import { getCommunityPosts } from '../../shared/api/postsApi.js';
 
 import { renderHeaderCard } from '../../components/molecules/HeaderCard/HeaderCard.js';
 
@@ -97,7 +98,6 @@ export class CommunityCheckPage extends BasePage {
       Number(this.community.ownerId) === currentUserId;
 
     this.isSubscribed = !!this.community.isSubscribed;
-
 
     const createdAtFormatted = formatDate(this.community.createdAt);
     const templateData = {
@@ -189,6 +189,7 @@ export class CommunityCheckPage extends BasePage {
     if (this.params && this.params.id) {
       this.communityId = Number(this.params.id);
     } else {
+      // можно добавить обработку
     }
   }
 
@@ -198,7 +199,7 @@ export class CommunityCheckPage extends BasePage {
     );
     if (!feedContainer) return;
 
-    const posts = await getCommunityPosts(this.communityId, 20);
+    const posts = await getCommunityPosts(this.communityId, 1, 20);
 
     feedContainer.innerHTML = '';
 
@@ -256,7 +257,6 @@ export class CommunityCheckPage extends BasePage {
     });
   }
 
-
   initHeaderActions() {
     if (this.isOwner) {
       this.initOwnerMenu();
@@ -265,7 +265,7 @@ export class CommunityCheckPage extends BasePage {
     }
   }
 
-    initSubscribeButton() {
+  initSubscribeButton() {
     const btn = this.root.querySelector('[data-role="subscribe-toggle"]');
     if (!btn) return;
 
@@ -303,7 +303,6 @@ export class CommunityCheckPage extends BasePage {
     });
   }
 
-
   initOwnerMenu() {
     const buttonContainer = this.root.querySelector('.owner-menu-button');
     const dropdownContainer = this.root.querySelector('.owner-menu-dropdown');
@@ -316,18 +315,18 @@ export class CommunityCheckPage extends BasePage {
           label: 'Редактировать сообщество',
           onClick: () => {
             const communityModal = new EditCommunityModal({
-            communityId: this.communityId,
-            onSubmit: () => {},
-            onCancel: () => {},
-            FormData: {
-              ...this.community,
-              name: this.community.name,
-              description: this.community.description,
-              avatarPath: this.community.avatarPath
-                ? `${process.env.API_BASE_URL}/uploads/${this.community.avatarPath}`
-                : '/public/globalImages/DefaultAvatar.svg',
-            },
-          });
+              communityId: this.communityId,
+              onSubmit: () => {},
+              onCancel: () => {},
+              FormData: {
+                ...this.community,
+                name: this.community.name,
+                description: this.community.description,
+                avatarPath: this.community.avatarPath
+                  ? `${process.env.API_BASE_URL}/uploads/${this.community.avatarPath}`
+                  : '/public/globalImages/DefaultAvatar.svg',
+              },
+            });
             communityModal.open();
           },
           icon: '/public/globalImages/EditIcon.svg',
