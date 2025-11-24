@@ -113,18 +113,20 @@ export class Chat {
         this.wsHandler = (packet) => {
         console.log('[WS message in Chat]', packet, 'current chat:', this.chatInfo);
 
-        if (!packet || packet.type !== 'new_message') {
-            return; // это вообще не new_message
-        }
+        const type = packet.type ?? packet.Type;
+        const data = packet.data ?? packet.Data ?? packet;
 
-        const data = packet.data;
+        if (type !== 'new_message') return;
+
         if (!data) return;
 
         const chatIdFromEvent =
-            data.chatId ??
-            data.chatID ??
-            data.chat_id ??
-            data.lastMessage?.chatID;
+          data.id ??
+          data.chatId ??
+          data.chatID ??
+          data.chat_id ??
+          data.lastMessage?.chatID;
+
 
         console.log('[WS new_message] chatIdFromEvent =', chatIdFromEvent, 'this.chatInfo =', this.chatInfo);
 
