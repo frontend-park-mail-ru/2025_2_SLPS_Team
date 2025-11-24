@@ -116,38 +116,49 @@ export class CommunityPage extends BasePage {
       if (!this.createModal) {
         this.createModal = new CreateCommunityModal({
         onSubmit: async ({ name, about }) => {
-        try {
-          const formData = new FormData();
-          formData.append('name', name);
-          if (about) {
-            formData.append('description', about);
-          }
+      try {
+        const formData = new FormData();
+        formData.append('name', name);
+        if (about) {
+          formData.append('description', about);
+        }
 
-          const created = await createCommunity(formData);
+        const created = await createCommunity(formData);
 
-          const createdWithLocal = {
-            ...created,
-            name,
-            description: about,
-          };
+        const rawCommunity = created.community || created;
 
-          const mapped = mapCommunityFromApi(createdWithLocal, true);
-
-          this.subs.unshift(mapped);
-
-          this.created.unshift({
-            id: mapped.id,
-            name: mapped.name,
-            avatar: mapped.avatar,
-          });
-
+        if (!rawCommunity || !rawCommunity.id) {
+          console.warn('[CommunityPage] createCommunity without id', created);
+          await this.loadCommunities();
           this.renderList();
           this.renderCreated();
-        } catch (err) {
-          console.error('[CommunityPage] createCommunity error', err);
-          alert('Не удалось создать сообщество. Попробуйте позже.');
+          return;
         }
-      },
+
+        const createdWithLocal = {
+          ...rawCommunity,
+          name,
+          description: about,
+        };
+
+        const mapped = mapCommunityFromApi(createdWithLocal, true);
+
+        this.subs.unshift(mapped);
+
+        this.created.unshift({
+          id: mapped.id,
+          name: mapped.name,
+          avatar: mapped.avatar,
+        });
+
+        this.renderList();
+        this.renderCreated();
+      } catch (err) {
+        console.error('[CommunityPage] createCommunity error', err);
+        alert('Не удалось создать сообщество. Попробуйте позже.');
+      }
+    },
+
 
           onCancel: () => {},
         });

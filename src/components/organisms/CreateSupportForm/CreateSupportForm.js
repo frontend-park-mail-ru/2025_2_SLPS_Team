@@ -76,20 +76,17 @@ export class CreateSupportForm {
         );
         await this.inputs.aboutProblem.render();
 
-        new ImageInputSmall(
-        this.wrapper.querySelector('.support-screenshot-block'),
-        'Фото 1'
-        ).render();
+        this.inputs.imageInputs = [];
 
-        new ImageInputSmall(
-        this.wrapper.querySelector('.support-screenshot-block'),
-        'Фото 2'
-        ).render();
+        const screenshotsWrapper = this.wrapper.querySelector('.support-screenshot-block');
+        ['Фото 1', 'Фото 2', 'Фото 3'].forEach((label) => {
+            const input = new ImageInputSmall(screenshotsWrapper, label);
+            this.inputs.imageInputs.push(input);
+        });
 
-        new ImageInputSmall(
-        this.wrapper.querySelector('.support-screenshot-block'),
-        'Фото 3'
-        ).render();
+        for (const input of this.inputs.imageInputs) {
+            await input.render();
+        }
 
         this.inputs.nameInput = new BaseInput(
             this.wrapper.querySelector('.support-contacts-name'),
@@ -199,9 +196,18 @@ export class CreateSupportForm {
 
         const now = new Date().toISOString();
 
-        const images = this.inputs.imageInput.getImages();
+        const files = [];
+        if (Array.isArray(this.inputs.imageInputs)) {
+            for (const input of this.inputs.imageInputs) {
+                if (input && typeof input.getImages === 'function') {
+                    const imgs = input.getImages() || [];
+                    files.push(...imgs);
+                }
+            }
+        }
+
         const base64Images = [];
-        for (const file of images) {
+        for (const file of files) {
             const base64 = await this.fileToBase64(file);
             base64Images.push(base64);
         }

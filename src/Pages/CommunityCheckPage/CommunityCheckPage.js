@@ -103,8 +103,6 @@ export class CommunityCheckPage extends BasePage {
     const templateData = {
       community: {
         ...this.community,
-        avatarPath,
-        coverPath,
         name: this.community.name,
         description: this.community.description,
         createdAtFormatted,
@@ -112,6 +110,9 @@ export class CommunityCheckPage extends BasePage {
         subscribersShort: subscribersData.short,
         isOwner: this.isOwner,
         isSubscribed: this.isSubscribed,
+
+        avatarPath,
+        coverPath,
       },
     };
 
