@@ -71,7 +71,9 @@ export function sendFriendRequest(userId, _csrf) {
 export async function searchProfiles(fullName, type, page = 1, limit = 20) {
   const params = new URLSearchParams();
 
-  params.set('full_name', fullName);
+  const term = fullName.trim();
+
+  params.set('full_name', `%${term}%`);
   params.set('type', type);
   params.set('page', String(page));
   params.set('limit', String(limit));
