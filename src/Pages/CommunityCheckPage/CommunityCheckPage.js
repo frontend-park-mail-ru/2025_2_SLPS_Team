@@ -304,15 +304,18 @@ export class CommunityCheckPage extends BasePage {
           label: 'Редактировать сообщество',
           onClick: () => {
             const communityModal = new EditCommunityModal({
-              onSubmit: () => {},
-              onCancel: () => {},
-              FormData: {
-                ...this.community,
-                avatarPath: '/public/testData/CommunityAvatar.png',
-                name: this.community.name,
-                description: this.community.description,
-              },
-            });
+            communityId: this.communityId,
+            onSubmit: () => {},
+            onCancel: () => {},
+            FormData: {
+              ...this.community,
+              name: this.community.name,
+              description: this.community.description,
+              avatarPath: this.community.avatarPath
+                ? `${process.env.API_BASE_URL}/uploads/${this.community.avatarPath}`
+                : '/public/globalImages/DefaultAvatar.svg',
+            },
+          });
             communityModal.open();
           },
           icon: '/public/globalImages/EditIcon.svg',

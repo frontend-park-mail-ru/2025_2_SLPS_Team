@@ -115,32 +115,40 @@ export class CommunityPage extends BasePage {
     btn.addEventListener('click', () => {
       if (!this.createModal) {
         this.createModal = new CreateCommunityModal({
-          onSubmit: async ({ name, about }) => {
-            try {
-              const formData = new FormData();
-              formData.append('name', name);
-              if (about) {
-                formData.append('description', about);
-              }
+        onSubmit: async ({ name, about }) => {
+        try {
+          const formData = new FormData();
+          formData.append('name', name);
+          if (about) {
+            formData.append('description', about);
+          }
 
-              const created = await createCommunity(formData);
-              const mapped = mapCommunityFromApi(created, true);
+          const created = await createCommunity(formData);
 
-              this.subs.unshift(mapped);
+          const createdWithLocal = {
+            ...created,
+            name,
+            description: about,
+          };
 
-              this.created.unshift({
-                id: mapped.id,
-                name: mapped.name,
-                avatar: mapped.avatar,
-              });
+          const mapped = mapCommunityFromApi(createdWithLocal, true);
 
-              this.renderList();
-              this.renderCreated();
-            } catch (err) {
-              console.error('[CommunityPage] createCommunity error', err);
-              alert('Не удалось создать сообщество. Попробуйте позже.');
-            }
-          },
+          this.subs.unshift(mapped);
+
+          this.created.unshift({
+            id: mapped.id,
+            name: mapped.name,
+            avatar: mapped.avatar,
+          });
+
+          this.renderList();
+          this.renderCreated();
+        } catch (err) {
+          console.error('[CommunityPage] createCommunity error', err);
+          alert('Не удалось создать сообщество. Попробуйте позже.');
+        }
+      },
+
           onCancel: () => {},
         });
       }

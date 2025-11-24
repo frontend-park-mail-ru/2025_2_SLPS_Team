@@ -4,7 +4,6 @@ import BaseInput from '../../atoms/BaseInput/BaseInput.js';
 import BaseButton from '../../atoms/BaseButton/BaseButton.js';
 import DropDown from '../../atoms/dropDown/dropDown.js';
 
-// новые импорты — как в EditProfileForm
 import { NotificationManager } from '../NotificationsBlock/NotificationsManager.js';
 import { navigateTo } from '../../../app/router/navigateTo.js';
 import { layout } from '../../../Pages/LayoutManager.js';
@@ -13,29 +12,28 @@ import { updateCommunity } from '../../../shared/api/communityApi.js';
 const notifier = new NotificationManager();
 
 export class EditCommunityModal {
-  constructor({ onSubmit, onCancel, FormData } = {}) {
+  constructor({ communityId, onSubmit, onCancel, FormData } = {}) {
+    this.communityId = communityId;        // <-- сохраняем id
     this.onSubmit = onSubmit;
     this.onCancel = onCancel;
     this.root = null;
     this.aboutInput = null;
     this.boundEscHandler = this.handleEsc.bind(this);
     this.buttons = [];
-    this.FormData = FormData;
+    this.FormData = FormData || {};
     this.avatarInput = null;
     this.avatarPreview = null;
     this.avatarOverlay = null;
     this.avatarMenu = null;
     this.defaultAvatar = '/public/globalImages/DefaultAvatar.svg';
-    this.hasCustomAvatar = !!FormData.avatarPath;
+    this.hasCustomAvatar = !!this.FormData.avatarPath;
     this.avatarDeleted = false;
   }
 
   open() {
     if (this.root) return;
 
-    const html = EditCommunityModalTemplate
-      ? EditCommunityModalTemplate()
-      : '';
+    const html = EditCommunityModalTemplate ? EditCommunityModalTemplate() : '';
 
     if (!html) {
       console.error(
@@ -68,7 +66,7 @@ export class EditCommunityModal {
         type: 'text',
         placeholder: 'Расскажите о чем ваше сообщество',
         required: true,
-        value: this.FormData.description,
+        value: this.FormData.description || '',
       },
     );
 
@@ -110,28 +108,32 @@ export class EditCommunityModal {
     this.avatarInput = this.root.querySelector('.community-avatar-input');
     this.avatarPreview = this.root.querySelector('.community-avatar-image');
     this.avatarOverlay = this.root.querySelector('.community-avatar-overlay');
-    this.avatarMenuContainer = this.root.querySelector('.community-avatar-menu');
+    this.avatarMenuContainer = this.root.querySelector(
+      '.community-avatar-menu',
+    );
 
     if (this.avatarPreview && this.FormData.avatarPath) {
       this.avatarPreview.src = this.FormData.avatarPath;
     }
 
-    // загрузка нового файла
-    this.avatarInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        const blob = URL.createObjectURL(file);
-        this.avatarPreview.src = blob;
-        this.hasCustomAvatar = true;
-        this.avatarDeleted = false;
-        this.currentAvatarBlob = blob;
-      }
-    });
+    if (this.avatarInput) {
+      this.avatarInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file && this.avatarPreview) {
+          const blob = URL.createObjectURL(file);
+          this.avatarPreview.src = blob;
+          this.hasCustomAvatar = true;
+          this.avatarDeleted = false;
+          this.currentAvatarBlob = blob;
+        }
+      });
+    }
 
-    // открыть меню
-    this.avatarOverlay.addEventListener('click', () =>
-      this.toggleAvatarMenu(),
-    );
+    if (this.avatarOverlay) {
+      this.avatarOverlay.addEventListener('click', () =>
+        this.toggleAvatarMenu(),
+      );
+    }
 
     document.body.appendChild(this.root);
     this.bindEvents();
@@ -156,8 +158,6 @@ export class EditCommunityModal {
     const overlay = this.root.querySelector('.edit-community-modal__overlay');
     const windowEl = this.root.querySelector('.edit-community-modal__window');
     const closeBtn = this.root.querySelector('[data-role="close"]');
-    const cancelBtn = this.root.querySelector('[data-role="cancel"]');
-    const form = this.root.querySelector('.edit-community-modal__form');
     const nameInput = this.root.querySelector('#community-name-input');
     const counter = this.root.querySelector('[data-role="name-counter"]');
 
@@ -215,23 +215,20 @@ export class EditCommunityModal {
       this.onSubmit({ name, about });
     }
 
+    // формируем FormData под swagger: name, description, avatar, cover...
     const formData = new FormData();
     formData.append('name', name);
     formData.append('description', about);
 
-    const avatarFile = this.avatarInput.files[0];
-    if (avatarFile) {
-      formData.append('avatar', avatarFile);
+    if (this.avatarInput && this.avatarInput.files[0]) {
+      formData.append('avatar', this.avatarInput.files[0]);
     } else if (this.avatarDeleted) {
+      // флаг для удаления аватара, если бэк так поддерживает
       formData.append('avatarDelete', 'true');
     }
 
     try {
-      const payload = { name, description: about };
-      const formData = new FormData();
-      formData.append('community', JSON.stringify(payload));
-      
-      await updateCommunity(communityId, formData);
+      await updateCommunity(this.communityId, formData);
 
       notifier.show(
         'Изменения сохранены',
@@ -273,7 +270,7 @@ export class EditCommunityModal {
         {
           label: 'Изменить фото',
           icon: '/public/EditAvatarIcons/AddIcon.svg',
-          onClick: () => this.avatarInput.click(),
+          onClick: () => this.avatarInput && this.avatarInput.click(),
         },
         {
           label: 'Удалить',
@@ -297,8 +294,12 @@ export class EditCommunityModal {
   }
 
   deleteAvatar() {
-    this.avatarPreview.src = this.defaultAvatar;
-    this.avatarInput.value = '';
+    if (this.avatarPreview) {
+      this.avatarPreview.src = this.defaultAvatar;
+    }
+    if (this.avatarInput) {
+      this.avatarInput.value = '';
+    }
     this.hasCustomAvatar = false;
     this.avatarDeleted = true;
 
