@@ -1,18 +1,34 @@
 import CommunitiesListTemplate from './CommunitiesList.hbs';
+import {
+  getMyCommunities,
+  UPLOADS_BASE,
+} from '../../../shared/api/communityApi.js';
 
-const communities = [
-    { id: 1, name: "Fast Foode Music", avatar: "/public/testData/groupim.jpg" },
-    { id: 2, name: "VK Education", avatar: "/public/testData/groupim2.jpg" },
-    { id: 3, name: "Fast Foode Music", avatar: "/public/testData/groupim.jpg" },
-    { id: 4, name: "VK Education", avatar: "/public/testData/groupim2.jpg" },
-];
+const DEFAULT_AVATAR = '/public/globalImages/DefaultCommunity.svg';
 
 export async function renderCommunitiesList() {
-    const template = CommunitiesListTemplate;
-    const html = template({ communities });
+  let communitiesFromApi = [];
 
-    const wrapper = document.createElement("div");
-    wrapper.innerHTML = html.trim();
+  try {
+    communitiesFromApi = await getMyCommunities(1, 4);
+  } catch (err) {
+    console.error('[CommunitiesList] Failed to load communities:', err);
+    communitiesFromApi = [];
+  }
 
-    return wrapper.firstElementChild;
+  const communities = (communitiesFromApi || []).map((c) => ({
+    id: c.id,
+    name: c.name,
+    avatar:
+      c.avatarPath && c.avatarPath !== 'null'
+        ? `${UPLOADS_BASE}${c.avatarPath}`
+        : DEFAULT_AVATAR,
+  }));
+
+  const html = CommunitiesListTemplate({ communities });
+
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = html.trim();
+
+  return wrapper.firstElementChild;
 }

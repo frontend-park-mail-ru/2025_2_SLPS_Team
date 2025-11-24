@@ -68,21 +68,20 @@ export function sendFriendRequest(userId, _csrf) {
 }
 
 
-export async function searchProfiles(fullName, type = 'notFriends', page = 1, limit = 20) {
-  const params = new URLSearchParams({
-    full_name: fullName,
-    type,
-    page: String(page),
-    limit: String(limit),
+export async function searchProfiles(fullName, type, page = 1, limit = 20) {
+  const params = new URLSearchParams();
+
+  params.set('full_name', fullName);
+  params.set('page', String(page));
+  params.set('limit', String(limit));
+
+  if (typeof type === 'string' && type.length > 0) {
+    params.set('type', type);
+  }
+
+  const data = await api(`/api/friends/search?${params.toString()}`, {
+    method: 'GET',
   });
 
-  const data = await api(
-    `/api/friends/search?${params.toString()}`,
-    { method: 'GET' },
-  );
-
-  if (Array.isArray(data)) {
-    return data;
-  }
-  return data?.items || [];
+  return Array.isArray(data) ? data : (data?.items ?? []);
 }

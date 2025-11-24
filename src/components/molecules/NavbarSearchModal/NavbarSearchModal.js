@@ -184,7 +184,6 @@ export class NavbarSearchModal {
     });
   }
 
-  // ====== данные ======
 
   async loadInitial() {
     try {
@@ -222,7 +221,7 @@ export class NavbarSearchModal {
 
   async runSearch(query) {
     try {
-      const profiles = await searchProfiles(query, null, 1, 10);
+      const profiles = await searchProfiles(query, undefined, 1, 10);
       this.renderUsers(profiles, { append: false });
     } catch (e) {
       console.error('[NavbarSearchModal] Ошибка поиска', e);
@@ -234,7 +233,7 @@ export class NavbarSearchModal {
       this.currentPage += 1;
       const profiles = await searchProfiles(
         this.currentQuery,
-        null,
+        undefined,
         this.currentPage,
         10,
       );
