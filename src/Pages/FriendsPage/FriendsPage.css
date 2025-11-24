@@ -188,7 +188,6 @@
 }
 
 
-/* Стили для выпадающего меню поиска */
 .search-settings {
     position: relative;
 }
@@ -222,3 +221,38 @@
 .dropdownf-button--open .dropdownf-button-icon {
     transform: rotate(90deg);
 }
+
+
+@media (max-width: 768px) {
+  .friends-page {
+    top: 70px !important;
+    bottom: 0 !important;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    padding: 0;
+    box-sizing: border-box;
+    position: relative;
+  }
+
+  .friends-page__sidebar {
+    order: 1;
+    width: 100%;
+    height: 140px;
+    position: fixed;
+  }
+
+  .friends-page__content {
+    order: 2;
+    width: 100%;
+    padding: 14px 10px;
+    background: var(--base-white);
+    border-radius: 12px;
+    height: calc(100vh - 290px) !important;
+    position: fixed;
+    margin-top: 150px;
+  }
+}
+
+
