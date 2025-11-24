@@ -121,7 +121,6 @@ export class CommunityCheckPage extends BasePage {
 
     this.root = this.wrapper.querySelector('.community-page');
 
-    // рендерим общую шапку в #profile-card
     const headerRoot = this.wrapper.querySelector('#profile-card');
     renderHeaderCard(headerRoot, {
       coverPath: templateData.community.coverPath,
@@ -228,16 +227,27 @@ export class CommunityCheckPage extends BasePage {
 
     subscribers.forEach((user) => {
       const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
+
       const avatarPath =
         !user.avatarPath || user.avatarPath === 'null'
           ? '/public/globalImages/DefaultAvatar.svg'
           : `${baseUrl}${user.avatarPath}`;
 
+      const subscriberId = user.userID ?? user.userId ?? user.id;
+      const fullName =
+        user.fullName ||
+        [user.firstName, user.lastName].filter(Boolean).join(' ') ||
+        'Без имени';
+
       const row = renderCommunitySubscriberRow({
-        id: user.id,
-        fullName: user.fullName,
+        id: subscriberId,
+        fullName,
         avatarPath,
         onClick: (id) => {
+          if (!id) {
+            console.warn('[CommunityCheckPage] empty subscriber id', user);
+            return;
+          }
           navigateTo(`/profile/${id}`);
         },
       });
@@ -245,6 +255,7 @@ export class CommunityCheckPage extends BasePage {
       list.appendChild(row);
     });
   }
+
 
   initHeaderActions() {
     if (this.isOwner) {

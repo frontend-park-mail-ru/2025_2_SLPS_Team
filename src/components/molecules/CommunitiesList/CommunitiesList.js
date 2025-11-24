@@ -4,7 +4,7 @@ import {
   UPLOADS_BASE,
 } from '../../../shared/api/communityApi.js';
 
-const DEFAULT_AVATAR = '/public/globalImages/DefaultCommunity.svg';
+const DEFAULT_AVATAR = '/public/globalImages/DefaultAvatar.svg';
 
 function normalizeAvatar(avatarPath) {
   if (!avatarPath || avatarPath === 'null' || avatarPath === 'undefined') {
