@@ -40,12 +40,12 @@ export async function renderFeed(posts, isOwner = true, options = {}) {
 
     if (mode === "community" && communityId) {
       modal = new CreatePostForm(
-      document.body,
-      authService.getUserId?.(), // можно и null, конструктору всё равно
-      'create',
-      null,
-      { communityId: this.communityId }, // ← важное поле
-    );
+        document.body,
+        null,
+        "create",
+        null,
+        { communityId }
+      );
     } else {
       modal = new CreatePostForm(document.body);
     }

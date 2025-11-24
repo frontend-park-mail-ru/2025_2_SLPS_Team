@@ -19,6 +19,8 @@ const notifier = new NotificationManager();
  * @param {Object} postData - Данные поста.
  */
 export async function renderPost(postData) {
+    console.log('[renderPost input]', postData);
+
     if (postData.post && postData.author) {
         const post = postData.post;
 
@@ -74,6 +76,8 @@ export async function renderPost(postData) {
         groupName: postData.author.fullName,
         text: postData.text,
     };
+
+    console.log('[renderPost normalized]', templateData);
 
     const html = template(templateData);
 
