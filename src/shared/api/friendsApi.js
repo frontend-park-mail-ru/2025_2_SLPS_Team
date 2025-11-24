@@ -66,3 +66,23 @@ export function sendFriendRequest(userId, _csrf) {
     method: 'POST',
   });
 }
+
+
+export async function searchProfiles(fullName, type = 'notFriends', page = 1, limit = 20) {
+  const params = new URLSearchParams({
+    full_name: fullName,
+    type,
+    page: String(page),
+    limit: String(limit),
+  });
+
+  const data = await api(
+    `/api/friends/search?${params.toString()}`,
+    { method: 'GET' },
+  );
+
+  if (Array.isArray(data)) {
+    return data;
+  }
+  return data?.items || [];
+}
