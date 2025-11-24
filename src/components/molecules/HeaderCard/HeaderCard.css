@@ -40,3 +40,16 @@
 .profile-toggle-btn {
     cursor: pointer;
 }
+
+.user-infromation {
+    font-size: 20px;
+    font-weight: 600;   
+}
+
+@media (max-width: 768px) {
+    .user-infromation {
+        font-family: 'Nunito Sans';
+        font-size: 16px;
+        color: var(--base-black);
+    }
+}

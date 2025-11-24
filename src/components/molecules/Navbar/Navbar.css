@@ -117,3 +117,19 @@
     z-index: 3000;
     right: 0;
 }
+
+@media (max-width: 768px) {
+    .navbar-left,
+    .navbar-logo {
+        display: none;
+    }
+
+    .navbar-profile-photo {
+        width: 40px;
+        height: 40px;
+    }
+
+    .navbar {
+        padding: 0 8px;
+    }
+}
