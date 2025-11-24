@@ -220,31 +220,29 @@ export class NavbarSearchModal {
   }
 
   async runSearch(query) {
-  try {
-    const types = ['accepted', 'pending', 'sent', 'notFriends'];
-    const perTypeLimit = 5;
+    try {
+        const types = ['accepted', 'pending', 'sent', 'notFriends'];
+        const perTypeLimit = 5;
+        const responses = await Promise.all(
+        types.map((t) => searchProfiles(query, t, 1, perTypeLimit)),
+        );
 
-    const responses = await Promise.all(
-      types.map((t) => searchProfiles(query, t, 1, perTypeLimit)),
-    );
+        const merged = [];
 
-    const merged = [];
-
-    types.forEach((type, idx) => {
-      (responses[idx] || []).forEach((user) => {
-        merged.push({
-          ...user,
-          status: user.status || type,
+        types.forEach((type, idx) => {
+        (responses[idx] || []).forEach((user) => {
+            merged.push({
+            ...user,
+            status: user.status || type,
+            });
         });
-      });
-    });
+        });
 
-    this.renderUsers(merged, { append: false });
-  } catch (e) {
-    console.error('[NavbarSearchModal] Ошибка поиска', e);
-  }
-}
-
+        this.renderUsers(merged, { append: false });
+    } catch (e) {
+        console.error('[NavbarSearchModal] Ошибка поиска', e);
+    }
+    }
 
   async loadMoreSearch() {
     try {
