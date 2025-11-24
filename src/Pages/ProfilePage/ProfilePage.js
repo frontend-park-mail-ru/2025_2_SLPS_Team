@@ -108,13 +108,14 @@ export class ProfilePage extends BasePage {
       showBlocked: templateData.showBlocked,
     });
 
-
     const mainContainer = this.wrapper.querySelector('.profile-page');
 
     const moreBtn = this.wrapper.querySelector('.profile-toggle-btn');
     if (moreBtn) {
       moreBtn.addEventListener('click', () => {
-        this.wrapper.querySelector('.profile-info').classList.toggle('expanded');
+        this.wrapper
+          .querySelector('.profile-info')
+          .classList.toggle('expanded');
       });
     }
 
@@ -131,8 +132,13 @@ export class ProfilePage extends BasePage {
 
     this.addListeners(templateData.user);
 
-    const communitiesList = await renderCommunitiesList();
-    this.wrapper.querySelector('.folows-container').appendChild(communitiesList);
+    if (this.isOwner) {
+      const communitiesList = await renderCommunitiesList();
+      const followsContainer = this.wrapper.querySelector('.folows-container');
+      if (followsContainer && communitiesList) {
+        followsContainer.appendChild(communitiesList);
+      }
+    }
 
     this.rootElement.appendChild(this.wrapper);
 
@@ -146,6 +152,7 @@ export class ProfilePage extends BasePage {
     EventBus.on('posts:updated', rerenderProfileFeed);
     EventBus.on('posts:deleted', rerenderProfileFeed);
   }
+
 
   async renderPostsBlock() {
     this.posts = await getUserPosts(this.userId, 20);
