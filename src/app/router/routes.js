@@ -12,6 +12,12 @@ import { CommunityCheckPage } from '../../Pages/CommunityCheckPage/CommunityChec
 
 import { navigateTo } from './navigateTo.js'; 
 
+window.addEventListener('DOMContentLoaded', () => {
+    layout.init().then(() => {
+        layout.updateNavbarVisibility();
+    });
+});
+
 export const routes = {
   "/": {
     renderFunc: async () => layout.renderPage(FeedPage),
