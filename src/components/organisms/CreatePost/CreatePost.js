@@ -78,34 +78,56 @@ export class CreatePostForm {
     this.rootElement.insertAdjacentElement('beforeend', this.wrapper);
   }
 
-  open() {
-    document.body.style.overflow = 'hidden';
-    this.render();
+    open() {
+        document.body.style.overflow = 'hidden';
 
-    this.outsideClickHandler = (event) => {
-      const modalContent = this.wrapper.querySelector('.new-post-container');
+        this.render().then(() => {
+            const modal = this.wrapper.querySelector('.new-post-modal');
 
-      if (modalContent && !modalContent.contains(event.target)) {
-        this.close();
-      }
-    };
+            if (window.innerWidth <= 768 && modal) {
+                setTimeout(() => modal.classList.add('open'), 10);
+            } else {
+                modal.classList.add('open');
+            }
+        });
 
-    document.addEventListener('mousedown', this.outsideClickHandler);
-  }
+        this.outsideClickHandler = (event) => {
+            const modalContent = this.wrapper.querySelector('.new-post-container');
 
-  close() {
-    document.body.style.overflow = '';
+            if (modalContent && !modalContent.contains(event.target)) {
+                this.close();
+            }
+        };
 
-    if (this.outsideClickHandler) {
-      document.removeEventListener('mousedown', this.outsideClickHandler);
-      this.outsideClickHandler = null;
+        document.addEventListener('mousedown', this.outsideClickHandler);
     }
 
-    if (this.wrapper) {
-      this.wrapper.remove();
-      this.wrapper = null;
+    close() {
+        const modal = this.wrapper?.querySelector('.new-post-modal');
+
+        document.body.style.overflow = '';
+
+        if (this.outsideClickHandler) {
+            document.removeEventListener('mousedown', this.outsideClickHandler);
+            this.outsideClickHandler = null;
+        }
+
+        if (window.innerWidth <= 768 && modal) {
+            modal.classList.remove('open');
+
+            setTimeout(() => {
+                this.wrapper?.remove();
+                this.wrapper = null;
+            }, 300);
+
+            return;
+        }
+
+        if (this.wrapper) {
+            this.wrapper.remove();
+            this.wrapper = null;
+        }
     }
-  }
 
   async saveData() {
     try {

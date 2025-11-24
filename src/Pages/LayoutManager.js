@@ -66,6 +66,14 @@ export class LayoutManager {
     }
 
     async renderPage(PageClass, params = {}) {
+        const isMobile = window.innerWidth <= 768;
+        const isProfilePage = location.pathname.startsWith("/profile");
+
+        if (isMobile && isProfilePage) {
+            if (this.navbar) this.navbar.style.display = 'none';
+        } else {
+            if (this.navbar) this.navbar.style.display = '';
+        }
         await this.init();
         this.clearContent();
         const pageInstance = new PageClass(this.content, params);

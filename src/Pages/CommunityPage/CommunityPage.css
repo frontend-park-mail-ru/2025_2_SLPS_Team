@@ -190,3 +190,35 @@
   align-items: flex-start;
   height: calc(100vh - 80px - 16px);
 }
+
+
+@media (max-width: 768px) {
+  
+  .community-page {
+    position: static;
+    flex-direction: column; 
+    gap: 8px !important;
+    padding: 0;
+    min-height: auto;
+    top: 70px !important;
+  }
+
+  .community-page__left {
+    width: 100% !important;
+    height: auto;
+    order: 2;
+    gap: 8px !important; 
+  }
+
+  .community-page__main-contet {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .community-sidebar {
+    width: 100% !important;
+    max-width: 100%;
+    position: static;
+    order: 1;
+  }
+}
