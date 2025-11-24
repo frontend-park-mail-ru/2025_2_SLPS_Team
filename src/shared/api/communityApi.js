@@ -40,10 +40,10 @@ export async function getCommunityPosts(communityId, page = 1, limit = 20) {
 }
 
 /**
- * Подписчики сообщества (правый блок на странице)
+ * Подписчики сообщества
  * GET /communities/{id}/subscribers?limit=
  */
-export async function getCommunitySubscribers(communityId, limit = 6) {
+export async function getCommunitySubscribers(communityId, limit = 4) {
   if (!communityId) {
     throw new Error('getCommunitySubscribers: communityId is required');
   }
@@ -198,6 +198,23 @@ export async function getCreatedCommunities(page = 1, limit = 20) {
     `/api/communities/created?page=${encodeURIComponent(
       page,
     )}&limit=${encodeURIComponent(limit)}`,
+    {
+      method: 'GET',
+    },
+  );
+
+  return Array.isArray(data) ? data : [];
+}
+
+export async function getUserCommunities(userId, page = 1, limit = 20) {
+  if (!userId) {
+    throw new Error('getUserCommunities: userId is required');
+  }
+
+  const data = await api(
+    `/api/communities/users/${encodeURIComponent(
+      userId,
+    )}?page=${encodeURIComponent(page)}&limit=${encodeURIComponent(limit)}`,
     {
       method: 'GET',
     },

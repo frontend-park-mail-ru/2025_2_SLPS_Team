@@ -1,16 +1,34 @@
 import CommunitiesListTemplate from './CommunitiesList.hbs';
 import {
-  getMyCommunities,
+  getUserCommunities,
   UPLOADS_BASE,
 } from '../../../shared/api/communityApi.js';
 
 const DEFAULT_AVATAR = '/public/globalImages/DefaultCommunity.svg';
 
-export async function renderCommunitiesList(limit = 4) {
+function normalizeAvatar(avatarPath) {
+  if (!avatarPath || avatarPath === 'null' || avatarPath === 'undefined') {
+    return DEFAULT_AVATAR;
+  }
+
+  if (typeof avatarPath === 'string' && avatarPath.startsWith('http')) {
+    return avatarPath;
+  }
+
+  return `${UPLOADS_BASE}${avatarPath}`;
+}
+
+export async function renderCommunitiesList(userId, limit = 4) {
+  if (!userId) {
+    console.warn('[CommunitiesList] userId is not provided');
+    const wrapper = document.createElement('div');
+    return wrapper;
+  }
+
   let communitiesFromApi = [];
 
   try {
-    communitiesFromApi = await getMyCommunities(1, limit);
+    communitiesFromApi = await getUserCommunities(userId, 1, limit);
   } catch (err) {
     console.error('[CommunitiesList] Failed to load communities:', err);
     communitiesFromApi = [];
@@ -21,10 +39,7 @@ export async function renderCommunitiesList(limit = 4) {
     .map((c) => ({
       id: c.id,
       name: c.name,
-      avatar:
-        c.avatarPath && c.avatarPath !== 'null'
-          ? `${UPLOADS_BASE}${c.avatarPath}`
-          : DEFAULT_AVATAR,
+      avatar: normalizeAvatar(c.avatarPath),
     }));
 
   const html = CommunitiesListTemplate({

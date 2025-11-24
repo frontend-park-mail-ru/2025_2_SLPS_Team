@@ -132,13 +132,12 @@ export class ProfilePage extends BasePage {
 
     this.addListeners(templateData.user);
 
-    if (this.isOwner) {
-      const communitiesList = await renderCommunitiesList();
+      const communitiesList = await renderCommunitiesList(this.userId);
       const followsContainer = this.wrapper.querySelector('.folows-container');
       if (followsContainer && communitiesList) {
         followsContainer.appendChild(communitiesList);
       }
-    }
+
 
     this.rootElement.appendChild(this.wrapper);
 
