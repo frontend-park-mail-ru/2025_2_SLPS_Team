@@ -16,3 +16,38 @@
     width: 190px;
     position: fixed;
 }
+
+@media (max-width: 768px) {
+    .sidebar-container {
+        width: 100%;
+        height: 70px;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around; 
+        align-items: center;
+        padding: 0;
+        z-index: 1000;
+    }
+
+    .sidebar-menu{
+        flex-direction: row;
+        width: 100%;
+        gap: 0;
+        justify-content: space-around;
+    }
+
+    .menu-items-container {
+        flex-direction: row;
+        width: 100%;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        justify-content: space-around;
+        padding: 4px 0;
+        background-color: var(--base-white);
+        border-top: 1px solid var(--light-border);
+    }
+}

@@ -36,13 +36,7 @@ export async function renderMenu({ items, onNavigate }) {
     if (!sidebarMenu) throw new Error(".sidebar-menu не найден в шаблоне");
 
     const menuContainer = document.createElement("div");
-    Object.assign(menuContainer.style, {
-        display: "flex",
-        flexDirection: "column",
-        gap: "6px",
-        width: "190px",
-        position: "fixed"
-    });
+    menuContainer.classList.add("menu-items-container");
 
     const activeView = items.find(i => i.isActive)?.view || window.location.pathname;
 

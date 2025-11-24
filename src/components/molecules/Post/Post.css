@@ -1,5 +1,7 @@
 .post-container {
-    width: 600px;
+    width: 100%;
+    max-width: 600px; /* если нужна максимальная ширина */
+    margin: 0 auto;   /* для центрирования */
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
@@ -10,9 +12,9 @@
 }
 
 .post-content {
+    padding: 13px 22px;
     display: flex;
     flex-direction: column;
-    margin: 13px 22px;
     gap: 16px;
 }
 
@@ -116,3 +118,71 @@
     right: 0;
     top: 28px;
 }
+
+@media (max-width: 768px) {
+    .post-container {
+        width: 100% !important;
+    }
+
+    .post-content {
+        margin: 0px;
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .post-header {
+        flex-direction: row;
+        gap: 8px;
+    }
+
+    .community-info {
+        gap: 8px;
+    }
+
+    .community-avatar {
+        width: 32px;
+        height: 32px;
+    }
+
+    .community-name {
+        font-size: 14px;
+    }
+
+    .post-text {
+        font-size: 14px;
+    }
+
+    .js-toggle-btn {
+        font-size: 14px;
+    }
+
+    .post-footer {
+        margin: 0 -12px;
+    }
+
+    .post-actions-container {
+        gap: 8px;
+        margin: 0 12px;
+    }
+
+    .post-details-actions-container {
+        width: 20px;
+        height: 20px;
+    }
+
+    .post-actions-menu {
+        top: 24px;
+    }
+
+    .post-photo {
+        width: 100%;
+        height: auto;
+    }
+
+    .post-photo img,
+    .photo-slider img {
+        width: 100%;
+        height: auto;
+    }
+}
+

@@ -42,13 +42,16 @@ export class FeedPage extends BasePage {
     const feedElement = await renderFeed(this.posts, true);
     mainContainer.appendChild(feedElement);
 
-    const settingsItems = [
-      { label: 'Рекомендации', view: 'recommendations', isActive: true },
-      { label: 'Подписки', view: 'subs' },
-      { label: 'Реакции', view: 'reactions' },
-    ];
-    const feedSettingsElement = await renderFeedSettings(settingsItems);
-    mainContainer.appendChild(feedSettingsElement);
+    const isMobile = window.innerWidth <= 768;
+    if(!isMobile) {
+        const settingsItems = [
+            { label: 'Рекомендации', view: 'recommendations', isActive: true },
+            { label: 'Подписки', view: 'subs' },
+            { label: 'Реакции', view: 'reactions' },
+            ];
+        const feedSettingsElement = await renderFeedSettings(settingsItems);
+        mainContainer.appendChild(feedSettingsElement);
+    }
 
     this.rootElement.appendChild(wrapper);
   }
