@@ -33,7 +33,7 @@ class WebSocketService {
             const data = parsed.data ?? parsed.Data ?? null;
 
             if (type) {
-                this.emit(type, { type, data });
+                this.emit(type, data);
             }
 
         } catch (e) {

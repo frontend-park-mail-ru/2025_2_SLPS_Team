@@ -6,6 +6,24 @@ import { CreateCommunityModal } from '../../components/organisms/CreateCommunity
 import { renderCommunityCard } from '../../components/molecules/CommunityCard/CommunityCard.js';
 import { renderCommunityCreated } from '../../components/molecules/CommunityCreated/CommunityCreated.js';
 
+import {
+  createCommunity,
+  getMyCommunities,
+  getOtherCommunities,
+  toggleCommunitySubscription,
+} from '../../shared/api/communityApi.js';
+
+
+
+function formatSubscribers(count) {
+  if (count == null) return '';
+  if (count >= 1000) {
+    const short = (count / 1000).toFixed(1).replace('.0', '');
+    return `${short}k подписчиков`;
+  }
+  return `${count} подписчиков`;
+}
+
 export class CommunityPage extends BasePage {
   constructor(rootElement) {
     super(rootElement);
@@ -15,49 +33,43 @@ export class CommunityPage extends BasePage {
     this.root = null;
     this.createModal = null;
 
-    // Заглушки под API
-    this.subs = [
-      {
-        id: 1,
-        name: 'VK Education',
-        description: 'Обучающие курсы',
-        subscribers: '254,3k подписчиков',
-        avatar: '/public/testData/groupim2.jpg',
-        isSubscribed: true,
-      },
-      {
-        id: 2,
-        name: 'Fast Food Music',
-        description: 'Музыка и релизы',
-        subscribers: '12,8k подписчиков',
-        avatar: '/public/testData/groupim.jpg',
-        isSubscribed: true,
-      },
-    ];
+    this.subs = [];
+    this.reco = [];
+    this.created = [];
+  }
 
-    this.reco = [
-      {
-        id: 3,
-        name: 'VK Education',
-        description: 'Обучающие курсы',
-        subscribers: '254,3k подписчиков',
-        avatar: '/public/testData/groupim2.jpg',
-        isSubscribed: false,
-      },
-    ];
 
-    this.created = [
-      {
-        id: 101,
-        name: 'Fast Food Music',
-        avatar: '/public/testData/groupim.jpg',
-      },
-      {
-        id: 102,
-        name: 'VK education',
-        avatar: '/public/testData/groupim2.jpg',
-      },
-    ];
+  mapCommunity(apiItem, forceSubscribed = null) {
+    const avatarPath =
+      !apiItem.avatarPath || apiItem.avatarPath === 'null'
+        ? '/public/globalImages/DefaultAvatar.svg'
+        : `${`${process.env.API_BASE_URL}/uploads/`}${apiItem.avatarPath}`;
+
+    return {
+      id: apiItem.id,
+      name: apiItem.name,
+      description: apiItem.description,
+      subscribers: formatSubscribers(apiItem.subscribersCount || 0),
+      avatar: avatarPath,
+      isSubscribed:
+        forceSubscribed != null ? forceSubscribed : !!apiItem.isSubscribed,
+    };
+  }
+
+  async loadCommunities() {
+    try {
+      const [myRaw, otherRaw] = await Promise.all([
+        getMyCommunities(1, 50),
+        getOtherCommunities(1, 50),
+      ]);
+
+      this.subs = (myRaw || []).map((c) => this.mapCommunity(c, true));
+      this.reco = (otherRaw || []).map((c) => this.mapCommunity(c, false));
+    } catch (err) {
+      console.error('[CommunityPage] loadCommunities error', err);
+      this.subs = [];
+      this.reco = [];
+    }
   }
 
   async render() {
@@ -72,6 +84,9 @@ export class CommunityPage extends BasePage {
 
     this.root = page.firstElementChild;
 
+    // сначала загружаем данные
+    await this.loadCommunities();
+
     this.initCreateButton();
     this.initTabs();
     this.initSearch();
@@ -83,30 +98,56 @@ export class CommunityPage extends BasePage {
   }
 
   initCreateButton() {
-  const btn = this.root.querySelector('.community-sidebar__create-btn');
-  if (!btn) return;
+    const btn = this.root.querySelector('.community-sidebar__create-btn');
+    if (!btn) return;
 
-  btn.addEventListener('click', () => {
-        if (!this.createModal) {
+    btn.addEventListener('click', () => {
+      if (!this.createModal) {
         this.createModal = new CreateCommunityModal({
-            onSubmit: ({ name, about }) => {
-            // в будущем будет Api для создания
-            // фейковое добавление для наглядности
-            this.created.push({
-                id: Date.now(),
-                name,
-                avatar: '/public/globalImages/DefaultAvatar.svg',
-            });
-            this.renderCreated(this.root);
-            },
-            onCancel: () => {
-            },
-        });
-        }
+          // данные формы модалки
+          // (about = описание, плюс возможно файловые поля)
+          onSubmit: async ({ name, about, avatarFile, coverFile }) => {
+            try {
+              const formData = new FormData();
+              formData.append('name', name);
 
-        this.createModal.open();
+              if (about) {
+                formData.append('description', about);
+              }
+              if (avatarFile) {
+                formData.append('avatar', avatarFile);
+              }
+              if (coverFile) {
+                formData.append('cover', coverFile);
+              }
+
+              const createdFromApi = await createCommunity(formData);
+
+              const mapped = this.mapCommunity(createdFromApi, true);
+              // добавляем в список подписок
+              this.subs.unshift(mapped);
+              // и в «Созданные сообщества»
+              this.created.unshift({
+                id: mapped.id,
+                name: mapped.name,
+                avatar: mapped.avatar,
+              });
+
+              this.renderList();
+              this.renderCreated();
+            } catch (err) {
+              console.error('[CommunityPage] createCommunity error', err);
+              alert('Не удалось создать сообщество. Попробуйте позже.');
+            }
+          },
+          onCancel: () => {},
+        });
+      }
+
+      this.createModal.open();
     });
   }
+
   initTabs() {
     const tabs = this.root.querySelectorAll('.community-tab');
 
@@ -135,7 +176,6 @@ export class CommunityPage extends BasePage {
     });
   }
 
-
   getCurrentSource() {
     return this.type === 'subs' ? this.subs : this.reco;
   }
@@ -149,7 +189,6 @@ export class CommunityPage extends BasePage {
       return text.includes(this.query);
     });
   }
-
 
   renderList() {
     const list = this.root.querySelector('.community-list');
@@ -173,20 +212,34 @@ export class CommunityPage extends BasePage {
         avatarPath: item.avatar,
         isSubscribed: item.isSubscribed,
         onToggleSubscribe: (id) => this.toggleSubscribe(id),
-        // onClick: (id) => navigateTo(`/community/${id}`) — потом можно будет добавить
+         onClick: (id) => navigateTo(`/community/${id}`),
       });
 
       list.appendChild(card);
     });
   }
 
-  toggleSubscribe(id) {
+  async toggleSubscribe(id) {
     const src = this.getCurrentSource();
     const target = src.find((i) => i.id === id);
     if (!target) return;
 
-    target.isSubscribed = !target.isSubscribed;
+    const prev = target.isSubscribed;
+
+    target.isSubscribed = !prev;
     this.renderList();
+
+    try {
+      const res = await toggleCommunitySubscription(id);
+      target.isSubscribed =
+        typeof res.isSubscribed === 'boolean' ? res.isSubscribed : !prev;
+      this.renderList();
+    } catch (err) {
+      console.error('[CommunityPage] toggleSubscribe error', err);
+      // откат
+      target.isSubscribed = prev;
+      this.renderList();
+    }
   }
 
   renderCreated() {
@@ -201,9 +254,8 @@ export class CommunityPage extends BasePage {
         name: item.name,
         avatar: item.avatar,
         onClick: (id) => {
-          // пока просто лог, дальше можно навигейт
           console.log('Открыть сообщество', id);
-          // navigateTo(`/community/${id}`);
+           navigateTo(`/community/${id}`);
         },
       });
 
@@ -211,4 +263,3 @@ export class CommunityPage extends BasePage {
     });
   }
 }
-

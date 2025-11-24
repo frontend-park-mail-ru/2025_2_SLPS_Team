@@ -75,7 +75,7 @@ export const routes = {
     access: "auth-only",
     title: "Форма"
   },
-  '/community/1': {
+  '/community/:id': {
     renderFunc: async (params) => layout.renderPage(CommunityCheckPage, params),
     access: 'auth-only',
     title: 'Сообщество',

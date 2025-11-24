@@ -34,7 +34,16 @@ let mockSubscribers = [
 
 
 export async function getCommunity(id) {
-  return { ...mockCommunity, id };
+  if (!communityId) {
+    throw new Error('getCommunityPosts: communityId is required');
+  }
+
+  return api(
+    `/api/communities/${communityId}/posts?limit=${encodeURIComponent(limit)}`,
+    {
+      method: 'GET',
+    },
+  );
 }
 
 export async function getCommunityPosts(communityId, limit = 20) {
@@ -42,17 +51,36 @@ export async function getCommunityPosts(communityId, limit = 20) {
 }
 
 export async function getCommunitySubscribers(communityId, limit = 5) {
-  return mockSubscribers.slice(0, limit);
+  return api(
+    `/api/communities/${communityId}/subscribers?limit=${encodeURIComponent(
+      limit,
+    )}`,
+    {
+      method: 'GET',
+    },
+  );
 }
 
-export async function toggleCommunitySubscription(communityId, csrfToken) {
-  mockCommunity.isSubscribed = !mockCommunity.isSubscribed;
-  return { isSubscribed: mockCommunity.isSubscribed };
+export async function toggleCommunitySubscription(communityId) {
+  if (!communityId) {
+    throw new Error('toggleCommunitySubscription: communityId is required');
+  }
+
+  return api(`/api/communities/${communityId}/subscribe`, {
+    method: 'POST',
+  });
 }
 
 
-export async function deleteCommunity(communityId, csrfToken) {
-  console.log('[mock communityApi] deleteCommunity', communityId);
+export async function deleteCommunity(communityId) {
+  if (!communityId) {
+    throw new Error('deleteCommunity: communityId is required');
+  }
+
+  await api(`/api/communities/${communityId}`, {
+    method: 'DELETE',
+  });
+
   return { ok: true };
 }
 
@@ -61,35 +89,46 @@ export async function updateCommunity(communityId, formData) {
   if (!communityId) {
     throw new Error('updateCommunity: communityId is required');
   }
+  if (!(formData instanceof FormData)) {
+    throw new Error('updateCommunity: body must be FormData');
+  }
 
-  const baseUrl = process.env.API_BASE_URL || '';
-
-  const url = `${baseUrl}/api/communities/${communityId}`;
-
-  const response = await fetch(url, {
-    method: 'PUT',          // или 'PATCH'
-    body: formData,         // FormData: name, description, avatar/avatarDelete
-    credentials: 'include', // чтобы куки/сессия поехали
+  return api(`/api/communities/${communityId}`, {
+    method: 'PUT',
+    body: formData,
   });
+}
 
-  if (!response.ok) {
-    let message = `updateCommunity: ${response.status} ${response.statusText}`;
-    try {
-      const text = await response.text();
-      if (text) {
-        message += ` — ${text}`;
-      }
-    } catch (_) {
-      // ignore
-    }
-    throw new Error(message);
+export async function createCommunity(formData) {
+  if (!(formData instanceof FormData)) {
+    throw new Error('createCommunity: body must be FormData');
   }
 
-  // если бек что-то возвращает (обновлённое сообщество) — парсим,
-  // если нет — можно вернуть null
-  try {
-    return await response.json();
-  } catch (_) {
-    return null;
-  }
+  return api('/api/communities', {
+    method: 'POST',
+    body: formData,
+  });
+}
+
+export async function getMyCommunities(page = 1, limit = 20) {
+  const data = await api(
+    `/api/communities/my?page=${encodeURIComponent(
+      page,
+    )}&limit=${encodeURIComponent(limit)}`,
+    { method: 'GET' },
+  );
+
+  return Array.isArray(data) ? data : [];
+}
+
+
+export async function getOtherCommunities(page = 1, limit = 20) {
+  const data = await api(
+    `/api/communities/other?page=${encodeURIComponent(
+      page,
+    )}&limit=${encodeURIComponent(limit)}`,
+    { method: 'GET' },
+  );
+
+  return Array.isArray(data) ? data : [];
 }
