@@ -52,5 +52,14 @@ body {
     margin: 0;
     padding: 0;
     column-gap: 0;
+    flex: 1 1 100%;
+  }
+
+  .feed-page {
+    margin-top: 70px;
+  }
+
+  .page-content {
+    flex: 1 1 100%;
   }
 }

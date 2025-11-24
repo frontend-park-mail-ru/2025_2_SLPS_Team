@@ -74,6 +74,11 @@ export class CreateCommunityModal {
 
     this.buttons.SaveBtn.render()
 
+    setTimeout(() => {
+      this.root.classList.add('open');
+    }, 10);
+
+
     document.body.appendChild(this.root);
     this.bindEvents();
     this.focusName();
@@ -81,6 +86,8 @@ export class CreateCommunityModal {
 
   close() {
     if (!this.root) return;
+
+    this.root.classList.remove('open');
 
     document.removeEventListener('keydown', this.boundEscHandler);
     this.root.remove();

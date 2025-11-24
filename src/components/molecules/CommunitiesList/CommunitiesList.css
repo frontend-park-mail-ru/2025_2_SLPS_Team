@@ -48,4 +48,8 @@
     color: var(--base-black);
 }
 
-
+@media (max-width: 738px) {
+    .communities-list {
+        display: none;
+    }
+}

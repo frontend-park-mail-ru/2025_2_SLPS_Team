@@ -29,3 +29,13 @@
   font-weight: 330;
   font-family: 'Nunito Sans';
 }
+
+@media (max-width: 768px) {
+  .community-sidebar__title {
+    display: none;
+  }
+
+  .community-sidebar__created-list {
+    display: none !important;
+  }
+}

@@ -194,3 +194,98 @@
 .profile-feed-container {
     width: 602px;
 }
+
+@media (max-width: 768px) {
+
+    .profile-page {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+
+    .profile-info {
+        width: 100%;
+        max-height: 265px;
+        padding: 10px;
+        border-radius: 16px;
+    }
+
+    .profile-info.expanded {
+        max-height: 500px;
+    }
+
+    .header-image {
+        height: 150px;
+        border-radius: 12px;
+    }
+
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        margin-top: -65px;
+        margin-left: 0;
+    }
+
+    .profile-header-content {
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+        align-items: center;
+    }
+
+    .user-name {
+        font-size: 18px;
+    }
+
+    .user-info {
+        font-size: 12px;
+        width: fit-content;
+        gap: 4px;
+    }
+
+    .user-info-container {
+        width: fit-content;
+        margin: 0;
+        align-items: center;
+    }
+
+    .profile-extra {
+        padding: 10px;
+        padding-top: 20px;
+        font-size: 14px;
+        gap: 10px;
+    }
+
+    .about-text {
+        font-size: 14px;
+    }
+
+    .user-counts-info {
+        gap: 20px;
+        flex-wrap: wrap;
+        font-size: 14px;
+    }
+
+    .edit-open,
+    .add-friend-btn,
+    .message-btn,
+    .unblock-user-btn,
+    .request-text {
+        font-size: 12px;
+        padding: 3px 6px;
+        margin-top: 2px;
+    }
+
+    .profile-down-container {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .profile-feed-container {
+        width: 100%;
+    }
+
+    .profile-content {
+        gap: 8px;
+    }
+}

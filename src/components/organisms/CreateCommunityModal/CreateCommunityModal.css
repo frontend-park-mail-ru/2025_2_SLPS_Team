@@ -163,3 +163,41 @@
   background-color: var(--light-border);
   width: 100%;
 }
+
+@media (max-width: 768px) {
+  .create-community-modal {
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .create-community-modal__window {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 16px 16px 0 0;
+    transform: translateY(100%);
+    transition: transform 0.35s ease;
+  }
+
+  .create-community-modal.open .create-community-modal__window {
+    transform: translateY(0);
+    transform: translateY(0);
+    height: 500px;
+    justify-content: flex-start;
+  }
+
+  .create-community-modal__form {
+    width: 90%;
+  }
+
+  .create-community-modal__input,
+  .create-community-modal__textarea {
+    width: 100%;
+    height: 35px;
+  }
+
+  .create-community-modal__close {
+    display: none;
+  }
+}
+
