@@ -14,7 +14,7 @@ import { cachedFetch } from "../../services/CacheService.js";
 
 export class MessengerPage extends BasePage {
   constructor(rootElement) {
-    super(rootElement);
+    super(rootElement)
     this.chats = [];
     this.openChat = null;
     this.wrapper = null;
@@ -32,6 +32,8 @@ export class MessengerPage extends BasePage {
     this.wrapper = document.createElement('div');
     this.wrapper.innerHTML = MessengerPageTemplate();
 
+    const chatBlock = this.wrapper.querySelector('.chat-block');
+
     const chatsContainer = this.wrapper.querySelector('.chats-container');
     this.chatsSearch = new SearchInput(chatsContainer.querySelector('.chats-sreach-container'));
     this.chatsSearch.render();
@@ -44,14 +46,22 @@ export class MessengerPage extends BasePage {
 
       this.chatItems.push(chatItem);
 
-      chatItem.wrapper.addEventListener('click', async () => {
+        chatItem.wrapper.addEventListener('click', async () => {
         if (this.activeChatItem && this.activeChatItem !== chatItem) {
-          this.activeChatItem.rmActive();
+            this.activeChatItem.rmActive();
         }
         this.activeChatItem = chatItem;
         chatItem.makeActive();
+
         await this.OpenChat(chatData);
-      });
+
+        if (window.innerWidth <= 768) {
+            const chatsContainer = this.wrapper.querySelector('.chats-container');
+            const chatBlock = this.wrapper.querySelector('.chat-block');
+            chatsContainer.classList.add('hide');
+            chatBlock.classList.add('open');
+        }
+        });
     });
 
     this.rootElement.appendChild(this.wrapper);
@@ -77,6 +87,12 @@ export class MessengerPage extends BasePage {
           name: data.name,
         };
         await this.OpenChat(chatData);
+        if (window.innerWidth <= 768) {
+            const chatsContainer = this.wrapper.querySelector('.chats-container');
+            const chatBlock = this.wrapper.querySelector('.chat-block');
+            chatsContainer.classList.add('hide');
+            chatBlock.classList.add('open');
+        }
       } catch (err) {
         console.error('Ошибка открытия чата:', err);
       }
@@ -109,6 +125,10 @@ export class MessengerPage extends BasePage {
     if (openedChatItem && typeof openedChatItem.hideCounter === 'function') {
       openedChatItem.hideCounter();
     }
+
+    if (window.innerWidth <= 768) {
+        this.addSwipeToClose(this.chatWrapper);
+    }
   }
 
   UpdateChat(chatId) {
@@ -139,6 +159,51 @@ export class MessengerPage extends BasePage {
       chatItem.showCounter();
     }
   }
+  
+  addSwipeToClose(element) {
+        let startX = 0;
+        let currentX = 0;
+        let isDragging = false;
+
+        const onPointerDown = (e) => {
+            isDragging = true;
+            startX = e.touches ? e.touches[0].clientX : e.clientX;
+            element.style.transition = '';
+        };
+
+        const onPointerMove = (e) => {
+            if (!isDragging) return;
+            currentX = e.touches ? e.touches[0].clientX : e.clientX;
+            const dx = currentX - startX;
+            if (dx < 0) {
+                element.style.transform = `translateX(${dx}px)`;
+            }
+        };
+
+        const onPointerUp = () => {
+            if (!isDragging) return;
+            isDragging = false;
+            const dx = currentX - startX;
+            element.style.transition = 'transform 0.3s ease';
+
+            if (dx < -100) {
+                element.style.transform = 'translateX(100%)';
+                this.wrapper.querySelector('.chats-container').classList.remove('hide');
+                element.classList.remove('open');
+                this.activeChatItem?.rmActive();
+            } else {
+                element.style.transform = 'translateX(0)';
+            }
+        };
+
+        element.addEventListener('touchstart', onPointerDown);
+        element.addEventListener('touchmove', onPointerMove);
+        element.addEventListener('touchend', onPointerUp);
+
+        element.addEventListener('mousedown', onPointerDown);
+        element.addEventListener('mousemove', onPointerMove);
+        element.addEventListener('mouseup', onPointerUp);
+    }
 
   async fetchCurrentUserProfile() {
     return await getProfile(this.myUserId);

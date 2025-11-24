@@ -66,14 +66,8 @@ export class LayoutManager {
     }
 
     async renderPage(PageClass, params = {}) {
-        const isMobile = window.innerWidth <= 768;
-        const isProfilePage = location.pathname.startsWith("/profile");
+        this.updateNavbarVisibility();
 
-        if (isMobile && isProfilePage) {
-            if (this.navbar) this.navbar.style.display = 'none';
-        } else {
-            if (this.navbar) this.navbar.style.display = '';
-        }
         await this.init();
         this.clearContent();
         const pageInstance = new PageClass(this.content, params);
@@ -104,7 +98,7 @@ export class LayoutManager {
             { label: "Сообщества", view: "/community", icon: "/public/MenuIcons/FeedIcon.svg" },
             { label: "Мессенджер", view: "/messanger", icon: "/public/MenuIcons/MessengerIcon.svg" },
             { label: "Друзья", view: "/friends", icon: "/public/MenuIcons/FriendsIcon.svg" },
-            { label: "Поддержка", view: "/help", icon: "/public/MenuIcons/HelpIcon.svg" } // 🆕
+            { label: "Поддержка", view: "/help", icon: "/public/MenuIcons/HelpIcon.svg" }
         ];
         const newMenu = await renderMenu({
             items: menuItems,
@@ -126,6 +120,18 @@ export class LayoutManager {
 
         this.navbar = newNavbar;
         this.menu = newMenu;
+    }
+
+    updateNavbarVisibility() {
+        const isMobile = window.innerWidth <= 768;
+        const hiddenPaths = ["/profile", "/messanger"];
+        const isHiddenPage = hiddenPaths.some(path => location.pathname.startsWith(path));
+
+        if (isMobile && isHiddenPage) {
+            if (this.navbar) this.navbar.style.display = 'none';
+        } else {
+            if (this.navbar) this.navbar.style.display = '';
+        }
     }
 
 }
