@@ -1,4 +1,3 @@
-// src/pages/CommunityPage/CommunityPage.js
 import BasePage from '../BasePage.js';
 import CommunityPageTemplate from './CommunityPage.hbs';
 import './CommunityPage.css';
@@ -12,10 +11,11 @@ import {
   getMyCommunities,
   getOtherCommunities,
   toggleCommunitySubscription,
+  getCreatedCommunities,
+  UPLOADS_BASE,
 } from '../../shared/api/communityApi.js';
 
-import { UPLOADS_BASE } from '../../shared/api/communityApi.js';
-import { navigateTo } from '../../app/router/navigateTo.js'; // когда понадобится
+import { navigateTo } from '../../app/router/navigateTo.js';
 
 function formatSubscribers(count) {
   if (count == null) return '';
@@ -59,17 +59,28 @@ export class CommunityPage extends BasePage {
 
   async loadCommunities() {
     try {
-      const [myRaw, otherRaw] = await Promise.all([
+      const [myRaw, otherRaw, createdRaw] = await Promise.all([
         getMyCommunities(1, 50),
         getOtherCommunities(1, 50),
+        getCreatedCommunities(1, 50),
       ]);
 
       this.subs = (myRaw || []).map((c) => mapCommunityFromApi(c, true));
       this.reco = (otherRaw || []).map((c) => mapCommunityFromApi(c, false));
+
+      this.created = (createdRaw || []).map((item) => ({
+        id: item.id,
+        name: item.name,
+        avatar:
+          !item.avatarPath || item.avatarPath === 'null'
+            ? '/public/globalImages/DefaultAvatar.svg'
+            : `${UPLOADS_BASE}${item.avatarPath}`,
+      }));
     } catch (err) {
       console.error('[CommunityPage] loadCommunities error', err);
       this.subs = [];
       this.reco = [];
+      this.created = [];
     }
   }
 
@@ -113,7 +124,6 @@ export class CommunityPage extends BasePage {
               }
 
               const created = await createCommunity(formData);
-
               const mapped = mapCommunityFromApi(created, true);
 
               this.subs.unshift(mapped);
@@ -246,10 +256,7 @@ export class CommunityPage extends BasePage {
         id: item.id,
         name: item.name,
         avatar: item.avatar,
-        onClick: (id) => {
-          console.log('Открыть сообщество', id);
-           navigateTo(`/community/${id}`);
-        },
+        onClick: (id) => navigateTo(`/community/${id}`),
       });
 
       container.appendChild(createdItem);

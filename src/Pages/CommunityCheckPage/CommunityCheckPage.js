@@ -80,16 +80,24 @@ export class CommunityCheckPage extends BasePage {
     );
     const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
 
-    // пока тестовый аватар
-    const avatarPath = '/public/testData/CommunityAvatar.png';
+    const avatarPath =
+      !this.community.avatarPath || this.community.avatarPath === 'null'
+        ? '/public/globalImages/DefaultAvatar.svg'
+        : `${baseUrl}${this.community.avatarPath}`;
 
     const coverPath =
       !this.community.coverPath || this.community.coverPath === 'null'
         ? '/public/globalImages/backgroud.png'
         : `${baseUrl}${this.community.coverPath}`;
 
-    this.isOwner = this.community.ownerId === Number(authService.getUserId());
+    const currentUserId = Number(authService.getUserId());
+
+    this.isOwner =
+      Number(this.community.creatorID) === currentUserId ||
+      Number(this.community.ownerId) === currentUserId;
+
     this.isSubscribed = !!this.community.isSubscribed;
+
 
     const createdAtFormatted = formatDate(this.community.createdAt);
     const templateData = {

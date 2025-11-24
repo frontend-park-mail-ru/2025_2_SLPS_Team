@@ -188,3 +188,20 @@ export async function getOtherCommunities(page = 1, limit = 20) {
 
   return Array.isArray(data) ? data : [];
 }
+
+/**
+ * Список сообществ, созданных пользователем
+ * GET /communities/created?page=&limit=
+ */
+export async function getCreatedCommunities(page = 1, limit = 20) {
+  const data = await api(
+    `/api/communities/created?page=${encodeURIComponent(
+      page,
+    )}&limit=${encodeURIComponent(limit)}`,
+    {
+      method: 'GET',
+    },
+  );
+
+  return Array.isArray(data) ? data : [];
+}
