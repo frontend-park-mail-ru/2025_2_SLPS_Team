@@ -468,3 +468,118 @@
   align-items: flex-start;
   height: calc(100vh - 80px - 16px);
 }
+
+@media (max-width: 768px) {
+  .community-page {
+    position: relative;
+    top: 0 !important;
+    bottom: 0 !important;
+    flex-direction: column;
+    padding: 0;
+    gap: 12px;
+  }
+
+  .community-page__content,
+  .community-page__down,
+  .community-page__main-contet {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .community-page__down {
+    flex-direction: column-reverse;
+  }
+
+  .community-header-card,
+  .community-about-card,
+  .community-page__feed,
+  .community-page__sidebar,
+  .community-page__left,
+  .community-sidebar {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .community-subscribers-card {
+    display: none;
+  }
+
+  .community-header-card__content {
+    flex-direction: row;
+    align-items: flex-end;
+    margin-top: -40px;
+    padding: 0 10px 16px 10px;
+    gap: 12px;
+  }
+
+  .community-header-card__left {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .community-header-card__avatar-wrapper {
+    width: 90px;
+    height: 90px;
+  }
+
+  .community-header-card__name {
+    font-size: 18px;
+  }
+
+  .community-header-card__subscribers {
+    font-size: 12px;
+  }
+
+  .community-subscribe-btn,
+  .community-subscribe-btn--active {
+    height: 26px;
+    font-size: 13px;
+    padding: 4px 6px;
+    margin-top: 0;
+    margin-left: 0;
+  }
+
+  .community-page__tabs {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 6px 0;
+  }
+
+  .community-list {
+    max-height: 400px;
+  }
+
+  .community-search-input-wrapper {
+    height: 40px;
+    padding: 0 10px;
+  }
+
+  .community-search-input {
+    font-size: 14px;
+  }
+
+  .community-tab,
+  .community-tab--active {
+    font-size: 16px;
+    padding: 4px 8px;
+  }
+
+  .community-sidebar__create-btn {
+    height: 36px;
+    padding: 6px 10px;
+  }
+
+  .community-about-card__title,
+  .community-subscribers-card__title {
+    font-size: 16px;
+  }
+
+  .community-header-card__info {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 30px;
+  }
+}

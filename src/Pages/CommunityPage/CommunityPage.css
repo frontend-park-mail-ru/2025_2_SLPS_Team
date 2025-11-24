@@ -221,4 +221,8 @@
     position: static;
     order: 1;
   }
+
+  .community-page[data-page="base"] {
+    top: 70px !important;
+  }
 }

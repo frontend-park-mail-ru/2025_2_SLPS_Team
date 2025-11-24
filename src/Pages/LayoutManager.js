@@ -72,6 +72,8 @@ export class LayoutManager {
         this.clearContent();
         const pageInstance = new PageClass(this.content, params);
         await pageInstance.render();
+
+        this.updateNavbarVisibility();
     }
 
     async getAvatar() {
@@ -124,8 +126,15 @@ export class LayoutManager {
 
     updateNavbarVisibility() {
         const isMobile = window.innerWidth <= 768;
-        const hiddenPaths = ["/profile", "/messanger"];
-        const isHiddenPage = hiddenPaths.some(path => location.pathname.startsWith(path));
+
+        const path = location.pathname;
+
+        const isProfile = path.startsWith("/profile");
+        const isMessenger = path.startsWith("/messanger");
+
+        const isCommunitySubpage = /^\/community\/.+/.test(path);
+
+        const isHiddenPage = isProfile || isMessenger || isCommunitySubpage;
 
         if (isMobile && isHiddenPage) {
             if (this.navbar) this.navbar.style.display = 'none';
@@ -133,7 +142,6 @@ export class LayoutManager {
             if (this.navbar) this.navbar.style.display = '';
         }
     }
-
 }
 
 export const layout = new LayoutManager(document.body, navigateTo);
