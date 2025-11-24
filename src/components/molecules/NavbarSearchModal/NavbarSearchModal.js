@@ -221,12 +221,28 @@ export class NavbarSearchModal {
 
   async runSearch(query) {
     try {
-      const profiles = await searchProfiles(query, undefined, 1, 10);
-      this.renderUsers(profiles, { append: false });
+        const types = ['accepted', 'pending', 'sent', 'notFriends'];
+        const perTypeLimit = 5;
+        const responses = await Promise.all(
+        types.map((t) => searchProfiles(query, t, 1, perTypeLimit)),
+        );
+
+        const merged = [];
+
+        types.forEach((type, idx) => {
+        (responses[idx] || []).forEach((user) => {
+            merged.push({
+            ...user,
+            status: user.status || type,
+            });
+        });
+        });
+
+        this.renderUsers(merged, { append: false });
     } catch (e) {
-      console.error('[NavbarSearchModal] Ошибка поиска', e);
+        console.error('[NavbarSearchModal] Ошибка поиска', e);
     }
-  }
+    }
 
   async loadMoreSearch() {
     try {
