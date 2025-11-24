@@ -1,56 +1,53 @@
+// src/shared/api/communityApi.js
+import { api, API_BASE_URL } from './client.js';
 
-let mockCommunity = {
-  id: 1,
-  name: 'VK Education',
-  description:
-    'Образовательный проект VKОбразовательный проект VKОбразовательный проект VKОбразовательный проект VKОбразовательный проект',
-  subscribersCount: 254400,          
-  createdAt: '2025-11-16T00:00:00Z',  
-  ownerId: 1,                        // Поменяй id на свой чтобы смотреть от лица админа
-  isSubscribed: false,               // состояние подписки
-  avatarPath: '/public/testData/groupim2.jpg',                  // чето не работает
-  coverPath: null,                   // обложка
-};
+const UPLOADS_BASE = `${API_BASE_URL}/uploads/`;
+// Если где-то понадобится, можно импортировать UPLOADS_BASE из этого файла
+export { UPLOADS_BASE };
 
-let mockPosts = [];
-
-let mockSubscribers = [
-  {
-    id: 10,
-    fullName: 'Павловский Роман',
-    avatarPath: null,
-  },
-  {
-    id: 11,
-    fullName: 'Иванова Анна',
-    avatarPath: null,
-  },
-  {
-    id: 12,
-    fullName: 'Сергеев Дмитрий',
-    avatarPath: null,
-  },
-];
-
-
+/**
+ * Получить одно сообщество по id
+ * GET /communities/{id}
+ */
 export async function getCommunity(id) {
+  if (!id) {
+    throw new Error('getCommunity: id is required');
+  }
+
+  return api(`/api/communities/${id}`, {
+    method: 'GET',
+  });
+}
+
+/**
+ * Посты сообщества
+ * (если эндпоинт отличается — просто поправь URL)
+ * GET /communities/{id}/posts?page=&limit=
+ */
+export async function getCommunityPosts(communityId, page = 1, limit = 20) {
   if (!communityId) {
     throw new Error('getCommunityPosts: communityId is required');
   }
 
   return api(
-    `/api/communities/${communityId}/posts?limit=${encodeURIComponent(limit)}`,
+    `/api/communities/${communityId}/posts?page=${encodeURIComponent(
+      page,
+    )}&limit=${encodeURIComponent(limit)}`,
     {
       method: 'GET',
     },
   );
 }
 
-export async function getCommunityPosts(communityId, limit = 20) {
-  return mockPosts.slice(0, limit);
-}
+/**
+ * Подписчики сообщества (правый блок на странице)
+ * GET /communities/{id}/subscribers?limit=
+ */
+export async function getCommunitySubscribers(communityId, limit = 6) {
+  if (!communityId) {
+    throw new Error('getCommunitySubscribers: communityId is required');
+  }
 
-export async function getCommunitySubscribers(communityId, limit = 5) {
   return api(
     `/api/communities/${communityId}/subscribers?limit=${encodeURIComponent(
       limit,
@@ -61,30 +58,27 @@ export async function getCommunitySubscribers(communityId, limit = 5) {
   );
 }
 
-export async function toggleCommunitySubscription(communityId) {
-  if (!communityId) {
-    throw new Error('toggleCommunitySubscription: communityId is required');
+/**
+ * Создать сообщество
+ * POST /communities
+ * payload — FormData (name, description, avatar?, cover?)
+ */
+export async function createCommunity(formData) {
+  if (!(formData instanceof FormData)) {
+    throw new Error('createCommunity: body must be FormData');
   }
 
-  return api(`/api/communities/${communityId}/subscribe`, {
+  return api('/api/communities', {
     method: 'POST',
+    body: formData,
   });
 }
 
-
-export async function deleteCommunity(communityId) {
-  if (!communityId) {
-    throw new Error('deleteCommunity: communityId is required');
-  }
-
-  await api(`/api/communities/${communityId}`, {
-    method: 'DELETE',
-  });
-
-  return { ok: true };
-}
-
-
+/**
+ * Обновить сообщество (редактирование)
+ * PUT /communities/{id}
+ * formData: name?/description?/avatar?/cover? и т.п.
+ */
 export async function updateCommunity(communityId, formData) {
   if (!communityId) {
     throw new Error('updateCommunity: communityId is required');
@@ -99,35 +93,97 @@ export async function updateCommunity(communityId, formData) {
   });
 }
 
-export async function createCommunity(formData) {
-  if (!(formData instanceof FormData)) {
-    throw new Error('createCommunity: body must be FormData');
+/**
+ * Удалить сообщество
+ * DELETE /communities/{id}
+ */
+export async function deleteCommunity(communityId) {
+  if (!communityId) {
+    throw new Error('deleteCommunity: communityId is required');
   }
 
-  return api('/api/communities', {
+  await api(`/api/communities/${communityId}`, {
+    method: 'DELETE',
+  });
+
+  return { ok: true };
+}
+
+/**
+ * Подписаться на сообщество
+ * POST /communities/{id}/subscribe
+ */
+export async function subscribeCommunity(communityId) {
+  if (!communityId) {
+    throw new Error('subscribeCommunity: communityId is required');
+  }
+
+  return api(`/api/communities/${communityId}/subscribe`, {
     method: 'POST',
-    body: formData,
   });
 }
 
+/**
+ * Отписаться от сообщества
+ * POST /communities/{id}/unsubscribe
+ */
+export async function unsubscribeCommunity(communityId) {
+  if (!communityId) {
+    throw new Error('unsubscribeCommunity: communityId is required');
+  }
+
+  return api(`/api/communities/${communityId}/unsubscribe`, {
+    method: 'POST',
+  });
+}
+
+/**
+ * Удобная обёртка: переключить подписку
+ * На входе текущее состояние, внутри выбирается нужный эндпоинт
+ */
+export async function toggleCommunitySubscription(communityId, isSubscribed) {
+  if (!communityId) {
+    throw new Error('toggleCommunitySubscription: communityId is required');
+  }
+
+  if (isSubscribed) {
+    await unsubscribeCommunity(communityId);
+    return { isSubscribed: false };
+  }
+
+  await subscribeCommunity(communityId);
+  return { isSubscribed: true };
+}
+
+/**
+ * Список сообществ пользователя
+ * GET /communities/my?page=&limit=
+ */
 export async function getMyCommunities(page = 1, limit = 20) {
   const data = await api(
     `/api/communities/my?page=${encodeURIComponent(
       page,
     )}&limit=${encodeURIComponent(limit)}`,
-    { method: 'GET' },
+    {
+      method: 'GET',
+    },
   );
 
   return Array.isArray(data) ? data : [];
 }
 
-
+/**
+ * Другие сообщества (рекомендации)
+ * GET /communities/other?page=&limit=
+ */
 export async function getOtherCommunities(page = 1, limit = 20) {
   const data = await api(
     `/api/communities/other?page=${encodeURIComponent(
       page,
     )}&limit=${encodeURIComponent(limit)}`,
-    { method: 'GET' },
+    {
+      method: 'GET',
+    },
   );
 
   return Array.isArray(data) ? data : [];

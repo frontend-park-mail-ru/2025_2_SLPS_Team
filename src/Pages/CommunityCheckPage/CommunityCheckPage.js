@@ -245,7 +245,7 @@ export class CommunityCheckPage extends BasePage {
     }
   }
 
-  initSubscribeButton() {
+    initSubscribeButton() {
     const btn = this.root.querySelector('[data-role="subscribe-toggle"]');
     if (!btn) return;
 
@@ -268,7 +268,7 @@ export class CommunityCheckPage extends BasePage {
       try {
         const res = await toggleCommunitySubscription(
           this.communityId,
-          authService.getCsrfToken(),
+          this.isSubscribed,
         );
         this.isSubscribed = !!res.isSubscribed;
         updateView();
@@ -282,6 +282,7 @@ export class CommunityCheckPage extends BasePage {
       }
     });
   }
+
 
   initOwnerMenu() {
     const buttonContainer = this.root.querySelector('.owner-menu-button');

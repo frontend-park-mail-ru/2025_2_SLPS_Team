@@ -1,3 +1,4 @@
+// src/pages/CommunityPage/CommunityPage.js
 import BasePage from '../BasePage.js';
 import CommunityPageTemplate from './CommunityPage.hbs';
 import './CommunityPage.css';
@@ -13,7 +14,8 @@ import {
   toggleCommunitySubscription,
 } from '../../shared/api/communityApi.js';
 
-
+import { UPLOADS_BASE } from '../../shared/api/communityApi.js';
+import { navigateTo } from '../../app/router/navigateTo.js'; // когда понадобится
 
 function formatSubscribers(count) {
   if (count == null) return '';
@@ -22,6 +24,23 @@ function formatSubscribers(count) {
     return `${short}k подписчиков`;
   }
   return `${count} подписчиков`;
+}
+
+function mapCommunityFromApi(item, forceSubscribed = null) {
+  const avatarPath =
+    !item.avatarPath || item.avatarPath === 'null'
+      ? '/public/globalImages/DefaultAvatar.svg'
+      : `${UPLOADS_BASE}${item.avatarPath}`;
+
+  return {
+    id: item.id,
+    name: item.name,
+    description: item.description,
+    subscribers: formatSubscribers(item.subscribersCount || 0),
+    avatar: avatarPath,
+    isSubscribed:
+      forceSubscribed != null ? forceSubscribed : !!item.isSubscribed,
+  };
 }
 
 export class CommunityPage extends BasePage {
@@ -38,24 +57,6 @@ export class CommunityPage extends BasePage {
     this.created = [];
   }
 
-
-  mapCommunity(apiItem, forceSubscribed = null) {
-    const avatarPath =
-      !apiItem.avatarPath || apiItem.avatarPath === 'null'
-        ? '/public/globalImages/DefaultAvatar.svg'
-        : `${`${process.env.API_BASE_URL}/uploads/`}${apiItem.avatarPath}`;
-
-    return {
-      id: apiItem.id,
-      name: apiItem.name,
-      description: apiItem.description,
-      subscribers: formatSubscribers(apiItem.subscribersCount || 0),
-      avatar: avatarPath,
-      isSubscribed:
-        forceSubscribed != null ? forceSubscribed : !!apiItem.isSubscribed,
-    };
-  }
-
   async loadCommunities() {
     try {
       const [myRaw, otherRaw] = await Promise.all([
@@ -63,8 +64,8 @@ export class CommunityPage extends BasePage {
         getOtherCommunities(1, 50),
       ]);
 
-      this.subs = (myRaw || []).map((c) => this.mapCommunity(c, true));
-      this.reco = (otherRaw || []).map((c) => this.mapCommunity(c, false));
+      this.subs = (myRaw || []).map((c) => mapCommunityFromApi(c, true));
+      this.reco = (otherRaw || []).map((c) => mapCommunityFromApi(c, false));
     } catch (err) {
       console.error('[CommunityPage] loadCommunities error', err);
       this.subs = [];
@@ -84,7 +85,6 @@ export class CommunityPage extends BasePage {
 
     this.root = page.firstElementChild;
 
-    // сначала загружаем данные
     await this.loadCommunities();
 
     this.initCreateButton();
@@ -104,29 +104,20 @@ export class CommunityPage extends BasePage {
     btn.addEventListener('click', () => {
       if (!this.createModal) {
         this.createModal = new CreateCommunityModal({
-          // данные формы модалки
-          // (about = описание, плюс возможно файловые поля)
-          onSubmit: async ({ name, about, avatarFile, coverFile }) => {
+          onSubmit: async ({ name, about }) => {
             try {
               const formData = new FormData();
               formData.append('name', name);
-
               if (about) {
                 formData.append('description', about);
               }
-              if (avatarFile) {
-                formData.append('avatar', avatarFile);
-              }
-              if (coverFile) {
-                formData.append('cover', coverFile);
-              }
 
-              const createdFromApi = await createCommunity(formData);
+              const created = await createCommunity(formData);
 
-              const mapped = this.mapCommunity(createdFromApi, true);
-              // добавляем в список подписок
+              const mapped = mapCommunityFromApi(created, true);
+
               this.subs.unshift(mapped);
-              // и в «Созданные сообщества»
+
               this.created.unshift({
                 id: mapped.id,
                 name: mapped.name,
@@ -192,6 +183,8 @@ export class CommunityPage extends BasePage {
 
   renderList() {
     const list = this.root.querySelector('.community-list');
+    if (!list) return;
+
     list.innerHTML = '';
 
     const items = this.getFilteredItems();
@@ -212,7 +205,7 @@ export class CommunityPage extends BasePage {
         avatarPath: item.avatar,
         isSubscribed: item.isSubscribed,
         onToggleSubscribe: (id) => this.toggleSubscribe(id),
-         onClick: (id) => navigateTo(`/community/${id}`),
+        onClick: (id) => navigateTo(`/community/${id}`),
       });
 
       list.appendChild(card);
@@ -230,13 +223,11 @@ export class CommunityPage extends BasePage {
     this.renderList();
 
     try {
-      const res = await toggleCommunitySubscription(id);
-      target.isSubscribed =
-        typeof res.isSubscribed === 'boolean' ? res.isSubscribed : !prev;
+      const res = await toggleCommunitySubscription(id, prev);
+      target.isSubscribed = !!res.isSubscribed;
       this.renderList();
     } catch (err) {
       console.error('[CommunityPage] toggleSubscribe error', err);
-      // откат
       target.isSubscribed = prev;
       this.renderList();
     }
@@ -246,6 +237,8 @@ export class CommunityPage extends BasePage {
     const container = this.root.querySelector(
       '.community-sidebar__created-list',
     );
+    if (!container) return;
+
     container.innerHTML = '';
 
     this.created.forEach((item) => {
