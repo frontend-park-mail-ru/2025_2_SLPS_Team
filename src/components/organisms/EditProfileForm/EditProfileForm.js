@@ -28,6 +28,7 @@ export class EditProfileForm {
   async render() {
     this.wrapper = document.createElement('div');
     this.wrapper.id = 'edit-profile-wrapper';
+    this.wrapper.classList.add('edit-profile-modal');
     this.wrapper.innerHTML = EditProfileTemplate({
       AvatarUrl: this.profileData.avatar || this.defaultAvatar,
       profileData: this.profileData,
@@ -229,24 +230,38 @@ export class EditProfileForm {
   }
 
   open() {
-    document.body.style.overflow = 'hidden';
-    this.render();
+      document.body.style.overflow = 'hidden';
+      this.render().then(() => {
+          const modalContainer = this.wrapper.querySelector('.modal-container');
+          requestAnimationFrame(() => {
+              modalContainer.classList.add('open');
+          });
+      });
   }
 
-  close() {
-    document.body.style.overflow = '';
 
-    if (this.editAvatarMenu && this.outsideClickHandler) {
-      document.removeEventListener('click', this.outsideClickHandler);
-      this.outsideClickHandler = null;
-      this.editAvatarMenu = null;
+    close() {
+        if (this.wrapper) {
+            this.wrapper.classList.remove('open');
+
+            setTimeout(() => {
+                document.body.style.overflow = '';
+
+                if (this.editAvatarMenu && this.outsideClickHandler) {
+                    document.removeEventListener('click', this.outsideClickHandler);
+                    this.outsideClickHandler = null;
+                    this.editAvatarMenu = null;
+                }
+
+                if (this.wrapper) {
+                    this.wrapper.remove();
+                    this.wrapper = null;
+                }
+            }, 350);
+        }
     }
 
-    if (this.wrapper) {
-      this.wrapper.remove();
-      this.wrapper = null;
-    }
-  }
+
 
   async saveData() {
     try {
