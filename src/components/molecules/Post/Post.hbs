@@ -1,23 +1,24 @@
-<div class="post-container"> 
+<div class="post-container" data-author-id="{{authorID}}" data-community-id="{{communityID}}">
     <div class="post-content">
         <div class="post-header">
-            {{#if communityAvatar}}
-                <div class="community-info">
-                    <div class="community-avatar">
-                    <img src="{{communityAvatar}}" alt="Фото сообщества">
-                    </div>
-                    <div class="community-name">{{groupName}}</div>
+            <div class="community-info">
+                <div class="community-avatar">
+                    <img src="{{communityAvatar}}" alt="Фото автора">
                 </div>
-            {{/if}}
+                <div class="community-name">{{groupName}}</div>
+            </div>
+
             {{#if isOwner}}
                 <img class="post-details-actions-container" src="/public/globalImages/MorePointsIcon.svg">
                 <div class="post-actions-menu"></div>
             {{/if}}
         </div>
+
         <div class="post-text-container">
             <div class="post-text js-post-text">{{text}}</div>
             <button class="js-toggle-btn">Показать ещё</button>
         </div>
+
         <div class="post-footer">
             <div class="post-actions-container"></div>
         </div>

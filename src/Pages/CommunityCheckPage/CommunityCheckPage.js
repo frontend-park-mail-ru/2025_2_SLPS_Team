@@ -81,12 +81,10 @@ export class CommunityCheckPage extends BasePage {
     );
     const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
 
-    const cacheBust = Date.now();
-
     const avatarPath =
       !this.community.avatarPath || this.community.avatarPath === 'null'
         ? '/public/globalImages/DefaultAvatar.svg'
-        : `${baseUrl}${this.community.avatarPath}?v=${cacheBust}`;
+        : `${baseUrl}${this.community.avatarPath}`;
 
     const coverPath =
       !this.community.coverPath || this.community.coverPath === 'null'

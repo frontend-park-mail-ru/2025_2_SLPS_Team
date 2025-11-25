@@ -115,20 +115,27 @@ export class EditProfileForm {
     await this.inputs.bthMonth.render();
 
     const currentYear = new Date().getFullYear();
-    const years = Array.from({ length: 100 }, (_, i) => {
-      const year = currentYear - i;
-      return {
-        label: String(year),
-        value: String(year),
-        active: year === dobYear,
-      };
-    });
 
-    this.inputs.bthYear = new SelectInput(this.wrapper.querySelector('.bth-year'), {
+  const maxYear = currentYear - 14;
+
+  const years = Array.from({ length: 100 }, (_, i) => {
+    const year = maxYear - i;
+    return {
+      label: String(year),
+      value: String(year),
+      active: year === dobYear,
+    };
+  });
+
+  this.inputs.bthYear = new SelectInput(
+    this.wrapper.querySelector('.bth-year'),
+    {
       values: years,
       pressedStyle: true
-    });
-    await this.inputs.bthYear.render();
+    }
+  );
+  await this.inputs.bthYear.render();
+
 
     const genderValue = this.profileData.gender;
 

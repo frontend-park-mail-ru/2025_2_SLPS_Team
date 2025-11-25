@@ -38,7 +38,8 @@
     height: 40px;
     border-radius: 50%;
     overflow: hidden; 
-    flex-shrink: 0;   
+    flex-shrink: 0;  
+    cursor: pointer; 
 }
 
 .community-avatar img {
@@ -52,6 +53,7 @@
     font-weight: 500;
     font-size: 16px;
     color: var(--text-black);
+    cursor: pointer;
 }
 
 .post-text-container{

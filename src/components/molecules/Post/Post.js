@@ -8,6 +8,7 @@ import { NotificationManager } from '../../organisms/NotificationsBlock/Notifica
 import { CreatePostForm } from '../../organisms/CreatePost/CreatePost.js';
 import { EventBus } from '../../../services/EventBus.js';
 import { togglePostLike } from '../../../shared/api/postsApi.js';
+import { navigateTo } from '../../../app/router/navigateTo.js';
 
 const notifier = new NotificationManager();
 
@@ -179,7 +180,36 @@ export async function renderPost(postData) {
 
   const postElement = wrapper.firstElementChild;
   const postHeader = postElement.querySelector('.post-header');
+  const communityId =
+    postData.communityID ??
+    postData.communityId ??
+    null;
 
+  const authorId =
+    postData.authorID ??
+    postData.author?.id ??
+    null;
+
+  const avatarNode = postElement.querySelector('.community-avatar');
+  const nameNode = postElement.querySelector('.community-name');
+
+  function goToOwner() {
+    if (communityId) {
+      navigateTo(`/communities/${communityId}`);
+    } else if (authorId) {
+      navigateTo(`/profile/${authorId}`);
+    }
+  }
+
+  [avatarNode, nameNode].forEach((node) => {
+    if (!node) return;
+    node.style.cursor = 'pointer';
+    node.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      goToOwner();
+    });
+  });
   postData.photos = Array.isArray(postData.photos)
     ? postData.photos
     : postData.imagePath
