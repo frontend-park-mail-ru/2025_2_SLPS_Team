@@ -34,7 +34,7 @@
 .friends-page__sidebar {
   order: 3;
   width: 330px;
-  height: 120px;
+  height: 140px;
   background-color: var(--base-white);
   border-radius: 14px;
   border: none;
@@ -52,7 +52,6 @@
     color: var(--text-black);
 }
 
-/* Поиск */
 .search-block input {
   width: 100%;
   padding: 10px 15px;
