@@ -195,7 +195,7 @@ export async function renderPost(postData) {
 
   function goToOwner() {
     if (communityId) {
-      navigateTo(`/communities/${communityId}`);
+      navigateTo(`/community/${communityId}`);
     } else if (authorId) {
       navigateTo(`/profile/${authorId}`);
     }

@@ -3,6 +3,7 @@ import {
   getUserCommunities,
   UPLOADS_BASE,
 } from '../../../shared/api/communityApi.js';
+import { navigateTo } from '../../../app/router/navigateTo.js';
 
 const DEFAULT_AVATAR = '/public/globalImages/DefaultAvatar.svg';
 
@@ -50,5 +51,21 @@ export async function renderCommunitiesList(userId, limit = 4) {
   const wrapper = document.createElement('div');
   wrapper.innerHTML = html.trim();
 
-  return wrapper.firstElementChild;
+  const root = wrapper.firstElementChild;
+
+  const items = root.querySelectorAll('.communities-list__item');
+
+  items.forEach((item) => {
+    const id = item.dataset.id;
+    if (!id) return;
+
+    item.style.cursor = 'pointer';
+
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      navigateTo(`/communities/${id}`);
+    });
+  });
+
+  return root;
 }

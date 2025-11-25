@@ -34,7 +34,7 @@ export async function renderFeed(posts, isOwner = true, options = {}) {
   await renderPostsInto(postsContainer, posts);
 
   if (!isOwner && newPostButton) {
-    newPostButton.style.display = "none";
+    newPostButton.remove();
   } else if (isOwner && newPostButton) {
     let modal;
 

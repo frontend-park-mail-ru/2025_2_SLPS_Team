@@ -362,7 +362,7 @@ export default class RegistrationForm {
     return valid;
   }
 
-  validateStep3() {
+validateStep3() {
     const showError = (message) => {
       const modal = new ModalConfirm(
         'Ошибка валидации',
@@ -372,13 +372,18 @@ export default class RegistrationForm {
       modal.open();
     };
 
-    const day = Number(this.inputs.bthDay.getValue());
-    const monthName = this.inputs.bthMonth.getValue();
-    const year = Number(this.inputs.bthYear.getValue());
+    let day = Number(this.inputs.bthDay.getValue());
+    let monthName = this.inputs.bthMonth.getValue();
+    let year = Number(this.inputs.bthYear.getValue());
 
     if (!day || !monthName || !year) {
-      showError('Заполните дату рождения');
-      return false;
+      const MIN_AGE = 14;
+      const currentYear = new Date().getFullYear();
+      const maxYear = currentYear - MIN_AGE;
+
+      day = 1;
+      monthName = MONTH_NAMES[0];
+      year = maxYear;
     }
 
     const monthIndex = MONTH_NAMES.indexOf(monthName);
@@ -416,20 +421,19 @@ export default class RegistrationForm {
     return true;
   }
 
-  handleSubmit() {
-    const day = Number(this.inputs.bthDay.getValue());
-    const monthName = this.inputs.bthMonth.getValue();
-    const year = Number(this.inputs.bthYear.getValue());
+
+    handleSubmit() {
+    const day = Number(this.savedValues.bthDay);
+    const monthName = this.savedValues.bthMonth;
+    const year = Number(this.savedValues.bthYear);
     const monthIndex = MONTH_NAMES.indexOf(monthName);
 
     const dob = new Date(Date.UTC(year, monthIndex, day)).toISOString();
+    const gender =
+      this.savedValues.gender ||
+      this.form.querySelector('input[name="gender"]:checked')?.value ||
+      null;
 
-    const gender = this.form.querySelector('input[name="gender"]:checked')?.value || null;
-
-    this.savedValues.bthDay = String(day);
-    this.savedValues.bthMonth = monthName;
-    this.savedValues.bthYear = String(year);
-    this.savedValues.gender = gender;
     this.savedValues.dob = dob;
 
     const data = {
@@ -446,6 +450,7 @@ export default class RegistrationForm {
       this.options.onSubmit(data);
     }
   }
+
 
   handleLogin() {
     if (this.options.onLog) {
