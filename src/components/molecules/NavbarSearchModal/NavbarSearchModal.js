@@ -284,7 +284,7 @@ export class NavbarSearchModal {
 
       row.addEventListener('click', () => {
         this.close();
-        const id = community.id || community.communityID;
+        const id = community.id ||   community.communityID;
         if (id) {
           navigateTo(`/community/${id}`);
         }
@@ -335,7 +335,7 @@ export class NavbarSearchModal {
 
       const preparedOtherCommunities = (otherCommunities || []).map((c) => ({
         ...c,
-        subscriptionType: 'notSubscriber',
+        subscriptionType: 'recommended',
       }));
 
       const communitiesMerged = [
@@ -384,7 +384,7 @@ export class NavbarSearchModal {
       // Сообщества: сначала подписки, потом остальные
       const [subscriberCommunities, otherCommunities] = await Promise.all([
         searchCommunities(query, 'subscriber', 1, 3),
-        searchCommunities(query, 'notSubscriber', 1, 3),
+        searchCommunities(query, 'recommended', 1, 3),
       ]);
 
       const mergedCommunities = [
@@ -394,7 +394,7 @@ export class NavbarSearchModal {
         })),
         ...(otherCommunities || []).map((c) => ({
           ...c,
-          subscriptionType: 'notSubscriber',
+          subscriptionType: 'recommended',
         })),
       ];
 

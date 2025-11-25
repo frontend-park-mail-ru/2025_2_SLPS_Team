@@ -12,7 +12,7 @@ import { updateCommunity } from '../../../shared/api/communityApi.js';
 const notifier = new NotificationManager();
 
 export class EditCommunityModal {
-  constructor({ communityId, onSubmit, onCancel, FormData } = {}) {
+  constructor({ communityId, onSubmit, onCancel, FormData, onSuccess } = {}) {
     this.communityId = communityId;
     this.onSubmit = onSubmit;
     this.onCancel = onCancel;
@@ -234,7 +234,6 @@ export class EditCommunityModal {
       this.onSubmit({ name, about });
     }
 
-    // формируем FormData под swagger: name, description, avatar, cover...
     const formData = new FormData();
     formData.append('name', name);
     formData.append('description', about);
@@ -242,7 +241,6 @@ export class EditCommunityModal {
     if (this.avatarInput && this.avatarInput.files[0]) {
       formData.append('avatar', this.avatarInput.files[0]);
     } else if (this.avatarDeleted) {
-      // флаг для удаления аватара, если бэк так поддерживает
       formData.append('avatarDelete', 'true');
     }
 
@@ -257,8 +255,8 @@ export class EditCommunityModal {
         'success',
       );
 
-      navigateTo(window.location.pathname);
-      layout.rerenderLayout?.();
+    //  navigateTo(window.location.pathname);
+    //  layout.rerenderLayout?.();
 
       this.close();
     } catch (error) {
