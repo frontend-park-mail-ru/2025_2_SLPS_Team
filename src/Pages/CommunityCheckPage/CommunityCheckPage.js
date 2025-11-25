@@ -306,6 +306,48 @@ export class CommunityCheckPage extends BasePage {
       }
     });
   }
+    applyUpdatedCommunity(updatedCommunity) {
+    if (!updatedCommunity) return;
+
+    this.community = {
+      ...this.community,
+      ...updatedCommunity,
+    };
+
+    const subscribersData = formatSubscribers(
+      this.community.subscribersCount || 0,
+    );
+    const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
+
+    const avatarPath =
+      !this.community.avatarPath || this.community.avatarPath === 'null'
+        ? '/public/globalImages/DefaultAvatar.svg'
+        : `${baseUrl}${this.community.avatarPath}`;
+
+    const coverPath =
+      !this.community.coverPath || this.community.coverPath === 'null'
+        ? '/public/globalImages/backgroud.png'
+        : `${baseUrl}${this.community.coverPath}`;
+
+    const headerRoot = this.wrapper.querySelector('#profile-card');
+    if (headerRoot) {
+      headerRoot.innerHTML = '';
+      renderHeaderCard(headerRoot, {
+        coverPath,
+        avatarPath,
+        title: this.community.name,
+        subtitle: subscribersData.full,
+        showMoreButton: false,
+        isCommunity: true,
+        isOwner: this.isOwner,
+      });
+    }
+
+    const aboutText = this.root.querySelector('[data-role="about-text"]');
+    if (aboutText) {
+      aboutText.textContent = this.community.description || '';
+    }
+  }
 
   initOwnerMenu() {
     const buttonContainer = this.root.querySelector('.owner-menu-button');
@@ -315,7 +357,7 @@ export class CommunityCheckPage extends BasePage {
 
     const dropdown = new DropDown(dropdownContainer, {
       values: [
-        {
+         {
           label: 'Редактировать сообщество',
           onClick: () => {
             const communityModal = new EditCommunityModal({
@@ -327,6 +369,9 @@ export class CommunityCheckPage extends BasePage {
                 name: this.community.name,
                 description: this.community.description,
                 avatarPath: this.community.avatarPath || null,
+              },
+              onSuccess: (updatedCommunity) => {
+                this.applyUpdatedCommunity(updatedCommunity);
               },
             });
             communityModal.open();

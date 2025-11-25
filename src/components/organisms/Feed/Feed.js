@@ -32,9 +32,10 @@ export async function renderFeed(posts, isOwner = true, options = {}) {
   const newPostButton = feedEl.querySelector(".feed-post-button");
 
   await renderPostsInto(postsContainer, posts);
+  const feedHeader = feedEl.querySelector(".feed-header");
 
   if (!isOwner && newPostButton) {
-    newPostButton.remove();
+      feedHeader.remove();
   } else if (isOwner && newPostButton) {
     let modal;
 

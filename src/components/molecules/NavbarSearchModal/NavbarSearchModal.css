@@ -44,6 +44,12 @@
     justify-content: space-between;
     gap: 12px;
     padding: 6px 0;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.navbar-search-item:hover {
+    background: rgba(0, 0, 0, 0.03);
 }
 
 .navbar-search-item__left {

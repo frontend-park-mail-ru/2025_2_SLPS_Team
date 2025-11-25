@@ -222,3 +222,20 @@ export async function getUserCommunities(userId, page = 1, limit = 20) {
 
   return Array.isArray(data) ? data : [];
 }
+export async function searchCommunities(name, type, page = 1, limit = 20) {
+  if (!name) {
+    throw new Error('searchCommunities: name is required');
+  }
+
+  const params = new URLSearchParams();
+  params.set('name', name);
+  if (type) params.set('type', type);
+  if (page != null) params.set('page', String(page));
+  if (limit != null) params.set('limit', String(limit));
+
+  const data = await api(`/api/communities/search?${params.toString()}`, {
+    method: 'GET',
+  });
+
+  return Array.isArray(data) ? data : [];
+}

@@ -13,9 +13,10 @@ const notifier = new NotificationManager();
 
 export class EditCommunityModal {
   constructor({ communityId, onSubmit, onCancel, FormData } = {}) {
-    this.communityId = communityId;        // <-- сохраняем id
+    this.communityId = communityId;
     this.onSubmit = onSubmit;
     this.onCancel = onCancel;
+    this.onSuccess = onSuccess;
     this.root = null;
     this.aboutInput = null;
     this.boundEscHandler = this.handleEsc.bind(this);
@@ -247,7 +248,9 @@ export class EditCommunityModal {
 
     try {
       await updateCommunity(this.communityId, formData);
-
+      if (this.onSuccess) {
+        this.onSuccess(updatedCommunity || null);
+      }
       notifier.show(
         'Изменения сохранены',
         'Изменения в сообществе успешно сохранены',

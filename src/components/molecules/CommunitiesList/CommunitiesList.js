@@ -63,7 +63,7 @@ export async function renderCommunitiesList(userId, limit = 4) {
 
     item.addEventListener('click', (e) => {
       e.preventDefault();
-      navigateTo(`/communities/${id}`);
+      navigateTo(`/community/${id}`);
     });
   });
 
