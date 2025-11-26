@@ -306,13 +306,14 @@ export class CommunityCheckPage extends BasePage {
       }
     });
   }
-    applyUpdatedCommunity(updatedCommunity) {
+  applyUpdatedCommunity(updatedCommunity) {
     if (!updatedCommunity) return;
 
     this.community = {
       ...this.community,
       ...updatedCommunity,
     };
+    console.log(updatedCommunity);
 
     const subscribersData = formatSubscribers(
       this.community.subscribersCount || 0,
@@ -347,6 +348,8 @@ export class CommunityCheckPage extends BasePage {
     if (aboutText) {
       aboutText.textContent = this.community.description || '';
     }
+
+    this.initHeaderActions();
   }
 
   initOwnerMenu() {

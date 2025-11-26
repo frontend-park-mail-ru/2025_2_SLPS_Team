@@ -8,6 +8,8 @@ import { NotificationManager } from '../NotificationsBlock/NotificationsManager.
 import { navigateTo } from '../../../app/router/navigateTo.js';
 import { layout } from '../../../Pages/LayoutManager.js';
 import { updateCommunity } from '../../../shared/api/communityApi.js';
+import { getCommunity } from '../../../shared/api/communityApi.js';
+
 
 const notifier = new NotificationManager();
 
@@ -89,7 +91,8 @@ export class EditCommunityModal {
     this.buttons.CancelBtn = new BaseButton(buttonCountainer, {
       text: 'Отменить',
       style: 'default',
-      onClick: () => {
+      onClick: (event) => {
+        event.preventDefault()
         this.handleCancel();
       },
     });
@@ -99,7 +102,8 @@ export class EditCommunityModal {
     this.buttons.SaveBtn = new BaseButton(buttonCountainer, {
       text: 'Сохранить',
       style: 'primary',
-      onClick: () => {
+      onClick: (event) => {
+        event.preventDefault()
         this.handleSubmit();
       },
     });
@@ -246,8 +250,11 @@ export class EditCommunityModal {
 
     try {
       await updateCommunity(this.communityId, formData);
+
+      const fresh = await getCommunity(this.communityId);
+
       if (this.onSuccess) {
-        this.onSuccess(updatedCommunity || null);
+        this.onSuccess(fresh);
       }
       notifier.show(
         'Изменения сохранены',
