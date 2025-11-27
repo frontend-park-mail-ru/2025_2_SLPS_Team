@@ -176,13 +176,25 @@ export class CreatePostForm {
 
       await createPost(formData, authService.getCsrfToken());
 
-      notifier.show(
-        'Пост создан',
-        'Вы создали пост, можете посмотреть его в профиле',
-        'success',
-      );
+      if (this.communityId) {
+        notifier.show(
+          'Пост создан',
+          'Вы создали пост в сообществе',
+          'success',
+        );
+      } else {
+        notifier.show(
+          'Пост создан',
+          'Вы создали пост, можете посмотреть его в профиле',
+          'success',
+        );
+      }
 
       EventBus.emit('posts:created');
+
+      if (this.communityId) {
+        EventBus.emit('community:newPost', { communityId: this.communityId });
+      }
 
       if (window.location.pathname.startsWith('/profile')) {
         EventBus.emit('profile:newPost');
@@ -242,6 +254,10 @@ export class CreatePostForm {
       notifier.show('Пост изменён', 'Изменения успешно сохранены', 'success');
 
       EventBus.emit('posts:updated');
+
+      if (communityIdFromPost) {
+        EventBus.emit('community:newPost', { communityId: communityIdFromPost });
+      }
 
       this.close();
     } catch (error) {

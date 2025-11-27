@@ -13,7 +13,7 @@ import {
 } from '../../../shared/api/chatsApi.js';
 
 export class Chat {
-  constructor(rootElement, myUserId, myUserName, myUserAvatar, data, options = {}) {
+  constructor(rootElement, myUserId, myUserName, myUserAvatar, data, options={}) {
     this.rootElement = rootElement;
     this.chatInfo = data.id;
     this.myUserId = myUserId;
@@ -28,15 +28,15 @@ export class Chat {
 
     this.data = data;
 
+    this.hasBackButton = options.hasBackButton || false;
+    this.onBack = options.onBack || null;
+
     this.lastReadMessageId =
       data.lastReadMessageId || data.lastReadMessageID || null;
     this.unreadMessageIds = new Set();
     this.readUpdateInFlight = false;
 
     this.wsHandler = null;
-
-    this.hasBackButton = options.hasBackButton || false;
-    this.onBack = options.onBack || null;
   }
 
   async render() {
@@ -66,7 +66,7 @@ export class Chat {
       this.data.name,
       this.data.avatarPath,
       this.hasBackButton,
-      this.onBack,
+      this.onBack
     );
     this.chatHeader.render();
 
@@ -75,7 +75,8 @@ export class Chat {
     this.messages.forEach((messageData, index) => {
       const isMine = messageData.User.id === this.myUserId;
       const nextMessage = this.messages[index + 1];
-      const isLastInGroup = !nextMessage || nextMessage.User.id !== messageData.User.id;
+      const isLastInGroup =
+        !nextMessage || nextMessage.User.id !== messageData.User.id;
 
       const msg = new Message(
         this.messagesContainer,
@@ -94,14 +95,12 @@ export class Chat {
     );
     this.inputMes.render();
 
-    // отправка по Enter
     this.inputMes.textarea.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         this.sendEvent(e);
       }
     });
 
-    // отправка по кнопке
     this.inputMes.sendButton.addEventListener('click', (e) => {
       this.sendEvent(e);
     });
@@ -116,11 +115,7 @@ export class Chat {
 
     this.scrollToLastRead();
 
-    // При открытии чата считаем, что пользователь всё прочитал
-    this.markAllAsReadOnOpen();
-
-    // WS-обработчик новых сообщений (контракт WebSocketService не трогаем)
-    this.wsHandler = (data) => {
+      this.wsHandler = (data) => {
       console.log('[WS new_message in Chat]', data, 'current chat:', this.chatInfo);
 
       if (!data) return;
@@ -131,6 +126,13 @@ export class Chat {
         data.chatID ??
         data.chat_id ??
         data.lastMessage?.chatID;
+
+      console.log(
+        '[WS new_message] chatIdFromEvent =',
+        chatIdFromEvent,
+        'this.chatInfo =',
+        this.chatInfo,
+      );
 
       if (chatIdFromEvent !== this.chatInfo) {
         return;
@@ -182,21 +184,10 @@ export class Chat {
       this.messages.push(messageData);
 
       if (!isMine) {
-        // новые сообщения собеседника считаем непрочитанными
         this.unreadMessageIds.add(messageData.id);
         EventBus.emit('chatReadUpdated', {
           chatId: this.chatInfo,
           unreadCount: this.unreadMessageIds.size,
-          lastReadMessageId: this.lastReadMessageId,
-        });
-      } else {
-        // если сообщение моё – оно автоматически прочитано
-        this.lastReadMessageId = messageData.id;
-        this.unreadMessageIds.clear();
-        this.pushReadState();
-        EventBus.emit('chatReadUpdated', {
-          chatId: this.chatInfo,
-          unreadCount: 0,
           lastReadMessageId: this.lastReadMessageId,
         });
       }
@@ -205,7 +196,10 @@ export class Chat {
     };
 
     wsService.on('new_message', this.wsHandler);
+
+
   }
+
 
   initUnreadTracking() {
     this.unreadMessageIds.clear();
@@ -219,7 +213,6 @@ export class Chat {
       }
     });
 
-    // initial = true -> на бэк не уходим, только локально двигаем границу
     this.handleScrollRead(true);
   }
 
@@ -266,39 +259,6 @@ export class Chat {
     }
   }
 
-  // При открытии чата помечаем все сообщения как прочитанные
-  async markAllAsReadOnOpen() {
-    if (!this.messages || this.messages.length === 0) {
-      return;
-    }
-
-    const lastMsg = this.messages[this.messages.length - 1];
-    const lastId = lastMsg && lastMsg.id;
-
-    if (!lastId) {
-      return;
-    }
-
-    // если уже всё прочитано – ничего не делаем
-    if (this.lastReadMessageId && this.lastReadMessageId >= lastId) {
-      return;
-    }
-
-    this.lastReadMessageId = lastId;
-    this.unreadMessageIds.clear();
-
-    try {
-      await this.pushReadState();
-      EventBus.emit('chatReadUpdated', {
-        chatId: this.chatInfo,
-        unreadCount: 0,
-        lastReadMessageId: this.lastReadMessageId,
-      });
-    } catch (e) {
-      console.error('Не удалось пометить чат прочитанным при открытии', e);
-    }
-  }
-
   async pushReadState() {
     if (!this.lastReadMessageId) return;
     if (this.readUpdateInFlight) return;
@@ -337,10 +297,7 @@ export class Chat {
     const targetTop =
       el.offsetTop - this.messagesContainer.clientHeight * 0.3;
 
-    this.messagesContainer.scrollTo({
-      top: targetTop,
-      behavior: 'smooth',
-    });
+    this.messagesContainer.scrollTop = Math.max(targetTop, 0);
   }
 
   addScrollButton() {
@@ -371,36 +328,27 @@ export class Chat {
 
       setTimeout(() => {
         el.scrollTo({
-          top: el.scrollHeight,
+          top: maxScroll,
           behavior: 'smooth',
         });
-      }, 0);
+      }, 20);
     });
   }
 
   async sendEvent(e) {
     e.preventDefault();
-
-    // 🔧 ФИКС: безопасно берём текст
-    let rawText = '';
-
-    if (this.inputMes && typeof this.inputMes.getText === 'function') {
-      rawText = this.inputMes.getText();
-    } else if (this.inputMes && this.inputMes.textarea) {
-      rawText = this.inputMes.textarea.value;
-    }
-
-    const text = (rawText || '').trim();
+    const text = this.inputMes.getValue();
     if (!text) return;
 
+    const chatID = this.chatInfo;
+
     try {
-      // отправка на бэк
-      const response = await sendChatMessage(this.chatInfo, text);
+      const data = await sendChatMessage(chatID, text);
 
       const message = {
-        id: response.id,
-        text: response.text,
-        created_at: response.createdAt,
+        id: data.id,
+        text,
+        created_at: new Date().toISOString(),
         User: {
           id: this.myUserId,
           full_name: this.myUserName,
@@ -413,10 +361,7 @@ export class Chat {
 
       this.messages.push(message);
 
-      // чистим input
-      if (this.inputMes && this.inputMes.textarea) {
-        this.inputMes.textarea.value = '';
-      }
+      this.inputMes.clear();
 
       EventBus.emit('chatUpdated', { chatId: this.chatInfo });
 

@@ -69,6 +69,8 @@ export class CommunityCheckPage extends BasePage {
 
     this.wrapper = null;
     this.root = null;
+
+    this.posts = [];
   }
 
   async render() {
@@ -149,6 +151,7 @@ export class CommunityCheckPage extends BasePage {
       await this.renderFeedBlock();
     };
 
+    // Ровно как в ProfilePage: слушаем изменения постов и перерисовываем ленту
     EventBus.on('community:newPost', rerenderCommunityFeed);
     EventBus.on('posts:created', rerenderCommunityFeed);
     EventBus.on('posts:updated', rerenderCommunityFeed);
@@ -193,7 +196,7 @@ export class CommunityCheckPage extends BasePage {
     if (this.params && this.params.id) {
       this.communityId = Number(this.params.id);
     } else {
-      // можно добавить обработку
+      // можно добавить обработку 404 / редирект
     }
   }
 
@@ -203,11 +206,33 @@ export class CommunityCheckPage extends BasePage {
     );
     if (!feedContainer) return;
 
-    const posts = await getCommunityPosts(this.communityId, 1, 20);
+    // Получаем посты сообщества
+    let posts = await getCommunityPosts(this.communityId, 1, 20);
+
+    // Делаем структуру такой же, как в профиле (post + author + счётчики)
+    const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
+    const communityAvatar =
+      !this.community.avatarPath || this.community.avatarPath === 'null'
+        ? '/public/globalImages/DefaultAvatar.svg'
+        : `${baseUrl}${this.community.avatarPath}`;
+
+    this.posts = (Array.isArray(posts) ? posts : []).map((post) => ({
+      post,
+      author: {
+        id: this.community.id ?? this.communityId,
+        fullName: this.community.name,
+        avatarPath: communityAvatar,
+        isCommunity: true,
+      },
+      likes: post.likeCount ?? post.like_count ?? 0,
+      comments: post.commentCount ?? post.comment_count ?? 0,
+      reposts: post.repostCount ?? post.repost_count ?? 0,
+      isLiked: post.isLiked ?? false,
+    }));
 
     feedContainer.innerHTML = '';
 
-    const feedElement = await renderFeed(posts, this.isOwner, {
+    const feedElement = await renderFeed(this.posts, this.isOwner, {
       mode: 'community',
       communityId: this.communityId,
     });
@@ -306,6 +331,7 @@ export class CommunityCheckPage extends BasePage {
       }
     });
   }
+
   applyUpdatedCommunity(updatedCommunity) {
     if (!updatedCommunity) return;
 
@@ -360,7 +386,7 @@ export class CommunityCheckPage extends BasePage {
 
     const dropdown = new DropDown(dropdownContainer, {
       values: [
-         {
+        {
           label: 'Редактировать сообщество',
           onClick: () => {
             const communityModal = new EditCommunityModal({
