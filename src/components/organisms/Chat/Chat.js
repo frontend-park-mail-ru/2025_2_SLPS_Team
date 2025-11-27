@@ -13,7 +13,14 @@ import {
 } from '../../../shared/api/chatsApi.js';
 
 export class Chat {
-  constructor(rootElement, myUserId, myUserName, myUserAvatar, data, options={}) {
+  constructor(
+    rootElement,
+    myUserId,
+    myUserName,
+    myUserAvatar,
+    data,
+    options = {},
+  ) {
     this.rootElement = rootElement;
     this.chatInfo = data.id;
     this.myUserId = myUserId;
@@ -28,15 +35,15 @@ export class Chat {
 
     this.data = data;
 
-    this.hasBackButton = options.hasBackButton || false;
-    this.onBack = options.onBack || null;
-
     this.lastReadMessageId =
       data.lastReadMessageId || data.lastReadMessageID || null;
     this.unreadMessageIds = new Set();
     this.readUpdateInFlight = false;
 
     this.wsHandler = null;
+
+    this.hasBackButton = options.hasBackButton || false;
+    this.onBack = options.onBack || null;
   }
 
   async render() {
@@ -66,11 +73,12 @@ export class Chat {
       this.data.name,
       this.data.avatarPath,
       this.hasBackButton,
-      this.onBack
+      this.onBack,
     );
     this.chatHeader.render();
 
-    this.messagesContainer = mainContainer.querySelector('.chat-messeges');
+    this.messagesContainer =
+      mainContainer.querySelector('.chat-messeges');
 
     this.messages.forEach((messageData, index) => {
       const isMine = messageData.User.id === this.myUserId;
@@ -115,8 +123,16 @@ export class Chat {
 
     this.scrollToLastRead();
 
-      this.wsHandler = (data) => {
-      console.log('[WS new_message in Chat]', data, 'current chat:', this.chatInfo);
+    // ВАЖНО: при открытии чата сразу помечаем всё как прочитанное
+    this.markAllAsReadOnOpen();
+
+    this.wsHandler = (data) => {
+      console.log(
+        '[WS new_message in Chat]',
+        data,
+        'current chat:',
+        this.chatInfo,
+      );
 
       if (!data) return;
 
@@ -139,10 +155,7 @@ export class Chat {
       }
 
       const last =
-        data.lastMessage ??
-        data.last_message ??
-        data.message ??
-        null;
+        data.lastMessage ?? data.last_message ?? data.message ?? null;
 
       const author =
         data.lastMessageAuthor ??
@@ -151,7 +164,10 @@ export class Chat {
         null;
 
       if (!last || !author) {
-        console.warn('[Chat] WS new_message без lastMessage/lastMessageAuthor', data);
+        console.warn(
+          '[Chat] WS new_message без lastMessage/lastMessageAuthor',
+          data,
+        );
         return;
       }
 
@@ -184,10 +200,21 @@ export class Chat {
       this.messages.push(messageData);
 
       if (!isMine) {
+        // новые сообщения собеседника считаем непрочитанными
         this.unreadMessageIds.add(messageData.id);
         EventBus.emit('chatReadUpdated', {
           chatId: this.chatInfo,
           unreadCount: this.unreadMessageIds.size,
+          lastReadMessageId: this.lastReadMessageId,
+        });
+      } else {
+        // если сообщение моё – оно автоматически прочитано
+        this.lastReadMessageId = messageData.id;
+        this.unreadMessageIds.clear();
+        this.pushReadState();
+        EventBus.emit('chatReadUpdated', {
+          chatId: this.chatInfo,
+          unreadCount: 0,
           lastReadMessageId: this.lastReadMessageId,
         });
       }
@@ -195,11 +222,9 @@ export class Chat {
       this.scrollToBottom();
     };
 
+    // контракт WebSocketService уже настроен – не трогаем тип события
     wsService.on('new_message', this.wsHandler);
-
-
   }
-
 
   initUnreadTracking() {
     this.unreadMessageIds.clear();
@@ -213,6 +238,7 @@ export class Chat {
       }
     });
 
+    // initial = true -> на бэк не уходим, только локально двигаем границу
     this.handleScrollRead(true);
   }
 
@@ -259,6 +285,42 @@ export class Chat {
     }
   }
 
+  // Новый метод: при открытии чата помечаем все сообщения как прочитанные
+  async markAllAsReadOnOpen() {
+    if (!this.messages || this.messages.length === 0) {
+      return;
+    }
+
+    const lastMsg = this.messages[this.messages.length - 1];
+    const lastId = lastMsg && lastMsg.id;
+
+    if (!lastId) {
+      return;
+    }
+
+    // если уже всё прочитано – ничего не делаем
+    if (this.lastReadMessageId && this.lastReadMessageId >= lastId) {
+      return;
+    }
+
+    this.lastReadMessageId = lastId;
+    this.unreadMessageIds.clear();
+
+    try {
+      await this.pushReadState();
+      EventBus.emit('chatReadUpdated', {
+        chatId: this.chatInfo,
+        unreadCount: 0,
+        lastReadMessageId: this.lastReadMessageId,
+      });
+    } catch (e) {
+      console.error(
+        'Не удалось пометить чат прочитанным при открытии',
+        e,
+      );
+    }
+  }
+
   async pushReadState() {
     if (!this.lastReadMessageId) return;
     if (this.readUpdateInFlight) return;
@@ -297,7 +359,10 @@ export class Chat {
     const targetTop =
       el.offsetTop - this.messagesContainer.clientHeight * 0.3;
 
-    this.messagesContainer.scrollTop = Math.max(targetTop, 0);
+    this.messagesContainer.scrollTo({
+      top: targetTop,
+      behavior: 'smooth',
+    });
   }
 
   addScrollButton() {
@@ -328,27 +393,26 @@ export class Chat {
 
       setTimeout(() => {
         el.scrollTo({
-          top: maxScroll,
+          top: el.scrollHeight,
           behavior: 'smooth',
         });
-      }, 20);
+      }, 0);
     });
   }
 
   async sendEvent(e) {
     e.preventDefault();
-    const text = this.inputMes.getValue();
+
+    const text = this.inputMes.getText().trim();
     if (!text) return;
 
-    const chatID = this.chatInfo;
-
     try {
-      const data = await sendChatMessage(chatID, text);
+      const response = await sendChatMessage(this.chatInfo, text);
 
       const message = {
-        id: data.id,
-        text,
-        created_at: new Date().toISOString(),
+        id: response.id,
+        text: response.text,
+        created_at: response.createdAt,
         User: {
           id: this.myUserId,
           full_name: this.myUserName,

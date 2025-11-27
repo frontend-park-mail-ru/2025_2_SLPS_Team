@@ -1,31 +1,33 @@
-class EventBuss {
-    constructor() {
-        this.events = {};
-        this.lastEvents = {};
+class _EventBus {
+  constructor() {
+    if (_EventBus.__instance) {
+      return _EventBus.__instance;
     }
 
-    on(event, listener) {
-        if (!this.events[event]) {
-            this.events[event] = [];
-        }
-        this.events[event].push(listener);
+    this.events = {};
+    _EventBus.__instance = this;
+  }
 
-        if (this.lastEvents[event]) {
-            listener(this.lastEvents[event]);
-        }
-    }
+  on(event, handler) {
+    if (!this.events[event]) this.events[event] = [];
+    this.events[event].push(handler);
+  }
 
-    emit(event, data) {
-        this.lastEvents[event] = data;
-        if (this.events[event]) {
-            this.events[event].forEach(listener => listener(data));
-        }
-    }
+  off(event, handler) {
+    if (!this.events[event]) return;
+    this.events[event] = this.events[event].filter((h) => h !== handler);
+  }
 
-    off(event, listener) {
-        if (!this.events[event]) return;
-        this.events[event] = this.events[event].filter(l => l !== listener);
+  emit(event, payload) {
+    if (!this.events[event]) return;
+    for (const handler of this.events[event]) {
+      try {
+        handler(payload);
+      } catch (err) {
+        console.error('[EventBus handler error]', err);
+      }
     }
+  }
 }
 
-export const EventBus = new EventBuss();
+export const EventBus = new _EventBus();
