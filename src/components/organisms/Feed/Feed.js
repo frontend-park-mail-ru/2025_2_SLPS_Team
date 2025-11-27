@@ -50,7 +50,7 @@ export async function renderFeed(posts, isOwner, options = {}) {
 
   // Корень для блока "создать пост"
   const createRoot =
-    feedEl.querySelector("[data-role='feed-create']") ||
+    feedEl.querySelector(".feed__create-post") || 
     feedEl.querySelector(".feed__create-post") ||
     feedEl.querySelector(".feed__create") ||
     null;
