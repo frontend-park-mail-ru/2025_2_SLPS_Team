@@ -69,8 +69,6 @@ export class CommunityCheckPage extends BasePage {
 
     this.wrapper = null;
     this.root = null;
-
-    this._onPostsChanged = this._onPostsChanged.bind(this);
   }
 
   async render() {
@@ -146,10 +144,18 @@ export class CommunityCheckPage extends BasePage {
     await this.renderFeedBlock();
     await this.renderSubscribersBlock();
 
-    EventBus.on('community:newPost', this._onPostsChanged);
-    EventBus.on('posts:created', this._onPostsChanged);
-    EventBus.on('posts:updated', this._onPostsChanged);
-    EventBus.on('posts:deleted', this._onPostsChanged);
+    this._rerenderCommunityFeed = async () => {
+      if (!this.wrapper || !this.rootElement.contains(this.wrapper)) {
+        return;
+      }
+
+      await this.renderFeedBlock();
+    };
+
+    EventBus.on('community:newPost', this._rerenderCommunityFeed);
+    EventBus.on('posts:created', this._rerenderCommunityFeed);
+    EventBus.on('posts:updated', this._rerenderCommunityFeed);
+    EventBus.on('posts:deleted', this._rerenderCommunityFeed);
   }
 
   initAboutBlock() {
@@ -194,37 +200,17 @@ export class CommunityCheckPage extends BasePage {
     }
   }
 
-  async renderFeedBlock() {
-    if (!this.root) return;
-
-    const feedContainer = this.root.querySelector(
+    async renderFeedBlock() {
+    const feedContainer = this.wrapper.querySelector(
       '[data-role="community-feed"]',
     );
     if (!feedContainer) return;
 
-    let posts = await getCommunityPosts(this.communityId, 1, 20);
-    if (!posts) posts = [];
-
-    this.posts = posts.map((post) => ({
-      post,
-      author: {
-        id:
-          this.community.id ??
-          this.community.communityId ??
-          this.communityId,
-        fullName: this.community.name,
-        avatarPath: this.community.avatarPath,
-        isCommunity: true,
-      },
-      likes: post.likeCount ?? post.like_count ?? 0,
-      comments: post.commentCount ?? post.comment_count ?? 0,
-      reposts: post.repostCount ?? post.repost_count ?? 0,
-      isLiked: post.isLiked ?? false,
-    }));
+    const posts = await getCommunityPosts(this.communityId, 1, 20);
 
     feedContainer.innerHTML = '';
 
-    const feedElement = await renderFeed(this.posts, this.isOwner, {
+    const feedElement = await renderFeed(posts, this.isOwner, {
       mode: 'community',
       communityId: this.communityId,
     });
@@ -232,18 +218,6 @@ export class CommunityCheckPage extends BasePage {
     feedContainer.appendChild(feedElement);
   }
 
-  async _onPostsChanged(payload = {}) {
-    if (!this.wrapper || !this.root) return;
-
-    if (
-      payload.communityId &&
-      Number(payload.communityId) !== Number(this.communityId)
-    ) {
-      return;
-    }
-
-    await this.renderFeedBlock();
-  }
 
   async renderSubscribersBlock() {
     const list = this.root.querySelector('[data-role="subscribers-list"]');
@@ -336,7 +310,6 @@ export class CommunityCheckPage extends BasePage {
       }
     });
   }
-
   applyUpdatedCommunity(updatedCommunity) {
     if (!updatedCommunity) return;
 
@@ -391,7 +364,7 @@ export class CommunityCheckPage extends BasePage {
 
     const dropdown = new DropDown(dropdownContainer, {
       values: [
-        {
+         {
           label: 'Редактировать сообщество',
           onClick: () => {
             const communityModal = new EditCommunityModal({
@@ -449,19 +422,5 @@ export class CommunityCheckPage extends BasePage {
 
       if (!actions.contains(e.target)) dropdown.hide();
     });
-  }
-
-  destroy() {
-    EventBus.off('community:newPost', this._onPostsChanged);
-    EventBus.off('posts:created', this._onPostsChanged);
-    EventBus.off('posts:updated', this._onPostsChanged);
-    EventBus.off('posts:deleted', this._onPostsChanged);
-
-    this.wrapper = null;
-    this.root = null;
-
-    if (super.destroy) {
-      super.destroy();
-    }
   }
 }
