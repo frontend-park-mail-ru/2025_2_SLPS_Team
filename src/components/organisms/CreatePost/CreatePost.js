@@ -45,8 +45,8 @@ export class CreatePostForm {
     const textInput = this.wrapper.querySelector('.post-text__input');
 
     if (this.mode === 'edit') {
-      this.wrapper.querySelector('.new-post__header').textContent =
-        'Редактирование поста';
+      const header = this.wrapper.querySelector('.new-post__header');
+      if (header) header.textContent = 'Редактирование поста';
     }
 
     const inputContainer = this.wrapper.querySelector('.input-image__block');
@@ -58,7 +58,9 @@ export class CreatePostForm {
         this.postData.post?.text ??
         this.postData.text ??
         '';
-      textInput.value = text;
+      if (textInput) {
+        textInput.value = text;
+      }
 
       const photos =
         this.postData.post?.photos ??
@@ -192,12 +194,14 @@ export class CreatePostForm {
 
       EventBus.emit('posts:created');
 
-      if (this.communityId) {
-        EventBus.emit('community:newPost', { communityId: this.communityId });
+      if (!this.communityId && window.location.pathname.startsWith('/profile')) {
+        EventBus.emit('profile:newPost');
       }
 
-      if (window.location.pathname.startsWith('/profile')) {
-        EventBus.emit('profile:newPost');
+      if (this.communityId) {
+        EventBus.emit('community:newPost', {
+          communityId: this.communityId,
+        });
       }
 
       this.close();
@@ -255,8 +259,14 @@ export class CreatePostForm {
 
       EventBus.emit('posts:updated');
 
+      if (!communityIdFromPost && window.location.pathname.startsWith('/profile')) {
+        EventBus.emit('profile:newPost');
+      }
+
       if (communityIdFromPost) {
-        EventBus.emit('community:newPost', { communityId: communityIdFromPost });
+        EventBus.emit('community:newPost', {
+          communityId: communityIdFromPost,
+        });
       }
 
       this.close();
