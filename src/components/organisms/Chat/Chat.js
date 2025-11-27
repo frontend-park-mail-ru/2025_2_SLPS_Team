@@ -13,14 +13,7 @@ import {
 } from '../../../shared/api/chatsApi.js';
 
 export class Chat {
-  constructor(
-    rootElement,
-    myUserId,
-    myUserName,
-    myUserAvatar,
-    data,
-    options = {},
-  ) {
+  constructor(rootElement, myUserId, myUserName, myUserAvatar, data, options = {}) {
     this.rootElement = rootElement;
     this.chatInfo = data.id;
     this.myUserId = myUserId;
@@ -77,14 +70,12 @@ export class Chat {
     );
     this.chatHeader.render();
 
-    this.messagesContainer =
-      mainContainer.querySelector('.chat-messeges');
+    this.messagesContainer = mainContainer.querySelector('.chat-messeges');
 
     this.messages.forEach((messageData, index) => {
       const isMine = messageData.User.id === this.myUserId;
       const nextMessage = this.messages[index + 1];
-      const isLastInGroup =
-        !nextMessage || nextMessage.User.id !== messageData.User.id;
+      const isLastInGroup = !nextMessage || nextMessage.User.id !== messageData.User.id;
 
       const msg = new Message(
         this.messagesContainer,
@@ -103,12 +94,14 @@ export class Chat {
     );
     this.inputMes.render();
 
+    // отправка по Enter
     this.inputMes.textarea.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         this.sendEvent(e);
       }
     });
 
+    // отправка по кнопке
     this.inputMes.sendButton.addEventListener('click', (e) => {
       this.sendEvent(e);
     });
@@ -123,16 +116,12 @@ export class Chat {
 
     this.scrollToLastRead();
 
-    // ВАЖНО: при открытии чата сразу помечаем всё как прочитанное
+    // При открытии чата считаем, что пользователь всё прочитал
     this.markAllAsReadOnOpen();
 
+    // WS-обработчик новых сообщений (контракт WebSocketService не трогаем)
     this.wsHandler = (data) => {
-      console.log(
-        '[WS new_message in Chat]',
-        data,
-        'current chat:',
-        this.chatInfo,
-      );
+      console.log('[WS new_message in Chat]', data, 'current chat:', this.chatInfo);
 
       if (!data) return;
 
@@ -143,19 +132,15 @@ export class Chat {
         data.chat_id ??
         data.lastMessage?.chatID;
 
-      console.log(
-        '[WS new_message] chatIdFromEvent =',
-        chatIdFromEvent,
-        'this.chatInfo =',
-        this.chatInfo,
-      );
-
       if (chatIdFromEvent !== this.chatInfo) {
         return;
       }
 
       const last =
-        data.lastMessage ?? data.last_message ?? data.message ?? null;
+        data.lastMessage ??
+        data.last_message ??
+        data.message ??
+        null;
 
       const author =
         data.lastMessageAuthor ??
@@ -164,10 +149,7 @@ export class Chat {
         null;
 
       if (!last || !author) {
-        console.warn(
-          '[Chat] WS new_message без lastMessage/lastMessageAuthor',
-          data,
-        );
+        console.warn('[Chat] WS new_message без lastMessage/lastMessageAuthor', data);
         return;
       }
 
@@ -222,7 +204,6 @@ export class Chat {
       this.scrollToBottom();
     };
 
-    // контракт WebSocketService уже настроен – не трогаем тип события
     wsService.on('new_message', this.wsHandler);
   }
 
@@ -285,7 +266,7 @@ export class Chat {
     }
   }
 
-  // Новый метод: при открытии чата помечаем все сообщения как прочитанные
+  // При открытии чата помечаем все сообщения как прочитанные
   async markAllAsReadOnOpen() {
     if (!this.messages || this.messages.length === 0) {
       return;
@@ -314,10 +295,7 @@ export class Chat {
         lastReadMessageId: this.lastReadMessageId,
       });
     } catch (e) {
-      console.error(
-        'Не удалось пометить чат прочитанным при открытии',
-        e,
-      );
+      console.error('Не удалось пометить чат прочитанным при открытии', e);
     }
   }
 
@@ -403,10 +381,20 @@ export class Chat {
   async sendEvent(e) {
     e.preventDefault();
 
-    const text = this.inputMes.getText().trim();
+    // 🔧 ФИКС: безопасно берём текст
+    let rawText = '';
+
+    if (this.inputMes && typeof this.inputMes.getText === 'function') {
+      rawText = this.inputMes.getText();
+    } else if (this.inputMes && this.inputMes.textarea) {
+      rawText = this.inputMes.textarea.value;
+    }
+
+    const text = (rawText || '').trim();
     if (!text) return;
 
     try {
+      // отправка на бэк
       const response = await sendChatMessage(this.chatInfo, text);
 
       const message = {
@@ -425,7 +413,10 @@ export class Chat {
 
       this.messages.push(message);
 
-      this.inputMes.clear();
+      // чистим input
+      if (this.inputMes && this.inputMes.textarea) {
+        this.inputMes.textarea.value = '';
+      }
 
       EventBus.emit('chatUpdated', { chatId: this.chatInfo });
 
