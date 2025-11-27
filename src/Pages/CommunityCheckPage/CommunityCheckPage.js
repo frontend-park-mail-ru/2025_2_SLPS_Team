@@ -26,12 +26,29 @@ import { renderHeaderCard } from '../../components/molecules/HeaderCard/HeaderCa
 
 const notifier = new NotificationManager();
 
-/**
- * Форматирует дату для отображения "Дата создания"
- * @param {string|Date} dateStr
- */
-function formatDate(dateStr) {
-  const d = new Date(dateStr);
+function formatSubscribers(count) {
+  if (count == null) return '';
+  if (count >= 1000) {
+    const short = (count / 1000).toFixed(1).replace('.0', '');
+    return {
+      full: `${short}k подписчиков`,
+      short: `${short}k`,
+    };
+  }
+  return {
+    full: `${count} подписчиков`,
+    short: `${count}`,
+  };
+}
+
+function formatDate(iso) {
+  if (!iso) return '';
+
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) {
+    return '';
+  }
+
   return new Intl.DateTimeFormat('ru-RU', {
     day: 'numeric',
     month: 'long',
@@ -73,17 +90,18 @@ export class CommunityCheckPage extends BasePage {
 
     const coverPath =
       !this.community.coverPath || this.community.coverPath === 'null'
-        ? '/public/globalImages/DefaultHeader.svg'
+        ? '/public/globalImages/backgroud.png'
         : `${baseUrl}${this.community.coverPath}`;
 
+    const currentUserId = Number(authService.getUserId());
+
     this.isOwner =
-      this.community.ownerID === authService.getUserId() ||
-      this.community.ownerId === authService.getUserId();
+      Number(this.community.creatorID) === currentUserId ||
+      Number(this.community.ownerId) === currentUserId;
 
     this.isSubscribed = !!this.community.isSubscribed;
 
     const createdAtFormatted = formatDate(this.community.createdAt);
-
     const templateData = {
       community: {
         ...this.community,
@@ -128,31 +146,52 @@ export class CommunityCheckPage extends BasePage {
     await this.renderFeedBlock();
     await this.renderSubscribersBlock();
 
-    const rerenderCommunityFeed = async () => {
-      if (!this.wrapper) return;
+    /**
+     * Универсальный обработчик событий CRUD по постам:
+     * - после создания / редактирования / удаления поста в сообществе –
+     *   просто перерисовываем ленту этого сообщества.
+     * - структура не ломается: мы вызываем тот же renderFeedBlock,
+     *   что и при первой отрисовке.
+     */
+    const rerenderCommunityFeed = async (payload) => {
+      // Если в payload явно указано, что событие относится к комьюнити,
+      // и это не наше комьюнити — просто игнорируем.
+      if (
+        payload &&
+        payload.mode === 'community' &&
+        payload.communityId &&
+        Number(payload.communityId) !== Number(this.communityId)
+      ) {
+        return;
+      }
+
+      if (!this.wrapper || !this.root) return;
       await this.renderFeedBlock();
     };
 
-    // Просто перерисовываем ленту при любых CRUD-событиях по постам
+    // Ровно как в ProfilePage: слушаем изменения постов и перерисовываем ленту
+    // (events должны эмититься из CreatePostForm/Post.js)
+    EventBus.on('community:newPost', rerenderCommunityFeed);
     EventBus.on('posts:created', rerenderCommunityFeed);
     EventBus.on('posts:updated', rerenderCommunityFeed);
     EventBus.on('posts:deleted', rerenderCommunityFeed);
-    
   }
 
   initAboutBlock() {
     const textEl = this.root.querySelector('[data-role="about-text"]');
+    const wrapperEl = this.root.querySelector('[data-role="about-wrapper"]');
     const moreBtn = this.root.querySelector('[data-role="about-more"]');
-    const wrapperEl = this.root.querySelector(
-      '[data-role="about-text-wrapper"]',
-    );
 
-    if (!textEl || !moreBtn || !wrapperEl) {
+    if (!textEl || !wrapperEl || !moreBtn) {
       return;
     }
 
-    const maxHeight = 150;
+    const computed = getComputedStyle(textEl);
+    const lineHeight = parseFloat(computed.lineHeight) || 18;
+    const maxHeight = lineHeight * 3;
+
     wrapperEl.style.maxHeight = `${maxHeight}px`;
+    wrapperEl.style.overflow = 'hidden';
 
     const isOverflowing = textEl.scrollHeight > maxHeight + 1;
     moreBtn.style.display = isOverflowing ? 'inline' : 'none';
@@ -243,201 +282,186 @@ export class CommunityCheckPage extends BasePage {
           ? '/public/globalImages/DefaultAvatar.svg'
           : `${baseUrl}${user.avatarPath}`;
 
-      const el = renderCommunitySubscriberRow({
-        id: user.userID || user.id,
+      const subscriberId = user.userID ?? user.userId ?? user.id;
+      const fullName =
+        user.fullName ||
+        [user.firstName, user.lastName].filter(Boolean).join(' ') ||
+        'Без имени';
+
+      const row = renderCommunitySubscriberRow({
+        id: subscriberId,
+        fullName,
         avatarPath,
-        fullName: user.fullName,
+        onClick: (id) => {
+          if (!id) {
+            console.warn('[CommunityCheckPage] empty subscriber id', user);
+            return;
+          }
+          navigateTo(`/profile/${id}`);
+        },
       });
 
-      list.appendChild(el);
+      list.appendChild(row);
     });
   }
 
   initHeaderActions() {
-    const joinBtn = this.root.querySelector(
-      '[data-role="community-join-button"]',
+    if (this.isOwner) {
+      this.initOwnerMenu();
+    } else {
+      this.initSubscribeButton();
+    }
+  }
+
+  initSubscribeButton() {
+    const btn = this.root.querySelector('[data-role="subscribe-toggle"]');
+    if (!btn) return;
+
+    const updateView = () => {
+      if (this.isSubscribed) {
+        btn.classList.add('community-subscribe-btn--active');
+        btn.innerHTML = `
+          <img class="community-subscribe-btn-icon" src="/public/globalImages/SmallCheckIcon.svg">
+          Вы подписаны
+        `;
+      } else {
+        btn.classList.remove('community-subscribe-btn--active');
+        btn.textContent = 'Подписаться';
+      }
+    };
+
+    updateView();
+
+    btn.addEventListener('click', async () => {
+      try {
+        const res = await toggleCommunitySubscription(
+          this.communityId,
+          this.isSubscribed,
+        );
+        this.isSubscribed = !!res.isSubscribed;
+        updateView();
+      } catch (err) {
+        console.error(err);
+        notifier.show(
+          'Ошибка',
+          'Не удалось изменить подписку, попробуйте позже',
+          'error',
+        );
+      }
+    });
+  }
+
+  applyUpdatedCommunity(updatedCommunity) {
+    if (!updatedCommunity) return;
+
+    this.community = {
+      ...this.community,
+      ...updatedCommunity,
+    };
+    console.log(updatedCommunity);
+
+    const subscribersData = formatSubscribers(
+      this.community.subscribersCount || 0,
     );
-    const settingsBtn = this.root.querySelector(
-      '[data-role="community-settings-button"]',
-    );
-    const deleteBtn = this.root.querySelector(
-      '[data-role="community-delete-button"]',
-    );
+    const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
 
-    if (joinBtn) {
-      joinBtn.addEventListener('click', async () => {
-        try {
-          const result = await toggleCommunitySubscription(this.communityId);
+    const avatarPath =
+      !this.community.avatarPath || this.community.avatarPath === 'null'
+        ? '/public/globalImages/DefaultAvatar.svg'
+        : `${baseUrl}${this.community.avatarPath}`;
 
-          this.isSubscribed = !!result.isSubscribed;
+    const coverPath =
+      !this.community.coverPath || this.community.coverPath === 'null'
+        ? '/public/globalImages/backgroud.png'
+        : `${baseUrl}${this.community.coverPath}`;
 
-          joinBtn.textContent = this.isSubscribed
-            ? 'Вы подписаны'
-            : 'Подписаться';
-
-          notifier.show(
-            this.isSubscribed ? 'Вы подписались' : 'Вы отписались',
-            this.isSubscribed
-              ? 'Вы подписались на сообщество'
-              : 'Вы отписались от сообщества',
-            'success',
-          );
-        } catch (e) {
-          notifier.show(
-            'Ошибка',
-            'Не удалось изменить подписку на сообщество',
-            'error',
-          );
-        }
+    const headerRoot = this.wrapper.querySelector('#profile-card');
+    if (headerRoot) {
+      headerRoot.innerHTML = '';
+      renderHeaderCard(headerRoot, {
+        coverPath,
+        avatarPath,
+        title: this.community.name,
+        subtitle: subscribersData.full,
+        showMoreButton: false,
+        isCommunity: true,
+        isOwner: this.isOwner,
       });
     }
 
-    if (settingsBtn) {
-      const dropdown = new DropDown(settingsBtn);
+    const aboutText = this.root.querySelector('[data-role="about-text"]');
+    if (aboutText) {
+      aboutText.textContent = this.community.description || '';
+    }
 
-      const editItem = {
-        text: 'Редактировать',
-        style: 'normal',
-        onClick: () => {
-          dropdown.hide();
+    this.initHeaderActions();
+  }
 
-          const modal = new EditCommunityModal(
-            document.body,
-            this.communityId,
-            this.community,
-            (updatedCommunity) => {
-              this.community = updatedCommunity;
+  initOwnerMenu() {
+    const buttonContainer = this.root.querySelector('.owner-menu-button');
+    const dropdownContainer = this.root.querySelector('.owner-menu-dropdown');
 
-              if (this.root) {
-                const headerTitle = this.root.querySelector(
-                  '[data-role="community-title"]',
-                );
-                const headerSubtitle = this.root.querySelector(
-                  '[data-role="community-subtitle"]',
-                );
-                const avatarImg = this.root.querySelector(
-                  '[data-role="community-avatar"]',
-                );
-                const coverImg = this.root.querySelector(
-                  '[data-role="community-cover"]',
-                );
+    if (!buttonContainer || !dropdownContainer) return;
 
-                if (headerTitle) {
-                  headerTitle.textContent = updatedCommunity.name;
-                }
-
-                if (headerSubtitle) {
-                  const subData = formatSubscribers(
-                    updatedCommunity.subscribersCount || 0,
-                  );
-                  headerSubtitle.textContent = subData.full;
-                }
-
-                const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
-                const avatarPath =
-                  !updatedCommunity.avatarPath ||
-                  updatedCommunity.avatarPath === 'null'
-                    ? '/public/globalImages/DefaultAvatar.svg'
-                    : `${baseUrl}${updatedCommunity.avatarPath}`;
-
-                const coverPath =
-                  !updatedCommunity.coverPath ||
-                  updatedCommunity.coverPath === 'null'
-                    ? '/public/globalImages/DefaultHeader.svg'
-                    : `${baseUrl}${updatedCommunity.coverPath}`;
-
-                if (avatarImg) {
-                  avatarImg.src = avatarPath;
-                }
-
-                if (coverImg) {
-                  coverImg.src = coverPath;
-                }
-              }
-            },
-          );
-
-          modal.open();
+    const dropdown = new DropDown(dropdownContainer, {
+      values: [
+        {
+          label: 'Редактировать сообщество',
+          onClick: () => {
+            const communityModal = new EditCommunityModal({
+              communityId: this.communityId,
+              onSubmit: () => {},
+              onCancel: () => {},
+              FormData: {
+                ...this.community,
+                name: this.community.name,
+                description: this.community.description,
+                avatarPath: this.community.avatarPath || null,
+              },
+              onSuccess: (updatedCommunity) => {
+                this.applyUpdatedCommunity(updatedCommunity);
+              },
+            });
+            communityModal.open();
+          },
+          icon: '/public/globalImages/EditIcon.svg',
         },
-      };
-
-      const deleteItem = {
-        text: 'Удалить сообщество',
-        style: 'danger',
-        onClick: () => {
-          dropdown.hide();
-
-          const confirmModal = new ModalConfirm(document.body, {
-            title: 'Удалить сообщество?',
-            message:
-              'Вы уверены, что хотите удалить сообщество? Это действие необратимо.',
-            confirmText: 'Удалить',
-            cancelText: 'Отмена',
-            onConfirm: async () => {
-              try {
-                await deleteCommunity(this.communityId);
-
-                notifier.show(
-                  'Сообщество удалено',
-                  'Сообщество успешно удалено',
-                  'success',
+        {
+          label: 'Удалить сообщество',
+          icon: '/public/globalImages/DeleteImg.svg',
+          onClick: () => {
+            const modal = new ModalConfirm(
+              'Удалить сообщество?',
+              `Вы уверены, что хотите удалить «${this.community.name}»?`,
+              async () => {
+                await deleteCommunity(
+                  this.communityId,
+                  authService.getCsrfToken(),
                 );
-
                 navigateTo('/community');
-              } catch (e) {
-                notifier.show(
-                  'Ошибка',
-                  'Не удалось удалить сообщество',
-                  'error',
-                );
-              }
-            },
-          });
-
-          confirmModal.open();
+              },
+            );
+            modal.open();
+          },
         },
-      };
+      ],
+    });
 
-      dropdown.setItems([editItem, deleteItem]);
+    dropdown.render();
+    dropdown.hide();
 
-      const btn = new BaseButton(settingsBtn, {
-        text: 'Настроить',
-        style: 'normal',
-        onClick: () => dropdown.toggle(),
-      });
+    const btn = new BaseButton(buttonContainer, {
+      text: 'Настроить',
+      style: 'normal',
+      onClick: () => dropdown.toggle(),
+    });
 
-      btn.render();
+    btn.render();
 
-      document.addEventListener('click', (e) => {
-        const actions = this.root.querySelector('.community-owner-actions');
+    document.addEventListener('click', (e) => {
+      const actions = this.root.querySelector('.community-owner-actions');
 
-        if (!actions.contains(e.target)) dropdown.hide();
-      });
-    }
+      if (!actions.contains(e.target)) dropdown.hide();
+    });
   }
-}
-
-function formatSubscribers(count) {
-  if (count == null) return { full: '0 подписчиков', short: '0' };
-
-  if (count >= 1000000) {
-    const m = (count / 1000000).toFixed(1).replace('.0', '');
-    return {
-      full: `${m} млн подписчиков`,
-      short: `${m}М`,
-    };
-  }
-
-  if (count >= 1000) {
-    const k = (count / 1000).toFixed(1).replace('.0', '');
-    return {
-      full: `${k} тыс. подписчиков`,
-      short: `${k}К`,
-    };
-  }
-
-  return {
-    full: `${count} подписчиков`,
-    short: `${count}`,
-  };
 }
