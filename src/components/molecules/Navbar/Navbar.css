@@ -133,3 +133,38 @@
         padding: 0 8px;
     }
 }
+
+@media (max-width: 1400px) and (min-width: 769px) {
+    .navbar {
+        padding: 0 5%; /* уменьшаем отступы */
+        gap: 12px;
+    }
+
+    .navbar-left {
+        width: 150px; /* уменьшаем блок с логотипом */
+    }
+
+    .navbar-logo {
+        width: 100px;
+        height: 28px;
+    }
+
+    .navbar-center {
+        width: 400px; /* уменьшаем ширину поиска */
+    }
+
+    .navbar-input {
+        font-size: 14px;
+        height: 30px;
+        padding-left: 32px;
+    }
+
+    .navbar-right {
+        width: 150px;
+    }
+
+    .navbar-profile-photo {
+        width: 40px;
+        height: 40px;
+    }
+}

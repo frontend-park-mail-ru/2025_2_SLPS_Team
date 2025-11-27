@@ -58,7 +58,7 @@
     display: flex;
 }
 
-@media (max-width: 738px) {
+@media (max-width: 768px) {
     .communities-list {
         display: none;
     }

@@ -57,4 +57,8 @@
         background-color: var(--base-white);
         border-top: 1px solid var(--light-border);
     }
+
+    .menu-item[data-view="/help"] {
+        display: none;
+    }
 }
