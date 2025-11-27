@@ -17,6 +17,13 @@
     position: fixed;
 }
 
+.menu-hidden {
+    transform: translateX(-100%);
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.25s ease;
+}
+
 @media (max-width: 768px) {
     .sidebar-container {
         width: 100%;

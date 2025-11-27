@@ -13,7 +13,7 @@ import {
 } from '../../../shared/api/chatsApi.js';
 
 export class Chat {
-  constructor(rootElement, myUserId, myUserName, myUserAvatar, data) {
+  constructor(rootElement, myUserId, myUserName, myUserAvatar, data, options={}) {
     this.rootElement = rootElement;
     this.chatInfo = data.id;
     this.myUserId = myUserId;
@@ -27,6 +27,9 @@ export class Chat {
     this.scrollButton = null;
 
     this.data = data;
+
+    this.hasBackButton = options.hasBackButton || false;
+    this.onBack = options.onBack || null;
 
     this.lastReadMessageId =
       data.lastReadMessageId || data.lastReadMessageID || null;
@@ -62,6 +65,8 @@ export class Chat {
       null,
       this.data.name,
       this.data.avatarPath,
+      this.hasBackButton,
+      this.onBack
     );
     this.chatHeader.render();
 

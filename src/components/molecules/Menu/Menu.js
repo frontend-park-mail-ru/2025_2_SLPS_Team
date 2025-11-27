@@ -60,7 +60,10 @@ export async function renderMenu({ items, onNavigate }) {
 
         menuContainer.appendChild(menuItem);
     }
-
     sidebarMenu.appendChild(menuContainer);
+
+    const sidebarContainer = wrapper.querySelector(".sidebar-container");
+    wrapper.sidebarContainer = sidebarContainer;
+    
     return wrapper;
 }

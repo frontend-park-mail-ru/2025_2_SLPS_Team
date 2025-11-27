@@ -11,6 +11,7 @@ import { gsap } from "gsap";
 import { getProfile } from '../../shared/api/profileApi.js';
 import { getChats, getChatWithUser } from '../../shared/api/chatsApi.js';
 import { cachedFetch } from "../../services/CacheService.js"; 
+import { layout } from '../LayoutManager.js';
 
 export class MessengerPage extends BasePage {
   constructor(rootElement) {
@@ -56,6 +57,7 @@ export class MessengerPage extends BasePage {
         await this.OpenChat(chatData);
 
         if (window.innerWidth <= 768) {
+            layout.toggleMenu();
             const chatsContainer = this.wrapper.querySelector('.chats-container');
             const chatBlock = this.wrapper.querySelector('.chat-block');
             chatsContainer.classList.add('hide');
@@ -88,6 +90,7 @@ export class MessengerPage extends BasePage {
         };
         await this.OpenChat(chatData);
         if (window.innerWidth <= 768) {
+            layout.toggleMenu();
             const chatsContainer = this.wrapper.querySelector('.chats-container');
             const chatBlock = this.wrapper.querySelector('.chat-block');
             chatsContainer.classList.add('hide');
@@ -118,16 +121,42 @@ export class MessengerPage extends BasePage {
     const fullName = `${profile.firstName} ${profile.lastName}`;
     const avatar = profile.avatarPath;
 
-    this.openChat = new Chat(this.chatWrapper, this.myUserId, fullName, avatar, data);
-    this.openChat.render();
+    if (window.innerWidth <= 768) {
+        this.openChat = new Chat(this.chatWrapper, this.myUserId, fullName, avatar, data, {
+          hasBackButton: true,
+          onBack: () => {
+              const chatsContainer = this.wrapper.querySelector('.chats-container');
+              this.chatWrapper.style.transform = 'translateX(0)';
+              this.chatWrapper.style.opacity = '1';
+
+              gsap.to(this.chatWrapper, {
+                  x: '100%',
+                  opacity: 0,
+                  duration: 0.25,
+                  ease: 'power1.inOut',
+                  onComplete: () => {
+                      this.chatWrapper.classList.remove('open');
+
+                      this.chatWrapper.style.transform = '';
+                      this.chatWrapper.style.opacity = '';
+
+                      chatsContainer.classList.remove('hide');
+                      this.activeChatItem?.rmActive();
+                      layout.toggleMenu();
+                  }
+              });
+          }
+
+        });
+        this.openChat.render();
+    } else {
+      this.openChat = new Chat(this.chatWrapper, this.myUserId, fullName, avatar, data);
+      this.openChat.render();
+    }
 
     const openedChatItem = this.chatItems.find(item => item.chatData.id === data.chatId);
     if (openedChatItem && typeof openedChatItem.hideCounter === 'function') {
       openedChatItem.hideCounter();
-    }
-
-    if (window.innerWidth <= 768) {
-        this.addSwipeToClose(this.chatWrapper);
     }
   }
 
@@ -160,51 +189,6 @@ export class MessengerPage extends BasePage {
     }
   }
   
-  addSwipeToClose(element) {
-        let startX = 0;
-        let currentX = 0;
-        let isDragging = false;
-
-        const onPointerDown = (e) => {
-            isDragging = true;
-            startX = e.touches ? e.touches[0].clientX : e.clientX;
-            element.style.transition = '';
-        };
-
-        const onPointerMove = (e) => {
-            if (!isDragging) return;
-            currentX = e.touches ? e.touches[0].clientX : e.clientX;
-            const dx = currentX - startX;
-            if (dx < 0) {
-                element.style.transform = `translateX(${dx}px)`;
-            }
-        };
-
-        const onPointerUp = () => {
-            if (!isDragging) return;
-            isDragging = false;
-            const dx = currentX - startX;
-            element.style.transition = 'transform 0.3s ease';
-
-            if (dx < -100) {
-                element.style.transform = 'translateX(100%)';
-                this.wrapper.querySelector('.chats-container').classList.remove('hide');
-                element.classList.remove('open');
-                this.activeChatItem?.rmActive();
-            } else {
-                element.style.transform = 'translateX(0)';
-            }
-        };
-
-        element.addEventListener('touchstart', onPointerDown);
-        element.addEventListener('touchmove', onPointerMove);
-        element.addEventListener('touchend', onPointerUp);
-
-        element.addEventListener('mousedown', onPointerDown);
-        element.addEventListener('mousemove', onPointerMove);
-        element.addEventListener('mouseup', onPointerUp);
-    }
-
   async fetchCurrentUserProfile() {
     return await getProfile(this.myUserId);
   }

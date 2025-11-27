@@ -142,6 +142,25 @@ export class LayoutManager {
             if (this.navbar) this.navbar.style.display = '';
         }
     }
+
+    toggleMenu() {
+        const menu = this.menu;
+        if (!menu) {
+            console.log("menu not found");
+            return;
+        }
+
+        const sidebar = menu.sidebarContainer;
+        console.log("sidebar:", sidebar);
+
+        if (!sidebar) {
+            console.log("sidebarContainer not found inside menu");
+            return;
+        }
+
+        sidebar.classList.toggle("menu-hidden");
+    }
+
 }
 
 export const layout = new LayoutManager(document.body, navigateTo);
