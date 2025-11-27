@@ -69,6 +69,10 @@ export class CommunityCheckPage extends BasePage {
 
     this.wrapper = null;
     this.root = null;
+
+    this._onPostCreated = null;
+    this._onPostUpdated = null;
+    this._onPostDeleted = null;
   }
 
   async render() {
@@ -110,7 +114,6 @@ export class CommunityCheckPage extends BasePage {
         subscribersShort: subscribersData.short,
         isOwner: this.isOwner,
         isSubscribed: this.isSubscribed,
-
         avatarPath,
         coverPath,
       },
@@ -132,7 +135,6 @@ export class CommunityCheckPage extends BasePage {
       title: templateData.community.name,
       subtitle: templateData.community.subscribersText,
       showMoreButton: false,
-
       isCommunity: true,
       isOwner: this.isOwner,
     });
@@ -144,18 +146,36 @@ export class CommunityCheckPage extends BasePage {
     await this.renderFeedBlock();
     await this.renderSubscribersBlock();
 
-    this._rerenderCommunityFeed = async () => {
-      if (!this.wrapper || !this.rootElement.contains(this.wrapper)) {
-        return;
-      }
+
+    this._onPostCreated = async (payload) => {
+      if (!this.wrapper || !this.rootElement.contains(this.wrapper)) return;
+
+      console.log('[CommunityCheckPage] posts:created / community:newPost', payload);
+      notifier.show('Успех', 'Пост опубликован', 'success');
 
       await this.renderFeedBlock();
     };
 
-    EventBus.on('community:newPost', this._rerenderCommunityFeed);
-    EventBus.on('posts:created', this._rerenderCommunityFeed);
-    EventBus.on('posts:updated', this._rerenderCommunityFeed);
-    EventBus.on('posts:deleted', this._rerenderCommunityFeed);
+    this._onPostUpdated = async (payload) => {
+      if (!this.wrapper || !this.rootElement.contains(this.wrapper)) return;
+
+      console.log('[CommunityCheckPage] posts:updated', payload);
+      await this.renderFeedBlock();
+    };
+
+    this._onPostDeleted = async (payload) => {
+      if (!this.wrapper || !this.rootElement.contains(this.wrapper)) return;
+
+      console.log('[CommunityCheckPage] posts:deleted', payload);
+      notifier.show('Удалено', 'Пост был удалён', 'success');
+
+      await this.renderFeedBlock();
+    };
+
+    EventBus.on('community:newPost', this._onPostCreated);
+    EventBus.on('posts:created', this._onPostCreated);
+    EventBus.on('posts:updated', this._onPostUpdated);
+    EventBus.on('posts:deleted', this._onPostDeleted);
   }
 
   initAboutBlock() {
@@ -196,28 +216,41 @@ export class CommunityCheckPage extends BasePage {
     if (this.params && this.params.id) {
       this.communityId = Number(this.params.id);
     } else {
-      // можно добавить обработку
+      // можно добавить обработку, если пришли без id
     }
   }
 
-    async renderFeedBlock() {
+  async renderFeedBlock() {
+    if (!this.wrapper) return;
+
     const feedContainer = this.wrapper.querySelector(
       '[data-role="community-feed"]',
     );
-    if (!feedContainer) return;
+    if (!feedContainer) {
+      console.warn('[CommunityCheckPage] feed container not found');
+      return;
+    }
 
-    const posts = await getCommunityPosts(this.communityId, 1, 20);
+    try {
+      const posts = await getCommunityPosts(this.communityId, 1, 20);
 
-    feedContainer.innerHTML = '';
+      feedContainer.innerHTML = '';
 
-    const feedElement = await renderFeed(posts, this.isOwner, {
-      mode: 'community',
-      communityId: this.communityId,
-    });
+      const feedElement = await renderFeed(posts, this.isOwner, {
+        mode: 'community',
+        communityId: this.communityId,
+      });
 
-    feedContainer.appendChild(feedElement);
+      feedContainer.appendChild(feedElement);
+    } catch (err) {
+      console.error('[CommunityCheckPage] failed to load community posts', err);
+      notifier.show(
+        'Ошибка',
+        'Не удалось загрузить посты сообщества',
+        'error',
+      );
+    }
   }
-
 
   async renderSubscribersBlock() {
     const list = this.root.querySelector('[data-role="subscribers-list"]');
@@ -310,6 +343,7 @@ export class CommunityCheckPage extends BasePage {
       }
     });
   }
+
   applyUpdatedCommunity(updatedCommunity) {
     if (!updatedCommunity) return;
 
@@ -317,7 +351,6 @@ export class CommunityCheckPage extends BasePage {
       ...this.community,
       ...updatedCommunity,
     };
-    console.log(updatedCommunity);
 
     const subscribersData = formatSubscribers(
       this.community.subscribersCount || 0,
@@ -364,7 +397,7 @@ export class CommunityCheckPage extends BasePage {
 
     const dropdown = new DropDown(dropdownContainer, {
       values: [
-         {
+        {
           label: 'Редактировать сообщество',
           onClick: () => {
             const communityModal = new EditCommunityModal({
@@ -419,6 +452,7 @@ export class CommunityCheckPage extends BasePage {
 
     document.addEventListener('click', (e) => {
       const actions = this.root.querySelector('.community-owner-actions');
+      if (!actions) return;
 
       if (!actions.contains(e.target)) dropdown.hide();
     });
