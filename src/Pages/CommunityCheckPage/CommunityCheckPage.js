@@ -146,35 +146,28 @@ export class CommunityCheckPage extends BasePage {
     await this.renderFeedBlock();
     await this.renderSubscribersBlock();
 
-    /**
-     * Универсальный обработчик событий CRUD по постам:
-     * - после создания / редактирования / удаления поста в сообществе –
-     *   просто перерисовываем ленту этого сообщества.
-     * - структура не ломается: мы вызываем тот же renderFeedBlock,
-     *   что и при первой отрисовке.
-     */
-    const rerenderCommunityFeed = async (payload) => {
-      // Если в payload явно указано, что событие относится к комьюнити,
-      // и это не наше комьюнити — просто игнорируем.
+    // --- ВОТ ТУТ ГЛАВНОЕ: после CRUD по посту просто перезагружаем страницу ---
+
+    const reloadIfThisCommunity = (payload) => {
+      // Если в payload прилетает другой communityId — игнорим
       if (
         payload &&
-        payload.mode === 'community' &&
         payload.communityId &&
         Number(payload.communityId) !== Number(this.communityId)
       ) {
         return;
       }
 
-      if (!this.wrapper || !this.root) return;
-      await this.renderFeedBlock();
+      // Жёстко перезагружаем всю страницу (аналог F5)
+      window.location.reload();
     };
 
-    // Ровно как в ProfilePage: слушаем изменения постов и перерисовываем ленту
-    // (events должны эмититься из CreatePostForm/Post.js)
-    EventBus.on('community:newPost', rerenderCommunityFeed);
-    EventBus.on('posts:created', rerenderCommunityFeed);
-    EventBus.on('posts:updated', rerenderCommunityFeed);
-    EventBus.on('posts:deleted', rerenderCommunityFeed);
+    // Новый пост в сообществе
+    EventBus.on('community:newPost', reloadIfThisCommunity);
+    // Общие события CRUD по постам (если ты их эмитишь)
+    EventBus.on('posts:created', reloadIfThisCommunity);
+    EventBus.on('posts:updated', reloadIfThisCommunity);
+    EventBus.on('posts:deleted', reloadIfThisCommunity);
   }
 
   initAboutBlock() {
