@@ -198,22 +198,43 @@ export class CommunityCheckPage extends BasePage {
   }
 
   async renderFeedBlock() {
+    if (!this.root) return;
+
     const feedContainer = this.root.querySelector(
       '[data-role="community-feed"]',
     );
     if (!feedContainer) return;
 
-    const posts = await getCommunityPosts(this.communityId, 1, 20);
+    let posts = await getCommunityPosts(this.communityId, 1, 20);
+    if (!posts) posts = [];
+
+    this.posts = posts.map((post) => ({
+      post,
+      author: {
+        id:
+          this.community.id ??
+          this.community.communityId ??
+          this.communityId,
+        fullName: this.community.name,
+        avatarPath: this.community.avatarPath,
+        isCommunity: true,
+      },
+      likes: post.likeCount ?? post.like_count ?? 0,
+      comments: post.commentCount ?? post.comment_count ?? 0,
+      reposts: post.repostCount ?? post.repost_count ?? 0,
+      isLiked: post.isLiked ?? false,
+    }));
 
     feedContainer.innerHTML = '';
 
-    const feedElement = await renderFeed(posts, this.isOwner, {
+    const feedElement = await renderFeed(this.posts, this.isOwner, {
       mode: 'community',
       communityId: this.communityId,
     });
 
     feedContainer.appendChild(feedElement);
   }
+
 
   async renderSubscribersBlock() {
     const list = this.root.querySelector('[data-role="subscribers-list"]');
