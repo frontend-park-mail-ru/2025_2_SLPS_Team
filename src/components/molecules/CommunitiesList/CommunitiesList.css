@@ -48,6 +48,16 @@
     color: var(--base-black);
 }
 
+.communities-list__name__nosubs {
+    font-family: inherit;
+    font-size: 16px;
+    color: var(--dark-gray);
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    display: flex;
+}
+
 @media (max-width: 738px) {
     .communities-list {
         display: none;

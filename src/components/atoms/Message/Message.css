@@ -64,6 +64,10 @@
     color: var(--text-black);
     font-family: 'Nunito Sans';
     font-size: 15px;
+
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
 }
 
 .messege-time {

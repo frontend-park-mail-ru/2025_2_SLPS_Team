@@ -125,13 +125,13 @@
 }
 
 .profile-toggle-btn {
-    margin-left: auto;
     background: none;
     border: none;
     cursor: pointer;
     color: var(--blue);
     font-size: 14px;
     font-family: inherit;
+    padding: 0;
 }
 
 .edit-open,
