@@ -69,6 +69,8 @@ export class CommunityCheckPage extends BasePage {
 
     this.wrapper = null;
     this.root = null;
+
+    this._onPostsChanged = this._onPostsChanged.bind(this);
   }
 
   async render() {
@@ -144,15 +146,10 @@ export class CommunityCheckPage extends BasePage {
     await this.renderFeedBlock();
     await this.renderSubscribersBlock();
 
-    const rerenderCommunityFeed = async () => {
-      if (!this.wrapper) return;
-      await this.renderFeedBlock();
-    };
-
-    EventBus.on('community:newPost', rerenderCommunityFeed);
-    EventBus.on('posts:created', rerenderCommunityFeed);
-    EventBus.on('posts:updated', rerenderCommunityFeed);
-    EventBus.on('posts:deleted', rerenderCommunityFeed);
+    EventBus.on('community:newPost', this._onPostsChanged);
+    EventBus.on('posts:created', this._onPostsChanged);
+    EventBus.on('posts:updated', this._onPostsChanged);
+    EventBus.on('posts:deleted', this._onPostsChanged);
   }
 
   initAboutBlock() {
@@ -235,6 +232,18 @@ export class CommunityCheckPage extends BasePage {
     feedContainer.appendChild(feedElement);
   }
 
+  async _onPostsChanged(payload = {}) {
+    if (!this.wrapper || !this.root) return;
+
+    if (
+      payload.communityId &&
+      Number(payload.communityId) !== Number(this.communityId)
+    ) {
+      return;
+    }
+
+    await this.renderFeedBlock();
+  }
 
   async renderSubscribersBlock() {
     const list = this.root.querySelector('[data-role="subscribers-list"]');
@@ -327,6 +336,7 @@ export class CommunityCheckPage extends BasePage {
       }
     });
   }
+
   applyUpdatedCommunity(updatedCommunity) {
     if (!updatedCommunity) return;
 
@@ -381,7 +391,7 @@ export class CommunityCheckPage extends BasePage {
 
     const dropdown = new DropDown(dropdownContainer, {
       values: [
-         {
+        {
           label: 'Редактировать сообщество',
           onClick: () => {
             const communityModal = new EditCommunityModal({
@@ -439,5 +449,19 @@ export class CommunityCheckPage extends BasePage {
 
       if (!actions.contains(e.target)) dropdown.hide();
     });
+  }
+
+  destroy() {
+    EventBus.off('community:newPost', this._onPostsChanged);
+    EventBus.off('posts:created', this._onPostsChanged);
+    EventBus.off('posts:updated', this._onPostsChanged);
+    EventBus.off('posts:deleted', this._onPostsChanged);
+
+    this.wrapper = null;
+    this.root = null;
+
+    if (super.destroy) {
+      super.destroy();
+    }
   }
 }
