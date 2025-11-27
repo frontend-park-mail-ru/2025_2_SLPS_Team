@@ -41,37 +41,15 @@ export class MessengerPage extends BasePage {
 
     const chatItemsBlock = chatsContainer.querySelector('.chat-items-block');
 
-    this.chats.forEach((chatData) => {
+    this.chats.forEach(chatData => {
       const chatItem = new ChatItem(chatItemsBlock, chatData);
       chatItem.render();
 
-      const lastReadId =
-        chatData.lastReadMessageId || chatData.lastReadMessageID || 0;
-      const lastMessageId =
-        chatData.lastMessage && chatData.lastMessage.id
-          ? chatData.lastMessage.id
-          : 0;
-      const lastAuthorId =
-        chatData.lastMessage &&
-        (chatData.lastMessage.authorID || chatData.lastMessage.authorId);
-
-      const hasUnread =
-        lastMessageId &&
-        (!lastReadId || lastMessageId > lastReadId) &&
-        lastAuthorId &&
-        lastAuthorId !== this.myUserId;
-
-      if (typeof chatItem.setUnreadCount === 'function') {
-        chatItem.setUnreadCount(hasUnread ? 1 : 0);
-      } else if (hasUnread && typeof chatItem.showCounter === 'function') {
-        chatItem.showCounter();
-      }
-
       this.chatItems.push(chatItem);
 
-      chatItem.wrapper.addEventListener('click', async () => {
+        chatItem.wrapper.addEventListener('click', async () => {
         if (this.activeChatItem && this.activeChatItem !== chatItem) {
-          this.activeChatItem.rmActive();
+            this.activeChatItem.rmActive();
         }
         this.activeChatItem = chatItem;
         chatItem.makeActive();
@@ -79,39 +57,28 @@ export class MessengerPage extends BasePage {
         await this.OpenChat(chatData);
 
         if (window.innerWidth <= 768) {
-          layout.toggleMenu();
-          const chatsContainer = this.wrapper.querySelector('.chats-container');
-          const chatBlock = this.wrapper.querySelector('.chat-block');
-          chatsContainer.classList.add('hide');
-          chatBlock.classList.add('open');
+            layout.toggleMenu();
+            const chatsContainer = this.wrapper.querySelector('.chats-container');
+            const chatBlock = this.wrapper.querySelector('.chat-block');
+            chatsContainer.classList.add('hide');
+            chatBlock.classList.add('open');
         }
-      });
+        });
     });
 
     this.rootElement.appendChild(this.wrapper);
 
     wsService.on('message', (packet) => {
-      console.log('[WS message in MessengerPage]', packet);
+    console.log('[WS message in MessengerPage]', packet);
 
-      const type = packet.type || packet.Type;
-      const data = packet.data || packet.Data || packet;
+    const data = packet.Data || packet;
 
-      if (type !== 'new_message') {
-        return;
-      }
+    if (!data || typeof data.id === 'undefined') {
+      return;
+    }
 
-      const chatId =
-        (data && (data.id || data.chatId || data.chatID || data.chat_id)) ||
-        (data &&
-          data.lastMessage &&
-          (data.lastMessage.chatID || data.lastMessage.chatId));
-
-      if (!chatId) {
-        return;
-      }
-
-      this.UpdateChat(chatId);
-    });
+    this.UpdateChat(data.id);
+  });
 
     EventBus.on('openChat', async ({ data }) => {
       try {
@@ -141,10 +108,7 @@ export class MessengerPage extends BasePage {
       const item = this.chatItems.find((i) => i.chatData.id === chatId);
       if (!item) return;
 
-      if (typeof item.setUnreadCount === 'function') {
-        item.setUnreadCount(unreadCount);
-      }
-
+      item.setUnreadCount(unreadCount);
       item.chatData.lastReadMessageId = lastReadMessageId;
     });
   }
@@ -221,9 +185,7 @@ export class MessengerPage extends BasePage {
     }
 
     if (!this.openChat || chatItem.chatData.id !== this.openChat.chatInfo) {
-      if (typeof chatItem.showCounter === 'function') {
-        chatItem.showCounter();
-      }
+      chatItem.showCounter();
     }
   }
   

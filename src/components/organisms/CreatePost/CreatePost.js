@@ -174,18 +174,39 @@ export class CreatePostForm {
         formData.append('communityID', this.communityId);
       }
 
-      await createPost(formData, authService.getCsrfToken());
+      const isCommunityContext =
+        !!this.communityId ||
+        window.location.pathname.startsWith('/community');
+
+      const createdPost =
+        (await createPost(formData, authService.getCsrfToken())) || null;
 
       notifier.show(
         'Пост создан',
-        'Вы создали пост, можете посмотреть его в профиле',
+        isCommunityContext
+          ? 'Пост создан в сообществе'
+          : 'Вы создали пост, можете посмотреть его в профиле',
         'success',
       );
 
-      EventBus.emit('posts:created');
+      const payload = {
+        post: createdPost,
+        communityID:
+          this.communityId ??
+          createdPost?.communityID ??
+          createdPost?.communityId ??
+          null,
+      };
+
+      EventBus.emit('posts:created', payload);
 
       if (window.location.pathname.startsWith('/profile')) {
-        EventBus.emit('profile:newPost');
+        EventBus.emit('profile:newPost', payload);
+      }
+
+      if (isCommunityContext) {
+        EventBus.emit('community:newPost', payload);
+        EventBus.emit('community:postCreated', payload);
       }
 
       this.close();
@@ -237,11 +258,24 @@ export class CreatePostForm {
 
       const postId = this.postData.post?.id ?? this.postData.id;
 
-      await updatePost(postId, formData);
+      const updatedPost = (await updatePost(postId, formData)) || null;
 
       notifier.show('Пост изменён', 'Изменения успешно сохранены', 'success');
 
-      EventBus.emit('posts:updated');
+      const payload = {
+        post: updatedPost || {
+          id: postId,
+          text,
+          communityID: communityIdFromPost,
+        },
+        communityID: communityIdFromPost,
+      };
+
+      EventBus.emit('posts:updated', payload);
+
+      if (communityIdFromPost) {
+        EventBus.emit('community:postUpdated', payload);
+      }
 
       this.close();
     } catch (error) {
