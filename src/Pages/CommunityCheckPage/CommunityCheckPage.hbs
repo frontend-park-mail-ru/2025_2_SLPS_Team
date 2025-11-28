@@ -1,0 +1,77 @@
+<div class="community-page">
+  <div class="community-page__content">
+
+    <div id="profile-card"></div>
+
+    <div class="community-page__down">
+      <div class="community-page__feed" data-role="community-feed"></div>
+
+      <div class="community-page__sidebar">
+
+       <section class="community-about-card">
+          <div class="community-about-card__title">
+            О сообществе
+          </div>
+
+          {{#if community.description}}
+            <div class="community-about-card__row">
+              <img class="community-about-card__icon community-about-card__icon--about" src="/public/globalImages/AboutComuunityIcon.svg">
+
+              <div class="community-about-card__content">
+                <div
+                  class="community-about-card__text-wrapper"
+                  data-role="about-wrapper"
+                >
+                  <div
+                    class="community-about-card__text"
+                    data-role="about-text"
+                  >
+                    {{community.description}}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  class="community-about-card__more-btn"
+                  data-role="about-more"
+                >
+                  Показать ещё
+                </button>
+              </div>
+            </div>
+          {{/if}}
+
+          {{#if community.createdAtFormatted}}
+            <div class="community-about-card__row community-about-card__row--created">
+              <img class="community-about-card__icon community-about-card__icon--created" src="/public/globalImages/BigCheckIcon.svg">
+
+              <div class="community-about-card__content">
+                <div class="community-about-card__created-title">
+                  Сообщество создано
+                </div>
+                <div class="community-about-card__created-date">
+                  {{community.createdAtFormatted}}
+                </div>
+              </div>
+            </div>
+          {{/if}}
+        </section>
+
+        <div class="community-subscribers-card">
+          <div class="community-subscribers-card__header">
+            <span class="community-subscribers-card__title">Подписчики</span>
+            <span class="community-subscribers-card__count">
+              {{community.subscribersShort}}
+            </span>
+          </div>
+          <div
+            class="community-subscribers-card__list"
+            data-role="subscribers-list"
+          ></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>

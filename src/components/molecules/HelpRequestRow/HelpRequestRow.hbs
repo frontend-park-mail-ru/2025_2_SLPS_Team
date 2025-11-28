@@ -1,0 +1,32 @@
+<tr class="help-table__row" data-id="{{id}}">
+  <td class="help-table__cell">
+    {{displayNumber}}
+  </td>
+
+  <td class="help-table__cell help-table__cell--topic" title="{{topic}}">
+    {{#if topic}}
+      {{topic}}
+    {{else}}
+      Без темы
+    {{/if}}
+  </td>
+
+  <td class="help-table__cell">
+    {{createdAtFormatted}}
+  </td>
+
+  <td class="help-table__cell help-table__cell--status">
+    <span class="{{statusClass}}">{{statusText}}</span>
+  </td>
+
+  <td class="help-table__cell">
+    <div class="friend-card__actions">
+      <img
+        class="fiend-actions-button"
+        src="/public/FriendsActions/MorePointsIcon.svg"
+        alt="Действия"
+      >
+      <div class="friend-actions-container"></div>
+    </div>
+  </td>
+</tr>

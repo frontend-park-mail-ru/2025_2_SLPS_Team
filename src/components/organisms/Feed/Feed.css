@@ -1,0 +1,87 @@
+.feed-container{
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.feed-posts-container{
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.feed-post-button{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 600px;
+    height: 55px;
+    background-color: var(--base-white);
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    gap: 6px;
+}
+
+.button-content{
+    font-family: 'Nunito Sans';
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--base-purple);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+}
+
+.button-content img{
+    width: 24px;
+    height: 24px;
+}
+
+.end-feed-header {
+    margin-bottom: 85px;
+    width: 100%;
+    margin-top: 5px;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    font-size: 16px;
+    font-family: 'Nunito Sans';
+    color: var(--dark-gray);
+}
+
+@media (max-width: 768px) {
+    .feed-container {
+        padding: 0px;
+        gap: 8px;
+        display: flex;
+        flex: 1 1 100%;
+    }
+
+    .feed-posts-container {
+        width: 100%;
+        gap: 8px;
+        display: flex;
+        flex: 1 1 100%;
+    }
+
+    .feed-post-button {
+        width: 100%;
+        max-width: 100%;
+        height: 50px;
+        border-radius: 10px;
+        gap: 6px;
+    }
+
+    .button-content {
+        font-size: 16px;
+        gap: 12px;
+    }
+
+    .button-content img {
+        width: 20px;
+        height: 20px;
+    }
+}

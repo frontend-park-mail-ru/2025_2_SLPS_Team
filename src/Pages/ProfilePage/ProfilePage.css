@@ -1,0 +1,297 @@
+.profile-page{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    gap: 16px;
+    box-sizing: border-box;
+    align-items: flex-start;
+}
+
+.profile-info {
+    width: 880px;
+    background: var(--base-white);
+    border-radius: 20px;
+    padding: 10px;
+    overflow: hidden;
+    transition: max-height 0.7s linear;
+    max-height: 260px;
+}
+
+.profile-info.expanded {
+    max-height: 600px;
+
+}
+
+.profile-content{
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+}
+
+.header-image{
+    width: 100%;
+    height: 180px;
+    border-radius: 14px;
+    object-fit: cover;
+}
+
+.profile-header{
+    position: relative;
+}
+
+
+.profile-avatar{
+    width: 130px;
+    height: 130px;
+    object-fit: cover;
+    border: 4px solid var(--base-white);
+    border-radius: 50%;
+    margin-top: -80px;
+    margin-left: 30px;
+    background: var(--base-white);
+}
+
+.profile-header-content{
+    display: flex;
+    gap: 14px
+}
+
+
+.user-info-container{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.user-name{
+    font-size: 20px;
+    color: var(--text-black);
+}
+
+.user-info{
+    font-size: 14px;
+    color: var(--dark-gray);
+    font-family: inherit;
+    font-weight: 400;
+}
+
+.profile-extra {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    font-size: 16px;
+    padding: 20px;
+    padding-top: 30px;
+}
+
+.profile-info.is-open {
+    display: block;
+}
+
+.base-text {
+    color: var(--text-black) !important;
+    all: unset;
+    display: flex;
+    gap: 4px;
+}
+
+.text-accent{
+    color: var(--base-purple);
+}
+
+.about-text{
+    font-size: 16px;
+    color: var(--dark-gray);
+}
+
+.about-user{
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.user-counts-info{
+    display: flex;
+    gap: 45px;
+}
+
+.user-counts-info a{
+    all: unset;
+    cursor: pointer;
+    color: var(--base-purple);
+    display: flex;
+    gap: 4px;
+}
+
+.profile-toggle-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--blue);
+    font-size: 14px;
+    font-family: inherit;
+    padding: 0;
+}
+
+.edit-open,
+.add-friend-btn,
+.message-btn {
+    width: fit-content;
+    height: fit-content;
+    padding: 4px 8px;
+    background-color: var(--light-gray);
+    border: none;
+    font-size: 14px;
+    border-radius: 6px;
+    color: var(--base-purple);
+    margin-left: auto;
+    margin-top: 5px;
+    cursor: pointer;
+}
+
+.edit-open:hover,
+.add-friend-btn:hover,
+.message-btn:hover { 
+    background-color: var(--base-gray);
+}
+
+.profile-down-container{
+    display: flex;
+    gap: 16px;
+}
+
+.request-text {
+    width: fit-content;
+    height: fit-content;
+    padding: 4px 8px;
+    border: none;
+    font-size: 14px;
+    color: var(--base-purple);
+    margin-left: auto;
+    margin-top: 5px;
+    background: none;
+}
+
+.unblock-user-btn {
+        width: fit-content;
+    height: fit-content;
+    padding: 4px 8px;
+    background-color: var(--light-gray);
+    border: none;
+    font-size: 14px;
+    border-radius: 6px;
+    color: var(--base-red);
+    margin-left: auto;
+    margin-top: 5px;
+    cursor: pointer;
+}
+
+.unblock-user-btn:hover {
+    background-color: var(--base-gray);
+}
+
+.profile-feed-container {
+    width: 602px;
+}
+
+@media (max-width: 768px) {
+
+    .profile-page {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+
+    .profile-info {
+        width: 100%;
+        max-height: 310px;
+        padding: 10px;
+        border-radius: 16px;
+    }
+
+    .profile-info.expanded {
+        max-height: 500px;
+    }
+
+    .header-image {
+        height: 150px;
+        border-radius: 12px;
+    }
+
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        margin-top: -65px;
+        margin-left: 0;
+    }
+
+    .profile-header-content {
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+        align-items: center;
+    }
+
+    .user-name {
+        font-size: 18px;
+    }
+
+    .user-info {
+        font-size: 12px;
+        width: fit-content;
+        gap: 4px;
+    }
+
+    .user-info-container {
+        width: fit-content;
+        margin: 0;
+        align-items: center;
+    }
+
+    .profile-extra {
+        padding: 10px;
+        padding-top: 20px;
+        font-size: 14px;
+        gap: 10px;
+    }
+
+    .about-text {
+        font-size: 14px;
+    }
+
+    .user-counts-info {
+        gap: 20px;
+        flex-wrap: wrap;
+        font-size: 14px;
+    }
+
+    .edit-open,
+    .add-friend-btn,
+    .message-btn,
+    .unblock-user-btn,
+    .request-text {
+        font-size: 14px;
+        padding: 3px 6px;
+        margin-top: 2px;
+        margin-right: auto;
+        height: 32px;
+        width: 100%;
+        align-items: center;
+        display: flex;
+        justify-content: center;
+    }
+
+    .profile-down-container {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .profile-feed-container {
+        width: 100%;
+    }
+
+    .profile-content {
+        gap: 8px;
+    }
+}

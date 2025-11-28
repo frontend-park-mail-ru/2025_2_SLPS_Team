@@ -1,0 +1,204 @@
+.support-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(23, 23, 23, 0.35);
+    backdrop-filter: brightness(0.9);
+    -webkit-backdrop-filter: brightness(0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.support-container {
+    width: 544px;           
+    height: 731px;         
+    max-width: 544px;
+    max-height: 731px;
+
+    background-color: var(--base-white);
+    border-radius: 16px;
+    padding: 24px 24px 20px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-sizing: border-box;
+    overflow-y: auto;      
+}
+
+.support-title {
+    font-size: 20px;
+    font-weight: 500;
+    text-align: left;
+    color: var(--base-purple);
+}
+
+.support-subtitle {
+    font-size: 16px;
+    font-weight: 350;
+    color: var(--text-black);
+}
+
+.support-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.support-label {
+    font-size: 16px;
+    color: var(--dark-gray);
+}
+
+.support-input,
+.support-select,
+.support-textarea {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--light-border);
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    background-color: var(--base-bg, #fafafa);
+    box-sizing: border-box;
+}
+
+.support-input:focus,
+.support-select:focus,
+.support-textarea:focus {
+    border-color: var(--base-purple);
+}
+
+.support-textarea {
+    min-height: 96px;
+    resize: vertical;
+}
+
+.support-textarea::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+.support-select-wrapper {
+    position: relative;
+}
+
+.support-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 12px 8px;
+    padding-right: 32px;
+}
+
+.support-screenshot-block {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+}
+
+.support-contacts-header {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.support-contacts-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.support-contacts-subtitle {
+    font-size: 13px;
+    margin: 0;
+    color: var(--text-secondary, #777);
+}
+
+.support-contacts-grid {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.support-contacts-grid .support-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.support-actions__container {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+    margin-left: auto;
+}
+
+.support-header{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.about-problem-container{
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.support-select-wrapper {
+  position: relative;
+}
+
+.support-select-wrapper .select-list {
+  position: absolute !important;
+  z-index: 1000 !important;
+  top: 75px;
+}
+
+.reg-email-input .baseinput-field {
+  height: 40px !important;
+}
+
+.reg-email-input{
+    width: 100%;
+}
+
+.about-problem-input {
+    width: 100%;
+}
+
+.support-contacts-container{
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.support-contacts-container .baseinput-field {
+    height: 40px !important;
+}
+
+.divider-create-report{
+    width: 100%;
+    height: 1px;
+    background-color: var(--light-border);
+}
+
+.support-container {
+    overflow-y: auto;
+
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.support-container::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}

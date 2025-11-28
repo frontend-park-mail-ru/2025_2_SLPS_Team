@@ -1,44 +1,42 @@
 import express from "express";
-import {engine} from "express-handlebars";
 import path from "path";
-import {fileURLToPath} from "url";
-import Config from "./config.mjs";
-
-
+import { fileURLToPath } from "url";
+import dotenv from 'dotenv';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 
-app.engine("hbs", engine({extname: ".hbs", defaultLayout: false}));
-app.set("view engine", "hbs");
-app.set("views", path.join(__dirname));
-
-app.use(express.static(path.join(__dirname)));
-
-const distPath = path.join(__dirname, "");
+const distPath = path.join(__dirname, "dist");
 
 app.use((req, res, next) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
-    res.setHeader("X-Frame-Options", "DENY");
+  //  res.setHeader("X-Frame-Options", "DENY");
     res.setHeader("X-XSS-Protection", "1; mode=block");
     res.setHeader("Referrer-Policy", "no-referrer");
     res.setHeader("Permissions-Policy", "geolocation=(), microphone=()");
-
     res.setHeader(
         "Content-Security-Policy",
         "default-src 'self'; " +
-        "script-src 'self'; " +
-        "style-src 'self'; object-src 'none';" +
-    `connect-src 'self' ${Config.API_BASE_URL};`
+        "frame-src 'self'; " + 
+        "script-src 'self' https://cdn.jsdelivr.net; " +
+        "style-src 'self'; object-src 'none'; " +
+        `connect-src 'self' ${process.env.API_BASE_URL || 'http://185.86.146.77:8080'} ${process.env.WS_URL || ''}; ` +
+        `img-src 'self' ${process.env.API_BASE_URL || 'http://185.86.146.77:8080'} blob: data:;`
     );
-    next()
+    next();
 });
 
-app.get(/\/(.*)/, (req, res) => {
-    res.render("index")
+app.use(express.static(distPath));
+
+app.get(/.*/, (req, res) => {
+    res.sendFile(path.resolve(__dirname, "dist", "index.html"));
 });
 
 app.listen(80, () => {
-    console.log(`Server started on ${Config.API_BASE_URL}`);
+    dotenv.config();
+    console.log(process.env.API_BASE_URL)
+    console.log("Server started at http://localhost:3000");
 });
+
+

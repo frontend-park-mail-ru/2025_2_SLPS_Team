@@ -1,0 +1,32 @@
+.chat-header{
+    display: flex;
+    padding: 12px;
+    gap: 10px;
+    border-bottom: 1px solid var(--light-border);
+    align-items: center;
+}
+
+.chat-name{
+    font-family: 'Nunito Sans';
+    font-size: 16px;
+    color: var(--text-black);
+}
+
+.user-status{
+    font-family: 'Nunito Sans';
+    font-size: 14px;
+    color: var(--dark-gray);
+}
+
+.chat-back-btn {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .chat-back-btn {
+        display: flex;
+    }
+}

@@ -1,0 +1,30 @@
+.gender-container{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.small-lable{
+    font-size: 14px;
+    color: var(--dark-gray);
+}
+
+.reg-bth-container{
+    display: flex;
+    gap: 6px;
+}
+
+.reg-bth-day{
+    width: 80px;
+}
+
+.reg-bth-month
+.reg-bth-year {
+    width: 126px;
+}
+
+.reg-bth-day .select,
+.reg-bth-month .select,
+.reg-bth-year .select {
+   gap: 0px !important;
+}

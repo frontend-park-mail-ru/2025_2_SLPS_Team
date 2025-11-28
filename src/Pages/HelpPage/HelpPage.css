@@ -1,0 +1,223 @@
+.help-page {
+    position: fixed;
+    top: 80px;
+    bottom: 20px;
+    display: flex;
+    box-sizing: border-box;
+    align-items: flex-start;
+}
+
+.help-page__content {
+    width: 860px;
+    max-width: 100%;
+    height: 100%;
+    background-color: var(--base-white);
+    border-radius: 14px;
+    padding: 16px 24px 20px 24px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+}
+
+.help-page__content::-webkit-scrollbar {
+    width: 0;
+    background: transparent;
+}
+
+.help-page__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.help-page__title {
+    font-family: 'Nunito Sans';
+    font-weight: 450;
+    font-size: 20px;
+    color: var(--text-black);
+}
+
+.help-page__table-wrapper {
+    background: var(--base-white);
+    border-radius: 12px;
+    overflow: visible;
+}
+
+.help-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.help-table__th {
+    text-align: left;
+    padding: 10px 16px;
+    font-weight: 500;
+    color: var(--text-secondary, #777);
+    background: #fafafa;
+    border-bottom: 1px solid var(--light-border);
+    white-space: nowrap;
+}
+
+.help-table__empty-row--hidden {
+  display: none;
+}
+
+.help-table__th--id {
+    width: 120px;
+}
+
+.help-table__th--topic {
+    width: 100%;
+}
+
+.help-table__th--date {
+    width: 140px;
+}
+
+.help-table__th--status {
+    width: 120px;
+}
+
+.help-table__th--actions {
+    width: 40px;
+}
+
+.help-table__sort-indicator {
+    font-size: 12px;
+    color: #b3b3b3;
+    margin-left: 4px;
+}
+
+.help-table__row {
+    border-bottom: 1px solid var(--light-border);
+}
+
+.help-table__cell {
+    padding: 10px 16px;
+    vertical-align: middle;
+    font-size: 14px;
+    color: var(--text-black);
+}
+
+.help-table__cell--topic {
+    max-width: 380px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.help-table__cell--status {
+    font-weight: 500;
+    min-width: 60px;
+}
+
+/* цвета статусов */
+.help-status--closed {
+    color: #26a65b; /* зелёный */
+}
+
+.help-status--in-progress {
+    color: #007bff; /* синий */
+}
+
+.help-status--canceled {
+    color: #e63946; /* красный */
+}
+
+.help-status--new {
+    color: #f39c12;
+}
+
+
+.help-table__actions-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 4px 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.help-table__actions-dots {
+    font-size: 18px;
+    line-height: 1;
+    color: #b3b3b3;
+}
+
+
+.help-row-menu {
+    position: absolute;
+    background: var(--base-white);
+    border-radius: 8px;
+    border: 1px solid var(--light-border);
+    padding: 6px 0;
+    display: flex;
+    flex-direction: column;
+    min-width: 150px;
+    z-index: 3000;
+}
+
+.help-row-menu__item {
+    padding: 6px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.help-row-menu__item:hover {
+    background: #f4f4ff;
+}
+
+.help-row-menu__item--danger {
+    color: #e63946;
+}
+
+.help-page__pagination {
+    margin-top: 16px;
+    display: flex;
+    gap: 8px;
+    position: absolute;
+    bottom: 16px;
+}
+
+.help-page__page-btn {
+    min-width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+}
+
+.help-page__page-btn--active {
+    background: rgba(121, 80, 242, 0.12);
+    color: var(--base-purple);
+    font-weight: 600;
+}
+
+.help-page__page-btn:hover:not(.help-page__page-btn--active) {
+    background: var(--light-border);
+}
+
+@media (max-width: 1024px) {
+    .help-page {
+        left: 220px;
+        right: 20px;
+    }
+}
+
+.help-table__row {
+    cursor: pointer;
+}
+

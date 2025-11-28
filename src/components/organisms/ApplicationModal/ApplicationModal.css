@@ -1,0 +1,144 @@
+.application-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(23, 23, 23, 0.35);
+    backdrop-filter: brightness(0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.application-container {
+    width: 544px;
+    max-height: 80vh;
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.application-container::-webkit-scrollbar {
+    width: 0;
+}
+
+.application-header {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.application-title {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--base-purple);
+}
+
+.application-subtitle {
+    font-size: 16px;
+    color: var(--text-black);
+}
+
+.application-info-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.application-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.field-label {
+    font-size: 16px;
+    color: var(--dark-gray);
+}
+
+.field-value {
+    font-size: 16px;
+    font-weight: 400;
+}
+
+.application-images {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.application-image-item {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.application-image-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.application-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.btn-default {
+    padding: 8px 14px;
+    background: #eee;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn-primary {
+    padding: 8px 14px;
+    background: var(--base-purple);
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.application-status-select .select-list {
+    position: absolute !important;
+    z-index: 1000 !important;
+    top: 75px;
+}
+
+
+.image-viewer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(10, 10, 10, 0.65);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.image-viewer.hidden {
+    display: none;
+}
+
+.image-viewer-img {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    cursor: zoom-out;
+}
+

@@ -1,0 +1,93 @@
+.icon-button{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-black);
+}
+
+.icon-button .icon {
+    width: 24px;
+    height: 24px;
+}
+
+.icon-button-counter{
+    font-family: 'Nunito Sans';
+    color: var(--dark-gray);
+    font-size: 16px;
+    font-weight: 400;
+}
+
+.icon-button .icon:hover{
+    filter: brightness(0.9);
+}
+
+.icon-button .icon,
+.icon-button-counter {
+    transition:
+        transform 0.18s ease-out,
+        color 0.18s ease-out,
+        filter 0.18s ease-out;
+}
+
+.icon-button--liked .icon {
+    filter: drop-shadow(0 0 4px rgba(255, 105, 180, 0.4));
+}
+
+.icon-button--liked .icon-button-counter {
+    color: var(--accent-color, #ff4b81);
+    font-weight: 500;
+}
+.icon-button .icon,
+.icon-button-counter {
+    transition: transform 0.15s ease-out, color 0.15s ease-out;
+}
+
+@keyframes like-bump {
+    0% {
+        transform: translateY(0) scale(1);
+    }
+    35% {
+        transform: translateY(-4px) scale(1.1);
+    }
+    100% {
+        transform: translateY(0) scale(1);
+    }
+}
+
+.icon-button--bump .icon {
+    animation: like-bump 0.22s ease-out;
+}
+
+@keyframes counter-spin-up {
+    0% {
+        transform: translateY(6px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes counter-spin-down {
+    0% {
+        transform: translateY(-6px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.icon-button-counter--spin-up {
+    animation: counter-spin-up 0.18s ease-out;
+}
+
+.icon-button-counter--spin-down {
+    animation: counter-spin-down 0.18s ease-out;
+}

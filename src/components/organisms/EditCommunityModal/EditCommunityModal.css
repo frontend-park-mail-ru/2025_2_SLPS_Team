@@ -1,0 +1,225 @@
+.edit-community-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Nunito Sans', sans-serif;
+}
+
+.edit-community-modal__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.edit-community-modal__window {
+    position: relative;
+    z-index: 1;
+    width: 420px;
+    max-width: calc(100% - 32px);
+    background: var(--base-white);
+    border-radius: 16px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
+    box-sizing: border-box;
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0px;
+    gap: 14px;
+}
+
+.edit-community-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.edit-community-modal__title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--base-purple);
+}
+
+.edit-community-modal__close {
+  position: absolute;
+  right: 0px;
+  top: 18px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.edit-community-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 380px;
+}
+
+.edit-community-modal__field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+}
+
+.edit-community-modal__label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.edit-community-modal__label,
+.edit-community-modal__counter {
+  font-size: 16px;
+  color: var(--dark-gray);
+}
+
+.edit-community-modal__input {
+  height: 35px;
+  border-radius: 6px;
+  border: 1px solid var(--light-border);
+  background-color: var(--light-gray);
+  padding: 4px 12px;
+  font-size: 14px;
+  outline: none;
+}
+
+.edit-community-modal__input:focus {
+  border: 1px solid var(--base-purple);
+}
+
+.edit-community-modal__input::placeholder {
+  color: var(--dark-gray);
+  font-family: inherit;
+}
+
+
+.edit-community-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.edit-community-modal__btn {
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: transparent;
+}
+
+.edit-community-modal__btn--secondary {
+  border-color: var(--base-purple);
+  color: var(--base-purple);
+  background: var(--base-white);
+}
+
+.edit-modal-container {
+  width: 460px;
+  height: fit-content;
+  position: relative;
+}
+
+.edit-community-modal__devider {
+  height: 1px;
+  background-color: var(--light-border);
+  width: 100%;
+}
+
+.community-avatar-upload {
+    display: flex;
+    justify-content: center;
+}
+
+.community-avatar-preview {
+    width: 80px;
+    height: 80px;
+    position: relative;
+    border-radius: 50%;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.community-avatar-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.community-avatar-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.3);
+    opacity: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: .2s;
+}
+
+.community-avatar-preview:hover .community-avatar-overlay {
+    opacity: 1;
+}
+
+.community-avatar-menu {
+    position: absolute;
+    z-index: 20;
+    top: 125px;
+    left: 48px;
+}
+
+.community-avatar-section {
+    display: flex;
+    flex-direction: row;
+    gap: 22px;
+    height: 80px;
+}
+
+@media (max-width: 768px) {
+  .edit-community-modal {
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .edit-community-modal__window {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 16px 16px 0 0;
+    transform: translateY(100%);
+    transition: transform 0.35s ease;
+  }
+
+  .edit-community-modal.open .edit-community-modal__window {
+    transform: translateY(0);
+    transform: translateY(0);
+    height: 500px;
+    justify-content: flex-start;
+  }
+
+  .edit-community-modal__form {
+    width: 90%;
+  }
+
+  .edit-community-modal__input,
+  .edit-community-modal__textarea {
+    width: 100%;
+    height: 35px;
+  }
+
+  .edit-community-modal__close {
+    display: none;
+  }
+}

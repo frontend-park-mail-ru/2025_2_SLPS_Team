@@ -1,0 +1,75 @@
+
+{{!-- Вариант для ПРОФИЛЯ --}}
+{{#if isProfile}}
+  <img class="header-image" src="{{coverPath}}">
+
+  <div class="profile-header-content">
+    <img class="profile-avatar" src="{{avatarPath}}">
+
+    <div class="user-info-container">
+      <div class="user-infromation">{{title}}</div>
+
+      <div class="user-info">
+        {{subtitle}}
+        {{#if showMoreButton}}
+          <button class="profile-toggle-btn">Подробнее</button>
+        {{/if}}
+      </div>
+    </div>
+
+    {{#if isOwner}}
+      <div class="edit-open">Редактировать профиль</div>
+    {{else}}
+      {{#if showCancelRequest}}
+        <div class="request-text">Заявка отправлена</div>
+      {{/if}}
+
+      {{#if showMessage}}
+        <div class="message-btn">Написать сообщение</div>
+      {{/if}}
+
+      {{#if showAddFriend}}
+        <div class="add-friend-btn">Добавить в друзья</div>
+      {{/if}}
+
+      {{#if showBlocked}}
+        <div class="unblock-user-btn">Разблокировать Пользователя</div>
+      {{/if}}
+    {{/if}}
+  </div>
+{{/if}}
+
+
+{{!-- Вариант для СООБЩЕСТВА --}}
+{{#if isCommunity}}
+  <div class="community-header-card">
+    <img class="community-header-card__cover" src="{{coverPath}}">
+
+    <div class="community-header-card__content">
+      <div class="community-header-card__left">
+        <div class="community-header-card__avatar-wrapper">
+          <img class="community-header-card__avatar" src="{{avatarPath}}">
+        </div>
+
+        <div class="community-header-card__info">
+          <div class="community-header-card__name">{{title}}</div>
+          <div class="community-header-card__subscribers">{{subtitle}}</div>
+        </div>
+      </div>
+
+      <div class="community-header-card__right">
+        {{#if isOwner}}
+          <div class="community-owner-actions">
+            <div class="owner-menu-button"></div>
+            <div class="owner-menu-dropdown"></div>
+          </div>
+        {{else}}
+          <button
+            class="community-subscribe-btn"
+            data-role="subscribe-toggle"
+          ></button>
+        {{/if}}
+      </div>
+    </div>
+  </div>
+{{/if}}

@@ -1,0 +1,41 @@
+.community-created {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.community-created__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.community-created__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.community-created__name {
+  font-size: 16px;
+  color: var(--text-black);
+  text-align: left;
+  font-weight: 330;
+  font-family: 'Nunito Sans';
+}
+
+@media (max-width: 768px) {
+  .community-sidebar__title {
+    display: none;
+  }
+
+  .community-sidebar__created-list {
+    display: none !important;
+  }
+}

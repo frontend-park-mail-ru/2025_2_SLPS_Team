@@ -1,0 +1,203 @@
+.create-community-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Nunito Sans', sans-serif;
+}
+
+.create-community-modal__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.create-community-modal__window {
+    position: relative;
+    z-index: 1;
+    width: 420px;
+    max-width: calc(100% - 32px);
+    background: var(--base-white);
+    border-radius: 16px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
+    box-sizing: border-box;
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0px;
+    gap: 14px;
+}
+
+.create-community-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.create-community-modal__title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--base-purple);
+}
+
+.create-community-modal__close {
+  position: absolute;
+  right: 0px;
+  top: 18px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.create-community-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 380px;
+}
+
+.create-community-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.create-community-modal__label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.create-community-modal__label,
+.create-community-modal__counter {
+  font-size: 16px;
+  color: var(--dark-gray);
+}
+
+.create-community-modal__input {
+  height: 35px;
+  border-radius: 6px;
+  border: 1px solid var(--light-border);
+  background-color: var(--light-gray);
+  padding: 4px 12px;
+  font-size: 14px;
+  outline: none;
+}
+
+.create-community-modal__input:focus {
+  border: 1px solid var(--base-purple);
+}
+
+.create-community-modal__input::placeholder {
+  color: var(--dark-gray);
+  font-family: inherit;
+}
+
+.create-community-modal__textarea {
+  resize: vertical;
+  min-height: 64px;
+  border-radius: 10px;
+  border: 1px solid var(--light-border);
+  padding: 8px 10px;
+  font-size: 14px;
+  outline: none;
+}
+
+.create-community-modal__textarea::placeholder {
+  color: #b4b4b4;
+}
+
+.create-community-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.create-community-modal__btn {
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: transparent;
+}
+
+.create-community-modal__btn--secondary {
+  border-color: var(--base-purple);
+  color: var(--base-purple);
+  background: #ffffff;
+}
+
+.create-community-modal__btn--secondary:hover {
+  background: rgba(132, 94, 247, 0.06);
+}
+
+.create-community-modal__btn--primary {
+  border-color: var(--base-purple);
+  background: var(--base-purple);
+  color: #ffffff;
+}
+
+.create-community-modal__btn--primary:hover {
+  opacity: 0.95;
+}
+
+.create-modal-container {
+  width: 460px;
+  height: fit-content;
+  position: relative;
+}
+
+.create-community-modal__devider {
+  height: 1px;
+  background-color: var(--light-border);
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .create-community-modal {
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .create-community-modal__window {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 16px 16px 0 0;
+    transform: translateY(100%);
+    transition: transform 0.35s ease;
+  }
+
+  .create-community-modal.open .create-community-modal__window {
+    transform: translateY(0);
+    transform: translateY(0);
+    height: 500px;
+    justify-content: flex-start;
+  }
+
+  .create-community-modal__form {
+    width: 90%;
+  }
+
+  .create-community-modal__input,
+  .create-community-modal__textarea {
+    width: 100%;
+    height: 35px;
+  }
+
+  .create-community-modal__close {
+    display: none;
+  }
+}
+
