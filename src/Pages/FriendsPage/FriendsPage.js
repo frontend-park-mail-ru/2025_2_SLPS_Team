@@ -6,7 +6,14 @@ import { ApplicationModal } from '../../components/organisms/ApplicationModal/Ap
 
 import './FriendsPage.css';
 
-import { getFriendRequests, getFriends, getPossibleFriends } from '../../shared/api/friendsApi.js';
+import {
+  getFriendRequests,
+  getFriends,
+  getPossibleFriends,
+  searchProfiles,
+} from '../../shared/api/friendsApi.js';
+
+// === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
 
 function calculateAge(dobString) {
   if (!dobString) return null;
@@ -16,16 +23,26 @@ function calculateAge(dobString) {
   return Math.abs(ageDate.getUTCFullYear() - 1970);
 }
 
+const SEARCH_TYPES_BY_LIST = {
+  friends: 'accepted',
+  subscribers: 'pending',
+  possible: 'notFriends',
+};
+
 export class FriendsPage extends BasePage {
   constructor(rootElement) {
     super(rootElement);
     this.currentListType = 'friends';
     this.wrapper = null;
+
     this.friendsData = {
       friends: [],
       subscribers: [],
-      possible: []
+      possible: [],
     };
+
+    this.searchQuery = '';
+    this.currentSearchResults = null;
   }
 
   async render() {
@@ -60,22 +77,21 @@ export class FriendsPage extends BasePage {
     this.wrapper.appendChild(friendsPage);
     this.rootElement.appendChild(this.wrapper);
 
+    this.setupSearch(friendsPage, contentContainer, sidebarContainer);
+
     const supportButton = this.wrapper.querySelector('.friends-support-button');
     if (supportButton) {
-        const modal = new ApplicationModal(document.body, {
-            id: 12,
-            first_name: "Иван",
-            last_name: "Петров",
-            email: "test@example.com",
-            topic: "Не работает чат",
-            description: "Сообщения не отправляются",
-            status: "processing",
-            images: [
-                "/public/testData/1.jpg",
-                "/public/testData/1.jpg"
-            ]
-        });
-        supportButton.addEventListener('click', () => modal.open());
+      const modal = new ApplicationModal(document.body, {
+        id: 12,
+        first_name: 'Иван',
+        last_name: 'Петров',
+        email: 'test@example.com',
+        topic: 'Не работает чат',
+        description: 'Сообщения не отправляются',
+        status: 'processing',
+        images: ['/public/testData/1.jpg', '/public/testData/1.jpg'],
+      });
+      supportButton.addEventListener('click', () => modal.open());
     }
   }
 
@@ -105,7 +121,6 @@ export class FriendsPage extends BasePage {
     }));
 
     const possibleRaw = await getPossibleFriends();
-
     const possible = (possibleRaw || []).map((user) => ({
       userID: user.userID,
       name: user.fullName,
@@ -117,8 +132,11 @@ export class FriendsPage extends BasePage {
     this.friendsData = { friends, subscribers, possible };
   }
 
+
   renderCurrentList() {
-    const data = this.friendsData[this.currentListType];
+    const baseData = this.friendsData[this.currentListType] || [];
+    const data = this.currentSearchResults ?? baseData;
+
     if (!data) return null;
 
     return renderFriendsList({
@@ -135,6 +153,14 @@ export class FriendsPage extends BasePage {
         const listType = event.currentTarget.dataset.type;
         if (listType && listType !== this.currentListType) {
           this.currentListType = listType;
+
+          this.searchQuery = '';
+          this.currentSearchResults = null;
+          const searchInput = this.wrapper.querySelector('.search-input');
+          if (searchInput) {
+            searchInput.value = '';
+          }
+
           this.rerenderList(contentContainer, sidebarContainer);
           this.changeHeader();
         }
@@ -165,5 +191,60 @@ export class FriendsPage extends BasePage {
   changeHeader() {
     const header = this.wrapper.querySelector('.friends-page__title');
     if (header) header.textContent = this.getTitle();
+  }
+
+
+  setupSearch(friendsPage, contentContainer, sidebarContainer) {
+    const searchInput = friendsPage.querySelector('.search-input');
+    if (!searchInput) {
+      return;
+    }
+
+    let searchTimeoutId = null;
+
+    searchInput.addEventListener('input', (event) => {
+      const value = event.target.value.trim();
+      this.searchQuery = value;
+
+      if (searchTimeoutId) {
+        clearTimeout(searchTimeoutId);
+      }
+
+      searchTimeoutId = setTimeout(() => {
+        this.handleSearchChange(contentContainer, sidebarContainer);
+      }, 300);
+    });
+
+  }
+
+  async handleSearchChange(contentContainer, sidebarContainer) {
+    const query = this.searchQuery;
+
+    if (!query) {
+      this.currentSearchResults = null;
+      this.rerenderList(contentContainer, sidebarContainer);
+      return;
+    }
+
+    const backendType = SEARCH_TYPES_BY_LIST[this.currentListType] || this.currentListType;
+
+    try {
+      const result = await searchProfiles(query, backendType);
+
+      const mapped = (result || []).map((user) => ({
+        userID: user.userID,
+        name: user.fullName,
+        avatarPath: user.avatarPath || null,
+        age: user.dob ? calculateAge(user.dob) : null,
+        type: this.currentListType,
+      }));
+
+      this.currentSearchResults = mapped;
+      this.rerenderList(contentContainer, sidebarContainer);
+    } catch (err) {
+      console.error('[FriendsPage] searchProfiles error:', err);
+      this.currentSearchResults = null;
+      this.rerenderList(contentContainer, sidebarContainer);
+    }
   }
 }
