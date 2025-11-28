@@ -2,11 +2,11 @@
 Репозиторий команды SLPS Team. Проект VK.com
 http://185.86.146.77
 
-## Сборка и запус
+## Сборка и запуск
 ```npm run build```
 
 ```node server.mjs```
 
-## Запус api-server
+## Запуск api-server
 ```node api-server.mjs```
 
