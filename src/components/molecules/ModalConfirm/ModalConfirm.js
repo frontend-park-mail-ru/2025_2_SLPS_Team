@@ -1,5 +1,5 @@
 import ModalConfirmTemplate from './ModalConfirm.hbs'
-import BaseButton from '../../atoms/BaseButton/BaseButton.js';
+import BaseButton from '../../atoms/BaseButton/BaseButton.ts';
 import { on } from 'ws';
 
 

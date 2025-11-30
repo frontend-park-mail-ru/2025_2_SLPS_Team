@@ -10,7 +10,7 @@ import { EventBus } from '../../services/EventBus.js';
 import { authService } from '../../services/AuthService.js';
 import { navigateTo } from '../../app/router/navigateTo.js';
 import DropDown from '../../components/atoms/dropDown/dropDown.js';
-import BaseButton from '../../components/atoms/BaseButton/BaseButton.js';
+import BaseButton from '../../components/atoms/BaseButton/BaseButton.ts';
 import { EditCommunityModal } from '../../components/organisms/EditCommunityModal/EditCommunityModal.js';
 
 import {

@@ -1,6 +1,6 @@
 import CreatePostTemplate from './CreatePost.hbs';
 import { ImageInput } from '../../molecules/ImageInput/ImageInput.js';
-import BaseButton from '../../atoms/BaseButton/BaseButton.js';
+import BaseButton from '../../atoms/BaseButton/BaseButton.ts';
 import { NotificationManager } from '../NotificationsBlock/NotificationsManager.js';
 import { EventBus } from '../../../services/EventBus.js';
 import { createPost, updatePost } from '../../../shared/api/postsApi.js';

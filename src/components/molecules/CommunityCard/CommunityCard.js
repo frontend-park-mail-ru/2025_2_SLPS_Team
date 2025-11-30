@@ -1,6 +1,6 @@
 import CommunityCardTemplate from './CommunityCard.hbs';
 import './CommunityCard.css';
-import BaseButton from '../../atoms/BaseButton/BaseButton.js';
+import BaseButton from '../../atoms/BaseButton/BaseButton.ts';
 
 export function renderCommunityCard(context = {}) {
   const {

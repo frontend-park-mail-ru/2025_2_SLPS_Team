@@ -1,7 +1,7 @@
 import CreateSupportTemplate from './CreateSupportForm.hbs';
 import './CreateSupportForm.css';
 
-import BaseButton from '../../atoms/BaseButton/BaseButton.js';
+import BaseButton from '../../atoms/BaseButton/BaseButton.ts';
 import { NotificationManager } from '../NotificationsBlock/NotificationsManager.js';
 import SelectInput from '../../atoms/SelectInput/SelectInput.js';
 import BaseInput from '../../atoms/BaseInput/BaseInput.ts';

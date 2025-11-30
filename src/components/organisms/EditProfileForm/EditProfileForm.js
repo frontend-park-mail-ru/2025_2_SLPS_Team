@@ -2,7 +2,7 @@ import EditProfileTemplate from './EditProfileForm.hbs';
 import BaseInput from '../../atoms/BaseInput/BaseInput.ts';
 import SelectInput from '../../atoms/SelectInput/SelectInput.js';
 import DropDown from '../../atoms/dropDown/dropDown.js';
-import BaseButton from '../../atoms/BaseButton/BaseButton.js';
+import BaseButton from '../../atoms/BaseButton/BaseButton.ts';
 import { NotificationManager } from '../NotificationsBlock/NotificationsManager.js';
 import { navigateTo } from '../../../app/router/navigateTo.js';
 import { layout } from '../../../Pages/LayoutManager.js';

@@ -3,7 +3,7 @@ import './ApplicationModal.css';
 
 import SelectInput from '../../atoms/SelectInput/SelectInput.js';
 import { NotificationManager } from '../NotificationsBlock/NotificationsManager.js';
-import BaseButton from '../../atoms/BaseButton/BaseButton.js';
+import BaseButton from '../../atoms/BaseButton/BaseButton.ts';
 
 const notifier = new NotificationManager();
 
