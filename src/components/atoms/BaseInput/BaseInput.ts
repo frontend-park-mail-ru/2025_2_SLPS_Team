@@ -1,4 +1,5 @@
 import BaseInputTemplate from "./BaseInput.hbs"
+import type { BaseInputConfig } from "@shared/types/components.js";
 
 /**
  * @module BaseInput
@@ -12,7 +13,7 @@ export default class BaseInput {
     wrapper: HTMLElement | null;
     input: HTMLInputElement | null;
     errorEl: HTMLElement | null;
-    constructor(container: HTMLElement, config: any) {
+    constructor(container: HTMLElement, config: BaseInputConfig) {
         this.container = container;
         this.config = {
             header: "aaa",

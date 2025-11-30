@@ -1,4 +1,5 @@
 import NavButtonTemplate from './NavButton.hbs'
+import type { NavButtonData } from '@shared/types/components.js';
 
 /**
  * Создаёт и возвращает HTML-элемент кнопки навигации.
@@ -17,13 +18,13 @@ import NavButtonTemplate from './NavButton.hbs'
  *   onClick: () => console.log('Навигация назад')
  * }).then(button => document.body.appendChild(button));
  */
-export async function renderNavButton({icon, position, onClick}){
+export async function renderNavButton({icon, position, onClick}: NavButtonData): Promise<HTMLElement>{
     const template = NavButtonTemplate;
     const html = template({ icon, position });
 
     const wrapper = document.createElement("div");
     wrapper.innerHTML = html.trim();
-    const button = wrapper.firstElementChild;
+    const button = wrapper.firstElementChild as HTMLButtonElement;
 
     if (onClick) {
         button.addEventListener("click", onClick);

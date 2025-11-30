@@ -1,4 +1,5 @@
 import MenuItemsTemplate from './MenuItem.hbs'
+import type {MenuItemOptions} from "@shared/types/components.js"
 
 /**
  * Создаёт и возвращает HTML-элемент пункта меню.
@@ -22,13 +23,19 @@ import MenuItemsTemplate from './MenuItem.hbs'
  *   onClick: (view) => console.log('Перешли на', view)
  * }).then(menuItem => document.body.appendChild(menuItem));
  */
-export async function renderMenuItem({ label, view, icon = null, isActive = false, onClick }) {
+export async function renderMenuItem({ 
+    label, 
+    view, 
+    icon = null, 
+    isActive = false, 
+    onClick }: MenuItemOptions): Promise<HTMLElement> {
+        
     const template = MenuItemsTemplate;
     const html = template({ label, view, icon, isActive });
 
     const wrapper = document.createElement("div");
     wrapper.innerHTML = html.trim();
-    const menuItem = wrapper.firstElementChild;
+    const menuItem = wrapper.firstElementChild as HTMLElement;
 
     if (onClick) {
         menuItem.addEventListener("click", () => onClick(view));

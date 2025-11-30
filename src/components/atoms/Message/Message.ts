@@ -1,16 +1,18 @@
 import MessageTemplate from './Message.hbs';
+import type { MessageData } from '@shared/types/components.js';
 
 export class Message {
-    constructor(rootElement, messageData, isMine, isLastInGroup, withAnimation) {
-        this.rootElement = rootElement;
-        this.messageData = messageData;
-        this.isMine = isMine;
-        this.isLastInGroup = isLastInGroup;
-        this.wrapper = null;
-        this.withAnimation = withAnimation;
-    }
+    wrapper: HTMLElement | null = null;
 
-    render(status = false) {
+    constructor(
+        public rootElement: HTMLElement,
+        public messageData: MessageData,
+        public isMine: boolean,
+        public isLastInGroup: boolean,
+        public withAnimation: boolean
+    ) {}
+
+    render(status = false): void {
         const tempDiv = document.createElement('div');
 
         tempDiv.innerHTML = MessageTemplate({
@@ -19,12 +21,12 @@ export class Message {
             isMine: this.isMine,
         });
 
-        this.wrapper = tempDiv.firstElementChild;
+        this.wrapper = tempDiv.firstElementChild as HTMLElement;
 
 
         // container.querySelector(`[data-message-id="${id}"]`)
         if (this.messageData.id != null) {
-            this.wrapper.dataset.messageId = this.messageData.id;
+            this.wrapper.dataset.messageId = String(this.messageData.id);
         }
 
         if (!this.withAnimation) {
@@ -46,7 +48,7 @@ export class Message {
         }
     }
 
-    formatTime(datetime) {
+    private formatTime(datetime?: string | Date): string{
         if (!datetime) return '';
         const date = new Date(datetime);
         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });

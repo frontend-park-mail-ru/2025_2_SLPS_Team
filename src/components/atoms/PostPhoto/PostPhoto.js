@@ -1,4 +1,5 @@
 import PostPhotoTemplate from './PostPhoto.hbs';
+import { renderNavButton } from "../NavButton/NavButton.ts";
 
 /**
  * Создаёт и возвращает HTML-элемент блока с фотографиями поста.
@@ -12,7 +13,6 @@ import PostPhotoTemplate from './PostPhoto.hbs';
  *   document.body.appendChild(photoElement);
  * });
  */
-import { renderNavButton } from "../NavButton/NavButton.js";
 
 export async function renderPostPhoto(photos) {
     console.log(photos);

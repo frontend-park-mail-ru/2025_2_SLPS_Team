@@ -1,8 +1,8 @@
 import { renderPostPhoto } from '../../atoms/PostPhoto/PostPhoto.js';
-import { renderIconButton } from '../../atoms/IconButton/IconButton.js';
+import { renderIconButton } from '../../atoms/IconButton/IconButton.ts';
 import PostTemplate from './Post.hbs';
 import { authService } from '../../../services/AuthService.js';
-import DropDown from '../../atoms/dropDown/dropDown.js';
+import DropDown from '../../atoms/dropDown/dropDown.ts';
 import { ModalConfirm } from '../ModalConfirm/ModalConfirm.js';
 import { NotificationManager } from '../../organisms/NotificationsBlock/NotificationsManager.js';
 import { CreatePostForm } from '../../organisms/CreatePost/CreatePost.js';

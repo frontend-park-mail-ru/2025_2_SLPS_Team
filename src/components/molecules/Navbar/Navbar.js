@@ -1,5 +1,5 @@
 import NavbarTemplate from './Navbar.hbs';
-import DropDown from '../../atoms/dropDown/dropDown.js';
+import DropDown from '../../atoms/dropDown/dropDown.ts';
 import { navigateTo } from '../../../index.js';
 import { authService } from '../../../services/AuthService.js';
 import { NavbarSearchModal } from '../../molecules/NavbarSearchModal/NavbarSearchModal.js';

@@ -1,11 +1,13 @@
 import BaseButtonTemplate from './BaseButton.hbs';
+import type { BaseButtonConfig } from '@shared/types/components.js';
+
 
 export default class BaseButton {
     container: HTMLElement;
     config: any;
     wrapper: HTMLElement | null;
     button: HTMLButtonElement | null;
-    constructor(container: HTMLElement, config: any) {
+    constructor(container: HTMLElement, config: BaseButtonConfig) {
         this.container = container;
         this.config = {
             text: "",

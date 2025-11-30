@@ -13,13 +13,17 @@ import IconButtonTemplate from './IconButton.hbs'
  * renderIconButton('heart', 5, () => console.log('clicked'))
  *   .then(button => document.body.appendChild(button));
  */
-export async function renderIconButton(icon, count, onClick){
+export async function renderIconButton(
+    icon: string, 
+    count: number, 
+    onClick?: () => void): Promise<HTMLElement> {
+
     const template = IconButtonTemplate;
     const html = template({icon,count});
 
     const wrapper = document.createElement("div");
     wrapper.innerHTML = html.trim();
-    const button = wrapper.firstElementChild;
+    const button = wrapper.firstElementChild as HTMLElement;
 
     if (onClick) {
         button.addEventListener("click", onClick);

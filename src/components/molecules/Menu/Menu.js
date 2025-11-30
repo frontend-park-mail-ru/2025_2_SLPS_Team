@@ -1,4 +1,4 @@
-import { renderMenuItem } from '../../atoms/MenuItem/MenuItem.js';
+import { renderMenuItem } from '../../atoms/MenuItem/MenuItem.ts';
 import MenuTemplate from './Menu.hbs';
 
 /**
@@ -64,6 +64,6 @@ export async function renderMenu({ items, onNavigate }) {
 
     const sidebarContainer = wrapper.querySelector(".sidebar-container");
     wrapper.sidebarContainer = sidebarContainer;
-    
+
     return wrapper;
 }

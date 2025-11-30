@@ -1,5 +1,5 @@
 import ImageInputTemplate from './ImageInput.hbs';
-import { renderNavButton } from '../../atoms/NavButton/NavButton.js';
+import { renderNavButton } from '../../atoms/NavButton/NavButton.ts';
 import { renderRemoveButton } from '../../atoms/RemoveButton/RemoveButton.js';
 
 export class ImageInput {

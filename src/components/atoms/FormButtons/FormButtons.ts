@@ -20,13 +20,20 @@ import FormButtonTemplate from './FormButtons.hbs';
  * });
  */
 
-export async function renderFormButton(container, type, text, classType, onClick){
+export async function renderFormButton(
+        container: HTMLElement,
+        type: string,
+        text: string,
+        classType: string,
+        onClick?: () => void
+    ): Promise<HTMLElement> {
+    
     const template = FormButtonTemplate;
     const html = template({classType,text,type});
 
     const wrapper = document.createElement("div");
     wrapper.innerHTML = html.trim();
-    const button = wrapper.firstElementChild;
+    const button = wrapper.firstElementChild as HTMLButtonElement;
 
     if (onClick) {
         button.addEventListener("click", onClick);

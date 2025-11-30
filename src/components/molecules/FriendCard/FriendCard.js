@@ -1,5 +1,5 @@
 import FriendCardTemplate from './FriendCard.hbs';
-import DropDown from '../../atoms/dropDown/dropDown.js';
+import DropDown from '../../atoms/dropDown/dropDown.ts';
 import BaseButton from '../../atoms/BaseButton/BaseButton.ts';
 import { ModalConfirm } from '../ModalConfirm/ModalConfirm.js';
 import { NotificationManager } from '../../organisms/NotificationsBlock/NotificationsManager.js';

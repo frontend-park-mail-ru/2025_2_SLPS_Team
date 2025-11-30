@@ -1,5 +1,5 @@
-import FormInput from "../../atoms/FormInput/FromInput.js";
-import { renderFormButton } from "../../atoms/FormButtons/FormButtons.js";
+import FormInput from "../../atoms/FormInput/FromInput.ts";
+import { renderFormButton } from "../../atoms/FormButtons/FormButtons.ts";
 import loginFormTemplate from "./LoginFrom.hbs";
 
 /**
