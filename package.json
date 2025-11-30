@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "webpack serve --config webpack.config.mjs --mode development",
     "build": "webpack --mode production",
-    "start": "ts-node server.ts",
+    "start": "node server.mjs",
     "jsdoc": "jsdoc -c jsdoc.json",
     "mock-ws": "node mock-web-socket/ws-server.mjs"
   },
