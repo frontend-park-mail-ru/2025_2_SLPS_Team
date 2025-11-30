@@ -25,6 +25,11 @@ export default {
   module: {
     rules: [
       {
+        test: /\.ts$/,
+        use: "ts-loader",
+        exclude: /node_modules/,
+      },
+      {
         test: /\.(js|mjs)$/,
         exclude: /node_modules/,
         use: 'babel-loader',
@@ -88,7 +93,7 @@ export default {
     }),
   ],
   resolve: {
-  extensions: ['.js', '.mjs'],
+  extensions: ['.js', '.mjs','.ts'],
   alias: {
     '@': path.resolve(__dirname, 'src'),
     '@app': path.resolve(__dirname, 'src/app'),

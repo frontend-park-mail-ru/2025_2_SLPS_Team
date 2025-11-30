@@ -1,7 +1,6 @@
 import CreateCommunityModalTemplate from './CreateCommunityModal.hbs';
 import './CreateCommunityModal.css';
-import BaseInput from '../../atoms/BaseInput/BaseInput.js';
-import BaseButton from '../../atoms/BaseButton/BaseButton.js';
+import BaseInput from '../../atoms/BaseInput/BaseInput.ts';
 
 export class CreateCommunityModal {
   constructor({ onSubmit, onCancel } = {}) {

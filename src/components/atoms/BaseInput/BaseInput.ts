@@ -7,7 +7,12 @@ import BaseInputTemplate from "./BaseInput.hbs"
  * Класс для создания базовых input полей.
  */
 export default class BaseInput {
-    constructor(container, config) {
+    container: HTMLElement;
+    config: any;
+    wrapper: HTMLElement | null;
+    input: HTMLInputElement | null;
+    errorEl: HTMLElement | null;
+    constructor(container: HTMLElement, config: any) {
         this.container = container;
         this.config = {
             header: "aaa",
@@ -32,16 +37,16 @@ export default class BaseInput {
 
         const wrapper = document.createElement("div");
         wrapper.innerHTML = html;
-        this.wrapper = wrapper.firstElementChild;
+        this.wrapper = wrapper.firstElementChild as HTMLElement;
 
-        this.input = this.wrapper.querySelector(".baseinput-field");
+        this.input = this.wrapper.querySelector(".baseinput-field") as HTMLInputElement;
         this.input.value = this.config.value || ""; 
 
         if (this.config.maxLength) {
-            const counter = this.wrapper.querySelector(".input-counter");
+            const counter = this.wrapper.querySelector(".input-counter") as HTMLElement | null;
             if (counter) {
                 this.input.addEventListener("input", () => {
-                    counter.textContent = this.config.maxLength - this.input.value.length;
+                    counter.textContent = String(this.config.maxLength - this.input!.value.length);
                 });
             }
         }
@@ -49,15 +54,15 @@ export default class BaseInput {
         this.container.appendChild(this.wrapper);
     }
 
-    showError() {
-        this.input.classList.add("invalid");
+    showError(): void {
+        this.input?.classList.add("invalid");
     }
 
-    hideError() {
-        this.input.classList.remove("invalid");
+    hideError(): void {
+        this.input!.classList.remove("invalid");
     }
 
     getValue() {
-        return this.input.value;
+        return this.input!.value;
     }
 }

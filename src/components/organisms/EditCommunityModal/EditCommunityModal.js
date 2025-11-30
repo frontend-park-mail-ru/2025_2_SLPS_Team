@@ -1,6 +1,6 @@
 import EditCommunityModalTemplate from './EditCommunityModal.hbs';
 import './EditCommunityModal.css';
-import BaseInput from '../../atoms/BaseInput/BaseInput.js';
+import BaseInput from '../../atoms/BaseInput/BaseInput.ts';
 import BaseButton from '../../atoms/BaseButton/BaseButton.js';
 import DropDown from '../../atoms/dropDown/dropDown.js';
 
