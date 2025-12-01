@@ -1,5 +1,5 @@
 import ChatHeaderTemplate from './ChatHeader.hbs'
-import { UserPhotoItem } from '../../atoms/UserPhotoItem/UserPhotoItem.js';
+import { UserPhotoItem } from '../../atoms/UserPhotoItem/UserPhotoItem.ts';
 
 
 export class ChatHeader {

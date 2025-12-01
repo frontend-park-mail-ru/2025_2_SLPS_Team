@@ -42,6 +42,7 @@ export class MessengerPage extends BasePage {
     const chatItemsBlock = chatsContainer.querySelector('.chat-items-block');
 
     this.chats.forEach(chatData => {
+      console.log(chatData)
       const chatItem = new ChatItem(chatItemsBlock, chatData);
       chatItem.render();
 

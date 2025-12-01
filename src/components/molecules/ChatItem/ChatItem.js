@@ -1,5 +1,5 @@
 import ChatItemTemplate from './ChatItem.hbs'
-import { UserPhotoItem } from '../../atoms/UserPhotoItem/UserPhotoItem.js';
+import { UserPhotoItem } from '../../atoms/UserPhotoItem/UserPhotoItem.ts';
 
 export class ChatItem {
     constructor(rootElement, chatData) {
@@ -9,6 +9,7 @@ export class ChatItem {
         this.photoWrapper = null;
         this.photoElement = null;
         this.mesCounter  = null;
+        this.counter = 0;
     }
 
     render() {
@@ -17,6 +18,7 @@ export class ChatItem {
         this.wrapper = tempDiv.querySelector('.chat-item');
 
         this.photoWrapper = this.wrapper.querySelector('.user-avatar-container');
+        console.log(this.chatData);
         this.photoElement = new UserPhotoItem(this.photoWrapper, this.chatData.avatarPath);
         this.photoElement.render();
 
