@@ -1,5 +1,5 @@
 import PostPhotoTemplate from './PostPhoto.hbs';
-import { renderNavButton } from "../NavButton/NavButton.ts";
+import { renderNavButton } from '../NavButton/NavButton';
 
 /**
  * Создаёт и возвращает HTML-элемент блока с фотографиями поста.
@@ -14,20 +14,16 @@ import { renderNavButton } from "../NavButton/NavButton.ts";
  * });
  */
 
-export async function renderPostPhoto(photos) {
-    console.log(photos);
+export async function renderPostPhoto(photos: string[]): Promise<HTMLElement>{
+    const inputPhotos = photos || [];
 
-    if (!Array.isArray(photos) || photos.length === 0) {
-        photos = ["/public/globalImages/DefaultAvatar.svg"];
-    }
+    const DEFAULT_PHOTO = "/public/globalImages/DefaultAvatar.svg";
 
-    const filteredPhotos = photos.filter(photo => photo && photo.trim() !== "");
+    const filteredPhotos = Array.isArray(inputPhotos) ? inputPhotos.filter(p => typeof p === 'string' && p.trim() !== '') : [];
 
-    const finalPhotos = filteredPhotos.length > 0 
-        ? filteredPhotos 
-        : ["/public/globalImages/DefaultAvatar.svg"];
+    const finalPhotos = filteredPhotos.length > 0 ? filteredPhotos : [DEFAULT_PHOTO];
 
-    const photosWithFullPath = finalPhotos.map(photo => {
+    const photosWithFullPath: string[] = finalPhotos.map((photo: string) => {
         if (photo.startsWith("/public/")) return photo;
         return `${process.env.API_BASE_URL}/uploads/${photo}`;
     });
@@ -37,9 +33,9 @@ export async function renderPostPhoto(photos) {
 
     const wrapper = document.createElement("div");
     wrapper.innerHTML = html.trim();
-    const photoElement = wrapper.firstElementChild;
+    const photoElement = wrapper.firstElementChild as HTMLElement;
     const buttonElement = photoElement.querySelector('.photo-buttons');
-    const slider = photoElement.querySelector(".photo-slider");
+    const slider = photoElement.querySelector(".photo-slider") as HTMLElement;
 
     let currentIndex = 0;
             
@@ -60,7 +56,7 @@ export async function renderPostPhoto(photos) {
             position: 'next',
 
             onClick: () => {
-                if (currentIndex < photos.length - 1){
+                if (currentIndex < photosWithFullPath.length - 1){
                     currentIndex++;
                     slider.style.transform = `translateX(-${currentIndex * 100}%)`;
                     updateButtons();
@@ -74,15 +70,15 @@ export async function renderPostPhoto(photos) {
             } else {
                 prevBtn.style.display = 'flex';
             }
-            if (currentIndex === photos.length - 1) {
+            if (currentIndex === photosWithFullPath.length - 1) {
                 nextBtn.style.display = 'none';
             } else {
                 nextBtn.style.display = 'flex';
             }
         }
 
-        buttonElement.appendChild(prevBtn);
-        buttonElement.appendChild(nextBtn);
+        buttonElement.appendChild(prevBtn) as HTMLElement;
+        buttonElement.appendChild(nextBtn) as HTMLElement;
         updateButtons();
     }
 

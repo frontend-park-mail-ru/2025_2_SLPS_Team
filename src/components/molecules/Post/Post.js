@@ -1,4 +1,4 @@
-import { renderPostPhoto } from '../../atoms/PostPhoto/PostPhoto.js';
+import { renderPostPhoto } from '../../atoms/PostPhoto/PostPhoto.ts';
 import { renderIconButton } from '../../atoms/IconButton/IconButton.ts';
 import PostTemplate from './Post.hbs';
 import { authService } from '../../../services/AuthService.js';

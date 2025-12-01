@@ -1,6 +1,6 @@
 import ImageInputTemplate from './ImageInput.hbs';
 import { renderNavButton } from '../../atoms/NavButton/NavButton.ts';
-import { renderRemoveButton } from '../../atoms/RemoveButton/RemoveButton.js';
+import { renderRemoveButton } from '../../atoms/RemoveButton/RemoveButton.ts';
 
 export class ImageInput {
     constructor(rootElement) {
