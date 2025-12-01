@@ -3,7 +3,7 @@ import './CreateSupportForm.css';
 
 import BaseButton from '../../atoms/BaseButton/BaseButton.ts';
 import { NotificationManager } from '../NotificationsBlock/NotificationsManager.js';
-import SelectInput from '../../atoms/SelectInput/SelectInput.js';
+import SelectInput from '../../atoms/SelectInput/SelectInput.ts';
 import BaseInput from '../../atoms/BaseInput/BaseInput.ts';
 import { ImageInputSmall } from '../../molecules/InputImageSmall/InputImageSmall.js';
 import { createSupportRequest } from '../../../shared/api/helpApi.js';

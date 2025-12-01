@@ -1,6 +1,6 @@
 import EditProfileTemplate from './EditProfileForm.hbs';
 import BaseInput from '../../atoms/BaseInput/BaseInput.ts';
-import SelectInput from '../../atoms/SelectInput/SelectInput.js';
+import SelectInput from '../../atoms/SelectInput/SelectInput.ts';
 import DropDown from '../../atoms/dropDown/dropDown.ts';
 import BaseButton from '../../atoms/BaseButton/BaseButton.ts';
 import { NotificationManager } from '../NotificationsBlock/NotificationsManager.js';

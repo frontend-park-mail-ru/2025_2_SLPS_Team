@@ -56,3 +56,12 @@ export interface NavButtonData {
     position?: string;
     onClick?: () => void;
 }
+
+export interface SelectInputConfig {
+    header: string,
+    placeholder: string,
+    required: boolean,
+    value: string,
+    values?: [],
+    pressedStyle: boolean,
+}

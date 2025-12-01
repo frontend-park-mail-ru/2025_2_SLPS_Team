@@ -1,7 +1,7 @@
 import ApplicationModalTemplate from './ApplicationModal.hbs';
 import './ApplicationModal.css';
 
-import SelectInput from '../../atoms/SelectInput/SelectInput.js';
+import SelectInput from '../../atoms/SelectInput/SelectInput.ts';
 import { NotificationManager } from '../NotificationsBlock/NotificationsManager.js';
 import BaseButton from '../../atoms/BaseButton/BaseButton.ts';
 

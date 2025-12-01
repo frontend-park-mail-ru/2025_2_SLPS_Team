@@ -3,7 +3,7 @@ import { renderFormButton } from "../../atoms/FormButtons/FormButtons.ts";
 import RegFormTemplate from './RegForm.hbs';
 import { gsap } from "gsap";
 import { authService } from "../../../services/AuthService.js";
-import SelectInput from "../../atoms/SelectInput/SelectInput.js";
+import SelectInput from "../../atoms/SelectInput/SelectInput.ts";
 import { ModalConfirm } from '../ModalConfirm/ModalConfirm.js';
 
 const MONTH_NAMES = [
