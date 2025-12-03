@@ -1,6 +1,5 @@
 import ChatHeaderTemplate from './ChatHeader.hbs';
 import { UserPhotoItem } from '../../atoms/UserPhotoItem/UserPhotoItem';
-import type { ChatItemData } from '@shared/types/components';
 
 export class ChatHeader {
     wrapper: HTMLElement | null = null;
@@ -10,9 +9,8 @@ export class ChatHeader {
         public rootElement: HTMLElement,
         public name: string,
         public avatar: string,
-        public ChatData: ChatItemData,
         public hasBackButton: boolean,
-        public onBack?: () => void,
+        public onBack?: () => void
     ) {}
 
     render() {
@@ -25,7 +23,7 @@ export class ChatHeader {
         this.wrapper = tempDiv.firstElementChild as HTMLElement;
 
         const avatarContainer = this.wrapper.querySelector('.profile-avatar-container') as HTMLElement;
-        this.avatarComponent = new UserPhotoItem(avatarContainer, this.ChatData.avatarPath);
+        this.avatarComponent = new UserPhotoItem(avatarContainer, this.avatar);
         this.avatarComponent.render();
 
         if (this.hasBackButton) {

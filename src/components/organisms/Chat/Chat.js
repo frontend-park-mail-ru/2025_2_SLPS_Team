@@ -62,7 +62,6 @@ export class Chat {
 
     this.chatHeader = new ChatHeader(
       mainContainer.querySelector('.chat-header-container'),
-      null,
       this.data.name,
       this.data.avatarPath,
       this.hasBackButton,
