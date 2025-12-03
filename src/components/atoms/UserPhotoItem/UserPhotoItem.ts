@@ -12,7 +12,6 @@ export class UserPhotoItem {
 
     render(): void {
         const tempDiv = document.createElement('div');
-        console.log(this.photoPath);
         const photoPath: string =
             this.photoPath !== undefined && this.photoPath !== null && this.photoPath !== '' && this.photoPath !== 'null'
                 ? `${process.env.API_BASE_URL}/uploads/${this.photoPath}`

@@ -1,6 +1,6 @@
 import BasePage from '../BasePage.js';
 import MessengerPageTemplate from './MassengerPage.hbs';
-import { ChatItem } from '../../components/molecules/ChatItem/ChatItem.js';
+import { ChatItem } from '../../components/molecules/ChatItem/ChatItem.ts';
 import { Chat } from '../../components/organisms/Chat/Chat.js';
 import { SearchInput } from '../../components/molecules/SearchInput/SearchInput.js';
 import { EventBus } from '../../services/EventBus.js';

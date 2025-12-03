@@ -65,3 +65,35 @@ export interface SelectInputConfig {
     values?: [],
     pressedStyle: boolean,
 }
+
+export interface ChatMessage {
+    id: number;
+    authorID: number;
+    chatID: number;
+    text: string;
+    createdAt: string;
+}
+
+export interface ChatUser {
+    userID: number;
+    fullName: string;
+    avatarPath: string;
+    dob: string;
+}
+
+export interface ChatItemData {
+    id: number;
+    isGroup: boolean;
+    avatarPath: string;
+    name: string;
+
+    lastMessage?: ChatMessage | null;
+    lastMessageAuthor?: ChatUser | null;
+
+    lastReadMessageID?: number;
+    lastReadMessageId?: number;
+
+    unReadCounts?: number;
+    unreadCount?: number;
+}
+

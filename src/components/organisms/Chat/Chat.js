@@ -1,5 +1,5 @@
 import ChatTemplate from './Chat.hbs';
-import { ChatHeader } from '../../molecules/ChatHeader/ChatHeader.js';
+import { ChatHeader } from '../../molecules/ChatHeader/ChatHeader.ts';
 import { Message } from '../../atoms/Message/Message.ts';
 import { MessageInput } from '../../molecules/MessageInput/MessageInput.js';
 
