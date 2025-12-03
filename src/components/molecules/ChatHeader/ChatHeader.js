@@ -15,8 +15,7 @@ export class ChatHeader {
     }
 
     render() {
-        console.log(this.name)
-        console.log(this.avatar);
+        console.log(this.profileData);
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = ChatHeaderTemplate({ name: this.name, hasBackButton: this.hasBackButton});
         this.wrapper = tempDiv.firstElementChild;
