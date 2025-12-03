@@ -1,7 +1,14 @@
 import FriendsStatsTemplate from './FriendsStats.hbs';
 import './FriendsStats.css';
 
-export function renderFriendsStats(context = {}) {
+export interface FriendsStatsContext {
+    friendsCount?: number;
+    subscribersCount?: number;
+    possibleCount?: number;
+    currentType?: 'friends' | 'subscribers' | 'possible';
+}
+
+export function renderFriendsStats(context: FriendsStatsContext = {}): HTMLElement {
     const {
         friendsCount = 0,
         subscribersCount = 0,
@@ -17,10 +24,9 @@ export function renderFriendsStats(context = {}) {
         currentType
     });
 
-    const statsElement = wrapper.firstElementChild;
+    const statsElement = wrapper.firstElementChild as HTMLElement;
 
-    // Добавляем активный класс программно
-    const activeButton = statsElement.querySelector(`[data-type="${currentType}"]`);
+    const activeButton = statsElement.querySelector<HTMLElement>(`[data-type="${currentType}"]`);
     if (activeButton) {
         activeButton.classList.add('friends-stats__item--active');
     }

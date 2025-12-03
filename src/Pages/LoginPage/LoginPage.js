@@ -1,4 +1,4 @@
-import LoginForm from '../../components/molecules/LoginForm/LoginFrom.js';
+import LoginForm from '../../components/molecules/LoginForm/LoginFrom.ts';
 import loginPageTemplate from './LoginPage.hbs';
 import { loginUser } from '../../shared/api/authApi.js';
 import { navigateTo } from '../../app/router/navigateTo.js';

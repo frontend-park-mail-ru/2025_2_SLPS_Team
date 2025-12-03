@@ -3,8 +3,8 @@ import CommunityPageTemplate from './CommunityPage.hbs';
 import './CommunityPage.css';
 
 import { CreateCommunityModal } from '../../components/organisms/CreateCommunityModal/CreateCommunityModal.js';
-import { renderCommunityCard } from '../../components/molecules/CommunityCard/CommunityCard.js';
-import { renderCommunityCreated } from '../../components/molecules/CommunityCreated/CommunityCreated.js';
+import { renderCommunityCard } from '../../components/molecules/CommunityCard/CommunityCard.ts';
+import { renderCommunityCreated } from '../../components/molecules/CommunityCreated/CommunityCreated.ts';
 
 import {
   createCommunity,
@@ -266,18 +266,22 @@ export class CommunityPage extends BasePage {
     const container = this.root.querySelector(
       '.community-sidebar__created-list',
     );
-    if (!container) return;
+    if (!container){
+      console.log('ccccc')
+      return;
 
+    }
     container.innerHTML = '';
 
     this.created.forEach((item) => {
+      console.log(item);
       const createdItem = renderCommunityCreated({
         id: item.id,
         name: item.name,
         avatar: item.avatar,
         onClick: (id) => navigateTo(`/community/${id}`),
       });
-
+      console.log(createdItem);
       container.appendChild(createdItem);
     });
   }

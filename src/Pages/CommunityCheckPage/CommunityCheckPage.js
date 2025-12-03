@@ -1,11 +1,11 @@
 import BasePage from '../BasePage.js';
 import CommunityCheckPageTemplate from './CommunityCheckPage.hbs';
 import './CommunityCheckPage.css';
-import { renderCommunitySubscriberRow } from '../../components/molecules/CommunitySubscriberRow/CommunitySubscriberRow.js';
+import { renderCommunitySubscriberRow } from '../../components/molecules/CommunitySubscriberRow/CommunitySubscriberRow.ts';
 
 import { renderFeed } from '../../components/organisms/Feed/Feed.js';
 import { NotificationManager } from '../../components/organisms/NotificationsBlock/NotificationsManager.js';
-import { ModalConfirm } from '../../components/molecules/ModalConfirm/ModalConfirm.js';
+import { ModalConfirm } from '../../components/molecules/ModalConfirm/ModalConfirm.ts';
 import { EventBus } from '../../services/EventBus.js';
 import { authService } from '../../services/AuthService.js';
 import { navigateTo } from '../../app/router/navigateTo.js';
@@ -22,7 +22,7 @@ import {
 
 import { getCommunityPosts } from '../../shared/api/postsApi.js';
 
-import { renderHeaderCard } from '../../components/molecules/HeaderCard/HeaderCard.js';
+import { renderHeaderCard } from '../../components/molecules/HeaderCard/HeaderCard.ts';
 
 const notifier = new NotificationManager();
 
@@ -217,7 +217,6 @@ export class CommunityCheckPage extends BasePage {
 
   async renderSubscribersBlock() {
     const list = this.root.querySelector('[data-role="subscribers-list"]');
-    if (!list) return;
 
     const subscribers = await getCommunitySubscribers(this.communityId, 5);
     list.innerHTML = '';
@@ -231,6 +230,7 @@ export class CommunityCheckPage extends BasePage {
     }
 
     subscribers.forEach((user) => {
+      console.log(user);
       const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
 
       const avatarPath =
@@ -256,7 +256,6 @@ export class CommunityCheckPage extends BasePage {
           navigateTo(`/profile/${id}`);
         },
       });
-
       list.appendChild(row);
     });
   }

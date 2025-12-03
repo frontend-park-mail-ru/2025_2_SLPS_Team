@@ -1,8 +1,11 @@
 import BasePage from '../BasePage.js';
 import FriendsPageTemplate from './FriendsPage.hbs';
-import { renderFriendsStats } from '../../components/molecules/FriendsStats/FriendsStats.js';
+import { renderFriendsStats } from '../../components/molecules/FriendsStats/FriendsStats.ts';
 import { renderFriendsList } from '../../components/organisms/FriendsList/FriendsList.js';
 import { ApplicationModal } from '../../components/organisms/ApplicationModal/ApplicationModal.js';
+import { NotificationManager } from '../../components/organisms/NotificationsBlock/NotificationsManager.js';
+
+const notifier = new NotificationManager();
 
 import './FriendsPage.css';
 
@@ -46,6 +49,7 @@ export class FriendsPage extends BasePage {
   }
 
   async render() {
+    notifier.show('aaaaa');
     const existingWrapper = document.getElementById('page-wrapper');
     if (existingWrapper) existingWrapper.remove();
 

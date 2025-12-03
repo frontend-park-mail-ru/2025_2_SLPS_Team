@@ -5,7 +5,7 @@ import './HelpPage.css';
 import { NotificationManager } from '../../components/organisms/NotificationsBlock/NotificationsManager.js';
 
 import { createHelpRequestRow } from '../../components/molecules/HelpRequestRow/HelpRequestRow.js';
-import { renderPagination } from '../../components/molecules/Pagination/Pagination.js';
+import { renderPagination } from '../../components/molecules/Pagination/Pagination.ts';
 
 import {
   getSupportRequests,

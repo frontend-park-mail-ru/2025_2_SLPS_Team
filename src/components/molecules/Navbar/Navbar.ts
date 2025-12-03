@@ -1,10 +1,10 @@
 import NavbarTemplate from './Navbar.hbs';
-import DropDown from '../../atoms/dropDown/dropDown.ts';
+import DropDown from '../../atoms/dropDown/dropDown';
 import { navigateTo } from '../../../index.js';
 import { authService } from '../../../services/AuthService.js';
 import { NavbarSearchModal } from '../../molecules/NavbarSearchModal/NavbarSearchModal.js';
 
-export async function renderNavbar(photo) {
+export async function renderNavbar(photo: string): Promise<HTMLElement> {
     const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
     let avatarPath;
 
@@ -25,9 +25,9 @@ export async function renderNavbar(photo) {
     const wrapper = document.createElement('div');
     wrapper.innerHTML = html.trim();
 
-    const button = wrapper.querySelector('.dropdown-button');
-    const buttonIcon = wrapper.querySelector('.dropdown-button-icon');
-    const profileActionsConatiner = wrapper.querySelector('.navbar-profile-actions');
+    const button = wrapper.querySelector('.dropdown-button') as HTMLButtonElement;
+    const buttonIcon = wrapper.querySelector('.dropdown-button-icon') as HTMLElement;
+    const profileActionsConatiner = wrapper.querySelector('.navbar-profile-actions') as HTMLElement;
 
     const profileActions = new DropDown(profileActionsConatiner, {
         values: [
@@ -60,15 +60,16 @@ export async function renderNavbar(photo) {
     });
 
     document.addEventListener('click', (e) => {
-        if (!wrapper.contains(e.target)) {
+        const target = e.target as Node | null;
+        if (!wrapper.contains(target)) {
             profileActions.hide();
             buttonIcon.classList.remove('dropdown-button-icon--open');
         }
     });
 
-    const searchContainer = wrapper.querySelector('.navbar-input-container');
-    const searchInput = wrapper.querySelector('.navbar-input');
-    const searchIcon = wrapper.querySelector('.navbar-input-icon');
+    const searchContainer = wrapper.querySelector('.navbar-input-container') as HTMLElement;
+    const searchInput = wrapper.querySelector('.navbar-input') as HTMLInputElement;
+    const searchIcon = wrapper.querySelector('.navbar-input-icon') as HTMLImageElement;
 
     const searchModal = new NavbarSearchModal(searchContainer, baseUrl);
     searchModal.init(searchInput);

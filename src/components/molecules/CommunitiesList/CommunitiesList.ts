@@ -4,10 +4,11 @@ import {
   UPLOADS_BASE,
 } from '../../../shared/api/communityApi.js';
 import { navigateTo } from '../../../app/router/navigateTo.js';
+import type { Community } from '@shared/types/components';
 
 const DEFAULT_AVATAR = '/public/globalImages/DefaultAvatar.svg';
 
-function normalizeAvatar(avatarPath) {
+function normalizeAvatar(avatarPath: string | null | undefined): string {
   if (!avatarPath || avatarPath === 'null' || avatarPath === 'undefined') {
     return DEFAULT_AVATAR;
   }
@@ -19,14 +20,14 @@ function normalizeAvatar(avatarPath) {
   return `${UPLOADS_BASE}${avatarPath}`;
 }
 
-export async function renderCommunitiesList(userId, limit = 4) {
+export async function renderCommunitiesList(userId: number, limit = 4): Promise<HTMLElement>{
   if (!userId) {
     console.warn('[CommunitiesList] userId is not provided');
     const wrapper = document.createElement('div');
     return wrapper;
   }
 
-  let communitiesFromApi = [];
+  let communitiesFromApi: Array<{ id: number; name: string; avatarPath: string }> = [];
 
   try {
     communitiesFromApi = await getUserCommunities(userId, 1, limit);
@@ -35,7 +36,7 @@ export async function renderCommunitiesList(userId, limit = 4) {
     communitiesFromApi = [];
   }
 
-  const communities = (communitiesFromApi || [])
+  const communities: Community[] = (communitiesFromApi || [])
     .slice(0, limit)
     .map((c) => ({
       id: c.id,
@@ -51,9 +52,9 @@ export async function renderCommunitiesList(userId, limit = 4) {
   const wrapper = document.createElement('div');
   wrapper.innerHTML = html.trim();
 
-  const root = wrapper.firstElementChild;
+  const root = wrapper.firstElementChild as HTMLElement;
 
-  const items = root.querySelectorAll('.communities-list__item');
+  const items = root.querySelectorAll<HTMLElement>('.communities-list__item');
 
   items.forEach((item) => {
     const id = item.dataset.id;

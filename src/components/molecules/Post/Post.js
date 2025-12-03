@@ -3,7 +3,7 @@ import { renderIconButton } from '../../atoms/IconButton/IconButton.ts';
 import PostTemplate from './Post.hbs';
 import { authService } from '../../../services/AuthService.js';
 import DropDown from '../../atoms/dropDown/dropDown.ts';
-import { ModalConfirm } from '../ModalConfirm/ModalConfirm.js';
+import { ModalConfirm } from '../ModalConfirm/ModalConfirm.ts';
 import { NotificationManager } from '../../organisms/NotificationsBlock/NotificationsManager.js';
 import { CreatePostForm } from '../../organisms/CreatePost/CreatePost.js';
 import { EventBus } from '../../../services/EventBus.js';

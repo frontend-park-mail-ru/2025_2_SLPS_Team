@@ -1,28 +1,33 @@
 import ModalConfirmTemplate from './ModalConfirm.hbs'
-import BaseButton from '../../atoms/BaseButton/BaseButton.ts';
+import BaseButton from '../../atoms/BaseButton/BaseButton';
 import { on } from 'ws';
 
 
 export class ModalConfirm {
-    constructor(textMain, textSmall, onConfirmClick) {
-        this.wrapper = null;
-        this.confirmButton = null;
-        this.cancleButton = null;
-        this.buttonContainer = null;
+    wrapper: HTMLElement | null = null;
+    confirmButton: HTMLElement | null = null;
+    cancleButton: HTMLElement | null = null;
+    buttonContainer: HTMLElement | null = null;
+    closeButton: HTMLElement | null = null;
+
+    textMain: string;
+    textSmall: string;
+    onConfirmClick: () => void;
+
+    constructor(textMain: string, textSmall: string, onConfirmClick: () => void) {
         this.textMain = textMain;
         this.textSmall = textSmall;
-        this.closeButton = null;
         this.onConfirmClick = onConfirmClick;
     }
 
-    render() {
+    render(): void {
         const wrapper = document.createElement('div');
         wrapper.innerHTML = ModalConfirmTemplate({
             textMain: this.textMain,
             textSmall: this.textSmall,
         });
 
-        this.wrapper = wrapper.firstElementChild;
+        this.wrapper = wrapper.firstElementChild as HTMLElement;
         document.body.appendChild(this.wrapper);
         document.body.style.overflow = 'hidden';
 
@@ -33,7 +38,7 @@ export class ModalConfirm {
     }
 
     async addButtons() {
-        this.buttonContainer = this.wrapper.querySelector('.modal-confirm-buttons');
+        this.buttonContainer = this.wrapper!.querySelector('.modal-confirm-buttons') as HTMLButtonElement;
 
         const ApproveButton = new BaseButton(this.buttonContainer, {
             text: "Подтвердить",
@@ -55,29 +60,30 @@ export class ModalConfirm {
         await CancleButton.render();
     }
 
-    addListners() {
-        this.wrapper.addEventListener('click', (e) => {
+    addListners(): void {
+        this.wrapper!.addEventListener('click', (e) => {
             if (e.target === this.wrapper) {
                 this.close();
             }
         });
 
         
-        this.closeButton.addEventListener('click', () => {this.close()});
+        this.closeButton!.addEventListener('click', () => {this.close()});
     }
 
-    open() {
+    open(): void {
         if (!this.wrapper) this.render();
+        if (!this.wrapper) return;
 
         document.body.appendChild(this.wrapper);
         document.body.style.overflow = 'hidden';
 
         requestAnimationFrame(() => {
-            this.wrapper.classList.add('visible');
+            this.wrapper!.classList.add('visible');
         });
     }
 
-    close() {
+    close(): void {
         if (!this.wrapper) return;
 
         this.wrapper.classList.remove('visible');

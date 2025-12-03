@@ -1,31 +1,55 @@
 import ImageInputTemplate from './ImageInput.hbs';
-import { renderNavButton } from '../../atoms/NavButton/NavButton.ts';
-import { renderRemoveButton } from '../../atoms/RemoveButton/RemoveButton.ts';
+import { renderNavButton } from '../../atoms/NavButton/NavButton';
+import { renderRemoveButton } from '../../atoms/RemoveButton/RemoveButton';
+
+interface ExistingPhoto {
+    url: string;
+    isExisting: boolean;
+}
+
+type ImageItem = File | ExistingPhoto;
 
 export class ImageInput {
-    constructor(rootElement) {
+    rootElement: HTMLElement;
+    wrapper: HTMLElement | null;
+    fileInput!: HTMLInputElement;
+    originalLabel!: HTMLElement;
+    inputContainer!: HTMLElement;
+    preview!: HTMLElement;
+    sliderTrack!: HTMLElement;
+    addButton!: HTMLElement;
+    prevBtn: HTMLElement | null = null;
+    nextBtn: HTMLElement | null = null;
+
+    selectedFiles: ImageItem[];
+    currentIndex: number;
+
+    constructor(rootElement: HTMLElement) {
         this.rootElement = rootElement;
         this.wrapper = null;
         this.selectedFiles = [];
         this.currentIndex = 0;
     }
 
-    render() {
+    render(): void {
         const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = ImageInputTemplate();
-        this.wrapper = tempDiv.querySelector('.input-image-wrapper');
-        
-        this.fileInput = this.wrapper.querySelector('.input-image__input');
-        this.originalLabel = this.wrapper.querySelector('.input-image__original');
-        this.inputContainer = this.wrapper.querySelector('.input-image__container');
-        this.preview = this.wrapper.querySelector('.input-image__preview');
-        this.sliderTrack = this.wrapper.querySelector('.slider-track');
-        this.addButton = this.wrapper.querySelector('.add-new-image__button');
+        tempDiv.innerHTML = ImageInputTemplate({});
+
+        this.wrapper = tempDiv.querySelector('.input-image-wrapper') as HTMLElement;
+
+        this.fileInput = this.wrapper.querySelector('.input-image__input') as HTMLInputElement;
+        this.originalLabel = this.wrapper.querySelector('.input-image__original') as HTMLElement;
+        this.inputContainer = this.wrapper.querySelector('.input-image__container') as HTMLElement;
+        this.preview = this.wrapper.querySelector('.input-image__preview') as HTMLElement;
+        this.sliderTrack = this.wrapper.querySelector('.slider-track') as HTMLElement;
+        this.addButton = this.wrapper.querySelector('.add-new-image__button') as HTMLElement;
 
         this.addNavigationButtons();
         this.addEventListeners();
+
         this.rootElement.appendChild(this.wrapper);
     }
+
 
     async addNavigationButtons() {
         this.prevBtn = await renderNavButton({
@@ -69,17 +93,19 @@ export class ImageInput {
             e.preventDefault();
             e.stopPropagation();
             this.inputContainer.classList.remove('drag-over');
-
-            this.addFiles(Array.from(e.dataTransfer.files));
+            if (e.dataTransfer?.files) {
+                this.addFiles(Array.from(e.dataTransfer.files));
+            }
         });
 
     }
 
     handleFileSelect() {
+        if (!this.fileInput.files) return;
         this.addFiles(Array.from(this.fileInput.files));
     }
 
-    addFiles(files) {
+    addFiles(files: File[]): void {
         const imageFiles = files.filter(f => f.type.startsWith('image/'));
         if (imageFiles.length === 0) return;
 
@@ -97,11 +123,12 @@ export class ImageInput {
             slide.className = 'slide';
 
             const file = this.selectedFiles[i];
+            if (!file) continue;
             let imgUrl = '';
 
             if (file instanceof File) {
                 imgUrl = URL.createObjectURL(file);
-            } else if (file.url) {
+            } else if ('url' in file) {
                 imgUrl = file.url;
             } else {
                 continue;
@@ -139,7 +166,7 @@ export class ImageInput {
     }
 
 
-    removeImage(index) {
+    removeImage(index: number) {
         this.selectedFiles.splice(index, 1);
         
         if (this.currentIndex >= index && this.currentIndex > 0) {
@@ -153,11 +180,11 @@ export class ImageInput {
         }
     }
 
-    updateCarouselPosition() {
+    updateCarouselPosition(): void {
         this.sliderTrack.style.transform = `translateX(-${this.currentIndex * 100}%)`;
     }
 
-    showPrevImage() {
+    showPrevImage(): void {
         if (this.currentIndex > 0) {
             this.currentIndex--;
             this.updateCarouselPosition();
@@ -165,7 +192,7 @@ export class ImageInput {
         }
     }
 
-    showNextImage() {
+    showNextImage(): void {
         if (this.currentIndex < this.selectedFiles.length - 1) {
             this.currentIndex++;
             this.updateCarouselPosition();
@@ -173,7 +200,7 @@ export class ImageInput {
         }
     }
 
-    updateNavigation() {
+    updateNavigation(): void {
         if (this.prevBtn && this.nextBtn) {
             if (this.currentIndex === 0) {
                 this.prevBtn.style.display = 'none';
@@ -189,7 +216,7 @@ export class ImageInput {
         }
     }
 
-    clearPreview() {
+    clearPreview(): void {
         this.inputContainer.classList.remove('hidden');
         this.originalLabel.classList.remove('active');
         this.preview.classList.remove('active');
@@ -199,25 +226,22 @@ export class ImageInput {
         this.sliderTrack.innerHTML = '';
     }
 
-    getImages() {
+    getImages(): ImageItem[] {
         return this.selectedFiles;
     }
 
-    async displayExistingImages(photos) {
+    async displayExistingImages(photos: string[]): Promise<void> {
         if (!Array.isArray(photos) || photos.length === 0) return;
 
-        const photosWithFullPath = photos.map(photo => ({
+        const photosWithFullPath: ExistingPhoto[] = photos.map(photo => ({
             url: `${process.env.API_BASE_URL}/uploads/${photo}`,
             isExisting: true
         }));
 
-        this.selectedFiles = [
-            ...this.selectedFiles,
-            ...photosWithFullPath
-        ];
-
+        this.selectedFiles = [...this.selectedFiles, ...photosWithFullPath];
         this.currentIndex = this.selectedFiles.length - 1;
-        this.displayCarousel();
+
+        await this.displayCarousel();
     }
 
 }

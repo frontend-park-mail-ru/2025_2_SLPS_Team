@@ -11,7 +11,7 @@ export default class FormInput {
     container: HTMLElement;
     config: FormInputConfig;
     wrapper: HTMLElement | null;
-    input: HTMLInputElement | null;
+    input!: HTMLInputElement;
     errorEl: HTMLElement | null;
     floatingLabel: HTMLElement | null;
 
@@ -28,7 +28,6 @@ export default class FormInput {
         };
 
         this.wrapper = null;
-        this.input = null;
         this.errorEl = null;
         this.floatingLabel = null
     }
@@ -44,7 +43,7 @@ export default class FormInput {
         wrapper.innerHTML = html;
         this.wrapper = wrapper.firstElementChild as HTMLElement;
 
-        this.input = this.wrapper.querySelector("input");
+        this.input = this.wrapper.querySelector("input") as HTMLInputElement;
         this.input!.value = this.config.value || ""; 
         this.floatingLabel = this.wrapper.querySelector(".input-floating-label");
 

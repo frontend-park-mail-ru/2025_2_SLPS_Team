@@ -1,4 +1,4 @@
-import { renderMenuItem } from '../../atoms/MenuItem/MenuItem.ts';
+import { renderMenuItem } from '../../atoms/MenuItem/MenuItem';
 import MenuTemplate from './Menu.hbs';
 
 /**
@@ -15,22 +15,24 @@ import MenuTemplate from './Menu.hbs';
  * @param {boolean} [params.items[].isActive=false] - Флаг активности пункта.
  * @param {Function} [params.items[].onSelect] - Колбэк, вызываемый при выборе пункта меню. Получает `view` как аргумент.
  * @returns {Promise<HTMLElement>} Promise, который разрешается в корневой элемент меню (`wrapper`).
- *
- * @example
- * const menu = await renderMenu({
- *   items: [
- *     { label: "Главная", view: "home", isActive: true, onSelect: (v) => console.log("Выбрано:", v) },
- *     { label: "Профиль", view: "profile" },
- *     { label: "Настройки", view: "settings" }
- *   ]
- * });
- * document.body.appendChild(menu);
  */
-export async function renderMenu({ items, onNavigate }) {
-    const template = MenuTemplate;
 
-    const wrapper = document.createElement("div"); 
-    wrapper.innerHTML = template({});
+export interface MenuItem {
+    label: string;
+    view: string;
+    icon?: string;
+    isActive?: boolean;
+    onSelect?: (view: string) => void;
+}
+
+export interface RenderMenuParams {
+    items: MenuItem[];
+    onNavigate?: (view: string) => void;
+}
+
+export async function renderMenu({ items, onNavigate }: RenderMenuParams): Promise<HTMLElement> {
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = MenuTemplate({});
 
     const sidebarMenu = wrapper.querySelector(".sidebar-menu");
     if (!sidebarMenu) throw new Error(".sidebar-menu не найден в шаблоне");
@@ -47,23 +49,23 @@ export async function renderMenu({ items, onNavigate }) {
             onClick: () => {
                 items.forEach(i => i.isActive = i.view === item.view);
 
-                const allItems = menuContainer.querySelectorAll('.menu-item');
+                const allItems = menuContainer.querySelectorAll<HTMLElement>('.menu-item');
                 allItems.forEach(i => i.classList.remove('active'));
+
                 const clickedItem = Array.from(allItems).find(el =>
                     el.querySelector('.menu-item-label')?.textContent === item.label
                 );
                 clickedItem?.classList.add('active');
 
+                item.onSelect?.(item.view);
                 onNavigate?.(item.view);
             }
         });
 
         menuContainer.appendChild(menuItem);
     }
-    sidebarMenu.appendChild(menuContainer);
 
-    const sidebarContainer = wrapper.querySelector(".sidebar-container");
-    wrapper.sidebarContainer = sidebarContainer;
+    sidebarMenu.appendChild(menuContainer);
 
     return wrapper;
 }

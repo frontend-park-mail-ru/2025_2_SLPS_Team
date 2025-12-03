@@ -1,7 +1,7 @@
 export interface BaseButtonConfig {
     text?: string;
     style?: string;
-    onClick?: (event: MouseEvent) => void | null;
+    onClick?: (event: MouseEvent) => void | Promise<void> | null;
 }
 
 export interface BaseInputConfig {
@@ -18,6 +18,7 @@ export interface BaseInputConfig {
 export interface DropDownOption {
     label: string;
     value?: any;
+    icon?: string;
     onClick?: (option: DropDownOption) => void;
 }
 
@@ -35,6 +36,7 @@ export interface FormInputConfig {
     name?: string;
     validation?: string;
     label?: string;
+    showRequired?: boolean
 }
 
 export interface MenuItemOptions {
@@ -95,5 +97,11 @@ export interface ChatItemData {
 
     unReadCounts?: number;
     unreadCount?: number;
+}
+
+export interface Community {
+  id: number;
+  name: string;
+  avatar: string;
 }
 

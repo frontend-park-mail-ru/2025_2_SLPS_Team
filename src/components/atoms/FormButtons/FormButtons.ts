@@ -25,7 +25,7 @@ export async function renderFormButton(
         type: string,
         text: string,
         classType: string,
-        onClick?: () => void
+        onClick?: (e: Event) => void,
     ): Promise<HTMLElement> {
     
     const template = FormButtonTemplate;

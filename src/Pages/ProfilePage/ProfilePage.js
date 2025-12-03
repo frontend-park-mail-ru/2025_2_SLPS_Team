@@ -2,10 +2,10 @@ import BasePage from '../BasePage.js';
 import { renderFeed } from '../../components/organisms/Feed/Feed.js';
 import ProfilePageTemplate from './ProfilePage.hbs';
 import { EditProfileForm } from '../../components/organisms/EditProfileForm/EditProfileForm.js';
-import { renderCommunitiesList } from '../../components/molecules/CommunitiesList/CommunitiesList.js';
+import { renderCommunitiesList } from '../../components/molecules/CommunitiesList/CommunitiesList.ts';
 import { authService } from '../../services/AuthService.js';
 import { NotificationManager } from '../../components/organisms/NotificationsBlock/NotificationsManager.js';
-import { ModalConfirm } from '../../components/molecules/ModalConfirm/ModalConfirm.js';
+import { ModalConfirm } from '../../components/molecules/ModalConfirm/ModalConfirm.ts';
 import { EventBus } from '../../services/EventBus.js';
 import { navigateTo } from '../../app/router/navigateTo.js';
 
@@ -17,7 +17,7 @@ import {
   openChatWithUser,
 } from '../../shared/api/profileApi.js';
 
-import { renderHeaderCard } from '../../components/molecules/HeaderCard/HeaderCard.js';
+import { renderHeaderCard } from '../../components/molecules/HeaderCard/HeaderCard.ts';
 
 const notifier = new NotificationManager();
 

@@ -1,4 +1,4 @@
-import { renderMenu } from '../Menu/Menu.js';
+import { renderMenu } from '../Menu/Menu.ts';
 
 export async function renderFeedSettings(items) {
     const menuWrapper = await renderMenu({

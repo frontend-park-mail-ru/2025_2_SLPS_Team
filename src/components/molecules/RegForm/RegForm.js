@@ -4,7 +4,7 @@ import RegFormTemplate from './RegForm.hbs';
 import { gsap } from "gsap";
 import { authService } from "../../../services/AuthService.js";
 import SelectInput from "../../atoms/SelectInput/SelectInput.ts";
-import { ModalConfirm } from '../ModalConfirm/ModalConfirm.js';
+import { ModalConfirm } from '../ModalConfirm/ModalConfirm.ts';
 
 const MONTH_NAMES = [
   "Январь",

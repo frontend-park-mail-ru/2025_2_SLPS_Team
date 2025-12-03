@@ -1,5 +1,5 @@
-import { renderNavbar } from '../components/molecules/Navbar/Navbar.js';
-import { renderMenu } from '../components/molecules/Menu/Menu.js';
+import { renderNavbar } from '../components/molecules/Navbar/Navbar.ts';
+import { renderMenu } from '../components/molecules/Menu/Menu.ts';
 import { NotificationManager } from '../components/organisms/NotificationsBlock/NotificationsManager.js';
 import { authService } from '../services/AuthService.js';
 import { SupportWidget } from '../components/organisms/SupportWidget/SupportWidget.js';

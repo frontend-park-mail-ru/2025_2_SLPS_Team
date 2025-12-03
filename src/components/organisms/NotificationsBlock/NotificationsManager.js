@@ -1,4 +1,4 @@
-import { Notification } from "../../molecules/Notification/Notification.js";
+import { Notification } from "../../molecules/Notification/Notification.ts";
 
 export class NotificationManager {
     constructor(rootElement = document.body) {
@@ -17,6 +17,8 @@ export class NotificationManager {
 
         this.container = document.createElement('div');
         this.container.classList.add('notification-container');
+        console.log('AAAA');
+        console.log(this.container);
         this.rootElement.appendChild(this.container);
     }
 

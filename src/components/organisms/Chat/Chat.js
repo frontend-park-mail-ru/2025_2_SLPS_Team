@@ -1,7 +1,7 @@
 import ChatTemplate from './Chat.hbs';
 import { ChatHeader } from '../../molecules/ChatHeader/ChatHeader.ts';
 import { Message } from '../../atoms/Message/Message.ts';
-import { MessageInput } from '../../molecules/MessageInput/MessageInput.js';
+import { MessageInput } from '../../molecules/MessageInput/MessageInput.ts';
 
 import { wsService } from '../../../services/WebSocketService.js';
 import { EventBus } from '../../../services/EventBus.js';

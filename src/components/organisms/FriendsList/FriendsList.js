@@ -1,5 +1,5 @@
 import FriendsListTemplate from './FriendsList.hbs';
-import { renderFriendCard } from '../../molecules/FriendCard/FriendCard.js';
+import { renderFriendCard } from '../../molecules/FriendCard/FriendCard.ts';
 import './FriendsList.css';
 
 export function renderFriendsList(context = {}) {
