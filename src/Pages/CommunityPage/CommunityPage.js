@@ -2,7 +2,7 @@ import BasePage from '../BasePage.js';
 import CommunityPageTemplate from './CommunityPage.hbs';
 import './CommunityPage.css';
 
-import { CreateCommunityModal } from '../../components/organisms/CreateCommunityModal/CreateCommunityModal.js';
+import { CreateCommunityModal } from '../../components/organisms/CreateCommunityModal/CreateCommunityModal.ts';
 import { renderCommunityCard } from '../../components/molecules/CommunityCard/CommunityCard.ts';
 import { renderCommunityCreated } from '../../components/molecules/CommunityCreated/CommunityCreated.ts';
 

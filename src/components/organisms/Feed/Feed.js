@@ -1,4 +1,4 @@
-import { renderPost } from "../../molecules/Post/Post.js";
+import { renderPost } from "../../molecules/Post/Post.ts";
 import FeedTemplate from "./Feed.hbs";
 import { CreatePostForm } from "../CreatePost/CreatePost.js";
 import { EventBus } from "../../../services/EventBus.js";

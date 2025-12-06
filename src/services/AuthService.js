@@ -102,7 +102,6 @@ class AuthService {
     localStorage.removeItem("userId");
     localStorage.removeItem("isLoggedIn");
 
-    console.log("Пользователь разлогинен");
     return true;
   }
 }
