@@ -1,7 +1,7 @@
 import CreatePostTemplate from './CreatePost.hbs';
 import { ImageInput } from '../../molecules/ImageInput/ImageInput';
 import BaseButton from '../../atoms/BaseButton/BaseButton';
-import { NotificationManager } from '../NotificationsBlock/NotificationsManager.js';
+import { NotificationManager } from '../NotificationsBlock/NotificationsManager';
 import { EventBus } from '../../../services/EventBus.js';
 import {
   processCreatePostData,

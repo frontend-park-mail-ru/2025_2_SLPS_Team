@@ -1,9 +1,9 @@
 import BasePage from '../BasePage.js';
 import FriendsPageTemplate from './FriendsPage.hbs';
 import { renderFriendsStats } from '../../components/molecules/FriendsStats/FriendsStats.ts';
-import { renderFriendsList } from '../../components/organisms/FriendsList/FriendsList.js';
+import { renderFriendsList } from '../../components/organisms/FriendsList/FriendsList.ts';
 import { ApplicationModal } from '../../components/organisms/ApplicationModal/ApplicationModal.ts';
-import { NotificationManager } from '../../components/organisms/NotificationsBlock/NotificationsManager.js';
+import { NotificationManager } from '../../components/organisms/NotificationsBlock/NotificationsManager.ts';
 
 const notifier = new NotificationManager();
 

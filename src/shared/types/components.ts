@@ -111,3 +111,21 @@ export interface Community {
   avatar: string;
 }
 
+export type NotificationIconStyle = 'success' | 'error' | 'info' | 'warning';
+
+export interface ProfileData {
+  avatar?: string | null;
+  fullName: string;
+  aboutMyself: string;
+  dob: string;
+  gender: string;
+}
+
+export type CreatePostMode = 'create' | 'edit';
+
+export interface CreatePostFormOptions {
+  ownerId: number | null;
+  mode: CreatePostMode;
+  postId?: number;
+  communityId?: number;
+}

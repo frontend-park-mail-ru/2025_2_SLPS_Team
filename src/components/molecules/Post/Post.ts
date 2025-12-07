@@ -4,7 +4,7 @@ import PostTemplate from './Post.hbs';
 import { authService } from '../../../services/AuthService.js';
 import DropDown from '../../atoms/dropDown/dropDown';
 import { ModalConfirm } from '../ModalConfirm/ModalConfirm';
-import { NotificationManager } from '../../organisms/NotificationsBlock/NotificationsManager.js';
+import { NotificationManager } from '../../organisms/NotificationsBlock/NotificationsManager';
 import { CreatePostForm } from '../../organisms/CreatePost/CreatePost';
 import { EventBus } from '../../../services/EventBus.js';
 import { togglePostLike } from '../../../shared/api/postsApi.js';

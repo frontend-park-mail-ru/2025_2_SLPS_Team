@@ -1,6 +1,6 @@
 import { renderNavbar } from '../components/molecules/Navbar/Navbar.ts';
 import { renderMenu } from '../components/molecules/Menu/Menu.ts';
-import { NotificationManager } from '../components/organisms/NotificationsBlock/NotificationsManager.js';
+import { NotificationManager } from '../components/organisms/NotificationsBlock/NotificationsManager.ts';
 import { authService } from '../services/AuthService.js';
 import { SupportWidget } from '../components/organisms/SupportWidget/SupportWidget.js';
 

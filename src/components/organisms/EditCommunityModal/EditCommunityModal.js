@@ -4,7 +4,7 @@ import BaseInput from '../../atoms/BaseInput/BaseInput.ts';
 import BaseButton from '../../atoms/BaseButton/BaseButton.ts';
 import DropDown from '../../atoms/dropDown/dropDown.ts';
 
-import { NotificationManager } from '../NotificationsBlock/NotificationsManager.js';
+import { NotificationManager } from '../NotificationsBlock/NotificationsManager.ts';
 import { navigateTo } from '../../../app/router/navigateTo.js';
 import { layout } from '../../../Pages/LayoutManager.js';
 import { updateCommunity } from '../../../shared/api/communityApi.js';

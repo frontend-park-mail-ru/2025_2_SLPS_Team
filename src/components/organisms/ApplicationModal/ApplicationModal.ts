@@ -3,7 +3,7 @@ import './ApplicationModal.css';
 
 import SelectInput from '../../atoms/SelectInput/SelectInput';
 import BaseButton from '../../atoms/BaseButton/BaseButton';
-import { NotificationManager } from '../NotificationsBlock/NotificationsManager.js';
+import { NotificationManager } from '../NotificationsBlock/NotificationsManager';
 
 import type { SelectInputConfig } from '../../../shared/types/components';
 import {

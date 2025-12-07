@@ -3,20 +3,13 @@ import BaseInput from '../../atoms/BaseInput/BaseInput';
 import SelectInput from '../../atoms/SelectInput/SelectInput';
 import DropDown from '../../atoms/dropDown/dropDown';
 import BaseButton from '../../atoms/BaseButton/BaseButton';
-import { NotificationManager } from '../NotificationsBlock/NotificationsManager.js';
+import { NotificationManager } from '../NotificationsBlock/NotificationsManager';
 import { navigateTo } from '../../../app/router/navigateTo.js';
 import { layout } from '../../../Pages/LayoutManager.js';
 import { processEditProfileSubmit } from '../../../shared/Submit/editProfileSubmit';
+import type { ProfileData } from '../../../shared/types/components';
 
 const notifier = new NotificationManager();
-
-interface ProfileData {
-  avatar?: string | null;
-  fullName: string;
-  aboutMyself: string;
-  dob: string;
-  gender: string;
-}
 
 interface EditProfileInputs {
   name?: BaseInput;
@@ -32,7 +25,6 @@ interface EditProfileInputs {
 }
 
 export class EditProfileForm {
-  // ==== явные поля класса ====
   private rootElement: HTMLElement;
   private profileData: ProfileData;
 
@@ -53,7 +45,6 @@ export class EditProfileForm {
     this.hasCustomAvatar = !!profileData.avatar;
   }
 
-  // ===================== RENDER =====================
   async render(): Promise<void> {
     this.wrapper = document.createElement('div');
     this.wrapper.id = 'edit-profile-wrapper';
@@ -74,7 +65,6 @@ export class EditProfileForm {
     const firstName = splitName[0] ?? '';
     const lastName = splitName[1] ?? '';
 
-    // Имя
     this.inputs.name = new BaseInput(
       this.wrapper.querySelector('.user-name') as HTMLElement,
       {
@@ -87,7 +77,6 @@ export class EditProfileForm {
     );
     await this.inputs.name.render();
 
-    // Фамилия
     this.inputs.secondName = new BaseInput(
       this.wrapper.querySelector('.user-name') as HTMLElement,
       {
@@ -100,7 +89,6 @@ export class EditProfileForm {
     );
     await this.inputs.secondName.render();
 
-    // О себе
     this.inputs.aboutUser = new BaseInput(
       this.wrapper.querySelector('.about-user') as HTMLElement,
       {
@@ -114,7 +102,6 @@ export class EditProfileForm {
     );
     await this.inputs.aboutUser.render();
 
-    // ===== дата рождения =====
     const dob = new Date(this.profileData.dob);
     const dobDay = dob.getUTCDate();
     const dobMonth = dob.getUTCMonth();
@@ -186,7 +173,6 @@ export class EditProfileForm {
     );
     await this.inputs.bthYear.render();
 
-    // ===== пол =====
     const genderValue = this.profileData.gender;
 
     this.inputs.gender = new SelectInput(
@@ -202,7 +188,6 @@ export class EditProfileForm {
     );
     await this.inputs.gender.render();
 
-    // ===== аватар =====
     this.inputs.Imageinput = this.wrapper.querySelector<HTMLInputElement>(
       '.avatar-upload__input',
     )!;
@@ -231,7 +216,6 @@ export class EditProfileForm {
       }
     });
 
-    // ===== кнопки =====
     const buttonContainer = this.wrapper.querySelector<HTMLElement>(
       '.form-actions-container',
     );
@@ -253,7 +237,6 @@ export class EditProfileForm {
     }
   }
 
-  // ===================== Аватар-меню =====================
   private async addEditAvatatarMenu(): Promise<void> {
     if (!this.wrapper) return;
 
@@ -314,7 +297,6 @@ export class EditProfileForm {
     void this.addEditAvatatarMenu();
   }
 
-  // ===================== OPEN/CLOSE =====================
   open(): void {
     document.body.style.overflow = 'hidden';
     this.render().then(() => {
@@ -350,7 +332,6 @@ export class EditProfileForm {
     }, 350);
   }
 
-  // ===================== SAVE =====================
   async saveData(): Promise<void> {
     try {
       const firstName = String(this.inputs.name?.getValue() || '').trim();

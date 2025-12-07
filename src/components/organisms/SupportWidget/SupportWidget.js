@@ -1,5 +1,5 @@
 import './SupportWidget.css';
-import { NotificationManager } from '../NotificationsBlock/NotificationsManager.js';
+import { NotificationManager } from '../NotificationsBlock/NotificationsManager.ts';
 
 export class SupportWidget {
   constructor(root = document.body) {

@@ -1,5 +1,5 @@
 import BasePage from '../BasePage.js';
-import { renderFeed } from '../../components/organisms/Feed/Feed.js';
+import { renderFeed } from '../../components/organisms/Feed/Feed.ts';
 import FeedPageTemplate from './FeedPage.hbs';
 import { renderFeedSettings } from '../../components/molecules/FeedSettings/FeedSettings.js';
 import { getPosts } from '../../shared/api/postsApi.js';

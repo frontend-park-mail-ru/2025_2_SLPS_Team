@@ -2,7 +2,7 @@ import CreateSupportTemplate from './CreateSupportForm.hbs';
 import './CreateSupportForm.css';
 
 import BaseButton from '../../atoms/BaseButton/BaseButton.ts';
-import { NotificationManager } from '../NotificationsBlock/NotificationsManager.js';
+import { NotificationManager } from '../NotificationsBlock/NotificationsManager.ts';
 import SelectInput from '../../atoms/SelectInput/SelectInput.ts';
 import BaseInput from '../../atoms/BaseInput/BaseInput.ts';
 import { ImageInputSmall } from '../../molecules/InputImageSmall/InputImageSmall.js';

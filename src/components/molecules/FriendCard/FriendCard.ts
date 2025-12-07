@@ -2,7 +2,7 @@ import FriendCardTemplate from './FriendCard.hbs';
 import DropDown from '../../atoms/dropDown/dropDown';
 import BaseButton from '../../atoms/BaseButton/BaseButton';
 import { ModalConfirm } from '../ModalConfirm/ModalConfirm';
-import { NotificationManager } from '../../organisms/NotificationsBlock/NotificationsManager.js';
+import { NotificationManager } from '../../organisms/NotificationsBlock/NotificationsManager';
 import { authService } from '../../../services/AuthService.js';
 import { navigateTo } from '../../../app/router/navigateTo.js';
 import { deleteFriend, acceptFriend, sendFriendRequest} from '../../../shared/api/friendsApi.js';

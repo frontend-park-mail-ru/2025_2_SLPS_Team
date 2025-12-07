@@ -3,8 +3,8 @@ import CommunityCheckPageTemplate from './CommunityCheckPage.hbs';
 import './CommunityCheckPage.css';
 import { renderCommunitySubscriberRow } from '../../components/molecules/CommunitySubscriberRow/CommunitySubscriberRow.ts';
 
-import { renderFeed } from '../../components/organisms/Feed/Feed.js';
-import { NotificationManager } from '../../components/organisms/NotificationsBlock/NotificationsManager.js';
+import { renderFeed } from '../../components/organisms/Feed/Feed.ts';
+import { NotificationManager } from '../../components/organisms/NotificationsBlock/NotificationsManager.ts';
 import { ModalConfirm } from '../../components/molecules/ModalConfirm/ModalConfirm.ts';
 import { EventBus } from '../../services/EventBus.js';
 import { authService } from '../../services/AuthService.js';

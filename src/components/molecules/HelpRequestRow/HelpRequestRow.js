@@ -1,7 +1,7 @@
 import HelpRequestRowTemplate from './HelpRequestRow.hbs';
 import DropDown from '../../atoms/dropDown/dropDown.ts';
 import { ApplicationModal } from '../../organisms/ApplicationModal/ApplicationModal.ts';
-import { NotificationManager } from '../../organisms/NotificationsBlock/NotificationsManager.js';
+import { NotificationManager } from '../../organisms/NotificationsBlock/NotificationsManager.ts';
 
 const notifier = new NotificationManager();
 
