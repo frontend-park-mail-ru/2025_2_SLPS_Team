@@ -1,0 +1,11 @@
+<div class="video-wrapper">
+    <video class="custom-video" {{#if autoplay}}autoplay{{/if}} {{#if muted}}muted{{/if}} {{#if loop}}loop{{/if}}>
+        <source src="{{url}}" type="video/mp4">
+    </video>
+    <div class="video-controls">
+        <img src="/public/VideoPlayerIcons/PlayButton.svg" class="video-play-icon">
+        <input type="range" class="progress" value="0" min="0" max="100">
+        <span class="time">0:00 / 0:00</span>
+        <img class="fullscreen-icon" src="public/VideoPlayerIcons/FullScreenIcon.svg">
+    </div>
+</div>

@@ -1,8 +1,15 @@
 <div class="post-photo">
     <div class="photo-slider">
         {{#each photos}}
-        <img src="{{this}}" alt="Фото поста">
+            <div class="slide">
+                {{#if isVideo}}
+                    <div class="video-container" data-url="{{url}}"></div>
+                {{else}}
+                    <img src="{{url}}" alt="Фото поста">
+                {{/if}}
+            </div>
         {{/each}}
     </div>
+
     <div class="photo-buttons"></div>
 </div>

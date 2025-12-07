@@ -22,7 +22,8 @@ app.use((req, res, next) => {
         "script-src 'self' https://cdn.jsdelivr.net; " +
         "style-src 'self'; object-src 'none'; " +
         `connect-src 'self' ${process.env.API_BASE_URL || 'http://185.86.146.77:8080'} ${process.env.WS_URL || ''}; ` +
-        `img-src 'self' ${process.env.API_BASE_URL || 'http://185.86.146.77:8080'} blob: data:;`
+        `img-src 'self' ${process.env.API_BASE_URL || 'http://185.86.146.77:8080'} blob: data:;` +
+        `media-src 'self' ${process.env.API_BASE_URL || 'http://185.86.146.77:8080'} blob: data:;`
     );
     next();
 });

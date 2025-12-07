@@ -1,5 +1,6 @@
 import PostPhotoTemplate from './PostPhoto.hbs';
 import { renderNavButton } from '../NavButton/NavButton';
+import { VideoPlayer } from '../../molecules/VideoPlayer/VideoPlayer';
 
 /**
  * Создаёт и возвращает HTML-элемент блока с фотографиями поста.
@@ -23,9 +24,15 @@ export async function renderPostPhoto(photos: string[]): Promise<HTMLElement>{
 
     const finalPhotos = filteredPhotos.length > 0 ? filteredPhotos : [DEFAULT_PHOTO];
 
-    const photosWithFullPath: string[] = finalPhotos.map((photo: string) => {
-        if (photo.startsWith("/public/")) return photo;
-        return `${process.env.API_BASE_URL}/uploads/${photo}`;
+    const photosWithFullPath = finalPhotos.map(photo => {
+        if (photo.startsWith("/public/")) {
+            return { url: photo, isVideo: false };
+        }
+
+        return {
+            url: `${process.env.API_BASE_URL}/uploads/${photo}`,
+            isVideo: photo.endsWith(".mp4") || photo.endsWith(".webm") || photo.endsWith(".mov")
+        };
     });
 
     const template = PostPhotoTemplate;
@@ -37,8 +44,25 @@ export async function renderPostPhoto(photos: string[]): Promise<HTMLElement>{
     const buttonElement = photoElement.querySelector('.photo-buttons');
     const slider = photoElement.querySelector(".photo-slider") as HTMLElement;
 
+    const videoContainers = wrapper.querySelectorAll(".video-container");
+
+    videoContainers.forEach(container => {
+        const url = container.getAttribute("data-url");
+        if (!url) return;
+
+        const player = new VideoPlayer({
+            rootElement: container as HTMLElement,
+            video: { url },
+            autoplay: false,
+            muted: false,
+            loop: false
+        });
+
+        player.render();
+    });
+
     let currentIndex = 0;
-            
+
     if (buttonElement){
         const prevBtn = await renderNavButton({
             icon: "../../public/NavButtons/PrevButton.svg",
@@ -51,6 +75,7 @@ export async function renderPostPhoto(photos: string[]): Promise<HTMLElement>{
                 }
             }
         });
+
         const nextBtn = await renderNavButton({
             icon: "./../public/NavButtons/NextButton.svg",
             position: 'next',
@@ -65,20 +90,12 @@ export async function renderPostPhoto(photos: string[]): Promise<HTMLElement>{
         });
 
         function updateButtons() {
-            if (currentIndex === 0) {
-                prevBtn.style.display = 'none';
-            } else {
-                prevBtn.style.display = 'flex';
-            }
-            if (currentIndex === photosWithFullPath.length - 1) {
-                nextBtn.style.display = 'none';
-            } else {
-                nextBtn.style.display = 'flex';
-            }
+            prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
+            nextBtn.style.display = currentIndex === photosWithFullPath.length - 1 ? 'none' : 'flex';
         }
 
-        buttonElement.appendChild(prevBtn) as HTMLElement;
-        buttonElement.appendChild(nextBtn) as HTMLElement;
+        buttonElement.appendChild(prevBtn);
+        buttonElement.appendChild(nextBtn);
         updateButtons();
     }
 

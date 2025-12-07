@@ -1,6 +1,7 @@
 import ImageInputTemplate from './ImageInput.hbs';
 import { renderNavButton } from '../../atoms/NavButton/NavButton';
 import { renderRemoveButton } from '../../atoms/RemoveButton/RemoveButton';
+import { VideoPlayer } from '../VideoPlayer/VideoPlayer';
 
 interface ExistingPhoto {
     url: string;
@@ -8,6 +9,10 @@ interface ExistingPhoto {
 }
 
 type ImageItem = File | ExistingPhoto;
+
+function isExistingPhoto(file: ImageItem): file is ExistingPhoto {
+    return (file as ExistingPhoto).url !== undefined;
+}
 
 export class ImageInput {
     rootElement: HTMLElement;
@@ -106,7 +111,9 @@ export class ImageInput {
     }
 
     addFiles(files: File[]): void {
-        const imageFiles = files.filter(f => f.type.startsWith('image/'));
+        const imageFiles = files.filter(f => 
+            f.type.startsWith('image/') || f.type.startsWith('video/')
+        );
         if (imageFiles.length === 0) return;
 
         this.selectedFiles = [...this.selectedFiles, ...imageFiles];
@@ -124,26 +131,41 @@ export class ImageInput {
 
             const file = this.selectedFiles[i];
             if (!file) continue;
-            let imgUrl = '';
 
-            if (file instanceof File) {
-                imgUrl = URL.createObjectURL(file);
-            } else if ('url' in file) {
-                imgUrl = file.url;
+            if ('type' in file && file.type.startsWith('video/')) {
+                const videoWrapper = document.createElement('div');
+                videoWrapper.className = 'slide-video-wrapper';
+
+                const videoPlayer = new VideoPlayer({
+                    rootElement: videoWrapper,
+                    video: {
+                        url: file instanceof File ? URL.createObjectURL(file) : (file as ExistingPhoto).url,
+                        isBlob: file instanceof File
+                    },
+                    autoplay: false,
+                    muted: false,
+                    loop: false
+                });
+
+                videoPlayer.render();
+
+                slide.appendChild(videoWrapper);
             } else {
-                continue;
+                const bg = document.createElement('img');
+                bg.className = 'slide-bg';
+                const fg = document.createElement('img');
+                fg.className = 'slide-fg';
+
+                if (file instanceof File) {
+                    bg.src = fg.src = URL.createObjectURL(file);
+                } else if (isExistingPhoto(file)) {
+                    bg.src = fg.src = file.url;
+                }
+
+                slide.appendChild(bg);
+                slide.appendChild(fg);
             }
 
-            const bg = document.createElement('img');
-            bg.src = imgUrl;
-            bg.className = 'slide-bg';
-
-            const fg = document.createElement('img');
-            fg.src = imgUrl;
-            fg.className = 'slide-fg';
-
-            slide.appendChild(bg);
-            slide.appendChild(fg);
 
             const removeBtn = await renderRemoveButton(() => {
                 this.removeImage(i);
@@ -152,8 +174,8 @@ export class ImageInput {
             const removeBtnContainer = document.createElement('div');
             removeBtnContainer.className = 'remove-button-container';
             removeBtnContainer.appendChild(removeBtn);
-
             slide.appendChild(removeBtnContainer);
+
             this.sliderTrack.appendChild(slide);
         }
 
@@ -164,6 +186,7 @@ export class ImageInput {
         this.updateCarouselPosition();
         this.updateNavigation();
     }
+
 
 
     removeImage(index: number) {
