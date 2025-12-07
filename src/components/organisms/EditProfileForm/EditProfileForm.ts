@@ -1,31 +1,60 @@
 import EditProfileTemplate from './EditProfileForm.hbs';
-import BaseInput from '../../atoms/BaseInput/BaseInput.ts';
-import SelectInput from '../../atoms/SelectInput/SelectInput.ts';
-import DropDown from '../../atoms/dropDown/dropDown.ts';
-import BaseButton from '../../atoms/BaseButton/BaseButton.ts';
+import BaseInput from '../../atoms/BaseInput/BaseInput';
+import SelectInput from '../../atoms/SelectInput/SelectInput';
+import DropDown from '../../atoms/dropDown/dropDown';
+import BaseButton from '../../atoms/BaseButton/BaseButton';
 import { NotificationManager } from '../NotificationsBlock/NotificationsManager.js';
 import { navigateTo } from '../../../app/router/navigateTo.js';
 import { layout } from '../../../Pages/LayoutManager.js';
-import {
-  updateProfile,
-  deleteProfileAvatar,
-} from '../../../shared/api/profileApi.js';
+import { processEditProfileSubmit } from '../../../shared/Submit/editProfileSubmit';
 
 const notifier = new NotificationManager();
 
+interface ProfileData {
+  avatar?: string | null;
+  fullName: string;
+  aboutMyself: string;
+  dob: string;
+  gender: string;
+}
+
+interface EditProfileInputs {
+  name?: BaseInput;
+  secondName?: BaseInput;
+  aboutUser?: BaseInput;
+  bthDay?: SelectInput;
+  bthMonth?: SelectInput;
+  bthYear?: SelectInput;
+  gender?: SelectInput;
+  Imageinput?: HTMLInputElement;
+  preview?: HTMLImageElement;
+  overlay?: HTMLElement;
+}
+
 export class EditProfileForm {
-  constructor(rootElement, profileData) {
+  // ==== явные поля класса ====
+  private rootElement: HTMLElement;
+  private profileData: ProfileData;
+
+  private wrapper: HTMLElement | null = null;
+  private inputs: EditProfileInputs = {};
+
+  private editAvatarMenu: DropDown | null = null;
+  private defaultAvatar: string = '/public/globalImages/DefaultAvatar.svg';
+  private hasCustomAvatar: boolean;
+  private avatarDeleted: boolean = false;
+  private currentAvatarBlobUrl: string | null = null;
+
+  private outsideClickHandler: ((event: MouseEvent) => void) | null = null;
+
+  constructor(rootElement: HTMLElement, profileData: ProfileData) {
     this.rootElement = rootElement;
     this.profileData = profileData;
-    this.wrapper = null;
-    this.inputs = {};
-    this.editAvatarMenu = null;
-    this.defaultAvatar = '/public/globalImages/DefaultAvatar.svg';
     this.hasCustomAvatar = !!profileData.avatar;
-    this.avatarDeleted = false;
   }
 
-  async render() {
+  // ===================== RENDER =====================
+  async render(): Promise<void> {
     this.wrapper = document.createElement('div');
     this.wrapper.id = 'edit-profile-wrapper';
     this.wrapper.classList.add('edit-profile-modal');
@@ -36,45 +65,60 @@ export class EditProfileForm {
 
     this.rootElement.insertAdjacentElement('beforeend', this.wrapper);
 
-    const closeBtn = this.wrapper.querySelector('.edit-close');
+    const closeBtn = this.wrapper.querySelector<HTMLElement>('.edit-close');
     if (closeBtn) {
       closeBtn.addEventListener('click', () => this.close());
     }
 
     const splitName = this.profileData.fullName.split(' ');
+    const firstName = splitName[0] ?? '';
+    const lastName = splitName[1] ?? '';
 
-    this.inputs.name = new BaseInput(this.wrapper.querySelector('.user-name'), {
-      header: 'Имя',
-      type: 'text',
-      placeholder: 'Имя',
-      required: true,
-      value: splitName[0],
-    });
+    // Имя
+    this.inputs.name = new BaseInput(
+      this.wrapper.querySelector('.user-name') as HTMLElement,
+      {
+        header: 'Имя',
+        type: 'text',
+        placeholder: 'Имя',
+        required: true,
+        value: firstName,
+      },
+    );
     await this.inputs.name.render();
 
-    this.inputs.secondName = new BaseInput(this.wrapper.querySelector('.user-name'), {
-      header: 'Фамилия',
-      type: 'text',
-      placeholder: 'Фамилия',
-      required: true,
-      value: splitName[1],
-    });
+    // Фамилия
+    this.inputs.secondName = new BaseInput(
+      this.wrapper.querySelector('.user-name') as HTMLElement,
+      {
+        header: 'Фамилия',
+        type: 'text',
+        placeholder: 'Фамилия',
+        required: true,
+        value: lastName,
+      },
+    );
     await this.inputs.secondName.render();
 
-    this.inputs.aboutUser = new BaseInput(this.wrapper.querySelector('.about-user'), {
-      header: 'О себе',
-      isBig: true,
-      type: 'text',
-      placeholder: 'Расскажите о себе',
-      required: true,
-      value: this.profileData.aboutMyself,
-    });
+    // О себе
+    this.inputs.aboutUser = new BaseInput(
+      this.wrapper.querySelector('.about-user') as HTMLElement,
+      {
+        header: 'О себе',
+        isBig: true,
+        type: 'text',
+        placeholder: 'Расскажите о себе',
+        required: true,
+        value: this.profileData.aboutMyself,
+      },
+    );
     await this.inputs.aboutUser.render();
 
+    // ===== дата рождения =====
     const dob = new Date(this.profileData.dob);
-    const dobDay = dob.getDate();
-    const dobMonth = dob.getMonth();
-    const dobYear = dob.getFullYear();
+    const dobDay = dob.getUTCDate();
+    const dobMonth = dob.getUTCMonth();
+    const dobYear = dob.getUTCFullYear();
 
     const days = Array.from({ length: 31 }, (_, i) => ({
       label: String(i + 1),
@@ -82,10 +126,13 @@ export class EditProfileForm {
       active: i + 1 === dobDay,
     }));
 
-    this.inputs.bthDay = new SelectInput(this.wrapper.querySelector('.bth-day'), {
-      values: days,
-      pressedStyle: true
-    });
+    this.inputs.bthDay = new SelectInput(
+      this.wrapper.querySelector('.bth-day') as HTMLElement,
+      {
+        values: days,
+        pressedStyle: true,
+      },
+    );
     await this.inputs.bthDay.render();
 
     const monthNames = [
@@ -109,113 +156,151 @@ export class EditProfileForm {
       active: index === dobMonth,
     }));
 
-    this.inputs.bthMonth = new SelectInput(this.wrapper.querySelector('.bth-month'), {
-      values: months,
-      pressedStyle: true
-    });
+    this.inputs.bthMonth = new SelectInput(
+      this.wrapper.querySelector('.bth-month') as HTMLElement,
+      {
+        values: months,
+        pressedStyle: true,
+      },
+    );
     await this.inputs.bthMonth.render();
 
     const currentYear = new Date().getFullYear();
+    const maxYear = currentYear - 14;
 
-  const maxYear = currentYear - 14;
+    const years = Array.from({ length: 100 }, (_, i) => {
+      const year = maxYear - i;
+      return {
+        label: String(year),
+        value: String(year),
+        active: year === dobYear,
+      };
+    });
 
-  const years = Array.from({ length: 100 }, (_, i) => {
-    const year = maxYear - i;
-    return {
-      label: String(year),
-      value: String(year),
-      active: year === dobYear,
-    };
-  });
+    this.inputs.bthYear = new SelectInput(
+      this.wrapper.querySelector('.bth-year') as HTMLElement,
+      {
+        values: years,
+        pressedStyle: true,
+      },
+    );
+    await this.inputs.bthYear.render();
 
-  this.inputs.bthYear = new SelectInput(
-    this.wrapper.querySelector('.bth-year'),
-    {
-      values: years,
-      pressedStyle: true
-    }
-  );
-  await this.inputs.bthYear.render();
-
-
+    // ===== пол =====
     const genderValue = this.profileData.gender;
 
-    this.inputs.gender = new SelectInput(this.wrapper.querySelector('.gender-container'), {
-      header: 'Пол',
-      values: [
-        { label: 'Мужской', value: 'Мужской', active: genderValue === 'Мужской' },
-        { label: 'Женский', value: 'Женский', active: genderValue === 'Женский' },
-      ], pressedStyle: true
-    });
+    this.inputs.gender = new SelectInput(
+      this.wrapper.querySelector('.gender-container') as HTMLElement,
+      {
+        header: 'Пол',
+        values: [
+          { label: 'Мужской', value: 'Мужской', active: genderValue === 'Мужской' },
+          { label: 'Женский', value: 'Женский', active: genderValue === 'Женский' },
+        ],
+        pressedStyle: true,
+      },
+    );
     await this.inputs.gender.render();
 
-    this.inputs.Imageinput = this.wrapper.querySelector('.avatar-upload__input');
-    this.inputs.preview = this.wrapper.querySelector('.avatar-upload__image');
-    this.inputs.overlay = this.wrapper.querySelector('.avatar-upload__preview');
+    // ===== аватар =====
+    this.inputs.Imageinput = this.wrapper.querySelector<HTMLInputElement>(
+      '.avatar-upload__input',
+    )!;
+    this.inputs.preview = this.wrapper.querySelector<HTMLImageElement>(
+      '.avatar-upload__image',
+    )!;
+    this.inputs.overlay = this.wrapper.querySelector<HTMLElement>(
+      '.avatar-upload__preview',
+    )!;
+
     this.inputs.overlay.addEventListener('click', () => this.handleAvatarClick());
 
-    this.inputs.Imageinput.addEventListener('change', (event) => {
-      const file = event.target.files[0];
-      if (file) {
+    this.inputs.Imageinput.addEventListener('change', (event: Event) => {
+      const target = event.target as HTMLInputElement | null;
+      const file = target?.files?.[0];
+      if (file && this.inputs.preview) {
         const blobUrl = URL.createObjectURL(file);
         this.inputs.preview.src = blobUrl;
         this.hasCustomAvatar = true;
         this.avatarDeleted = false;
+
+        if (this.currentAvatarBlobUrl) {
+          URL.revokeObjectURL(this.currentAvatarBlobUrl);
+        }
         this.currentAvatarBlobUrl = blobUrl;
       }
     });
 
-    const buttonContainer = this.wrapper.querySelector('.form-actions-container');
+    // ===== кнопки =====
+    const buttonContainer = this.wrapper.querySelector<HTMLElement>(
+      '.form-actions-container',
+    );
 
-    const NotSavebutton = new BaseButton(buttonContainer, {
-      text: 'Отменить',
-      style: 'default',
-      onClick: () => {
-        this.close();
-      },
-    });
-    await NotSavebutton.render();
+    if (buttonContainer) {
+      const cancelBtn = new BaseButton(buttonContainer, {
+        text: 'Отменить',
+        style: 'default',
+        onClick: () => this.close(),
+      });
+      await cancelBtn.render();
 
-    const Savebutton = new BaseButton(buttonContainer, {
-      text: 'Сохранить',
-      style: 'primary',
-      onClick: () => {
-        this.saveData();
-        this.close();
-      },
-    });
-    await Savebutton.render();
+      const saveBtn = new BaseButton(buttonContainer, {
+        text: 'Сохранить',
+        style: 'primary',
+        onClick: () => void this.saveData(),
+      });
+      await saveBtn.render();
+    }
   }
 
-  async addEditAvatatarMenu() {
+  // ===================== Аватар-меню =====================
+  private async addEditAvatatarMenu(): Promise<void> {
+    if (!this.wrapper) return;
+
     if (this.editAvatarMenu) {
       this.editAvatarMenu.toggle();
       return;
     }
 
-    this.editAvatarMenu = new DropDown(this.wrapper.querySelector('.edit-avatar-menu'), {
+    const menuRoot = this.wrapper.querySelector<HTMLElement>('.edit-avatar-menu');
+    if (!menuRoot) return;
+
+    this.editAvatarMenu = new DropDown(menuRoot, {
       values: [
-        { label: 'Изменить фото', icon: '/public/EditAvatarIcons/AddIcon.svg', onClick: () => this.inputs.Imageinput.click() },
-        { label: 'Удалить', icon: '/public/EditAvatarIcons/DeleteIcon.svg', onClick: () => this.deleteAvatar() },
+        {
+          label: 'Изменить фото',
+          icon: '/public/EditAvatarIcons/AddIcon.svg',
+          onClick: () => this.inputs.Imageinput?.click(),
+        },
+        {
+          label: 'Удалить',
+          icon: '/public/EditAvatarIcons/DeleteIcon.svg',
+          onClick: () => this.deleteAvatar(),
+        },
       ],
     });
 
     await this.editAvatarMenu.render();
     this.editAvatarMenu.show();
 
-    this.outsideClickHandler = (event) => {
-      if (!this.wrapper) return;
-      const avatar = this.wrapper.querySelector('.avatar-upload');
-      if (avatar && !avatar.contains(event.target)) {
+    this.outsideClickHandler = (event: MouseEvent) => {
+      if (!this.wrapper || !this.editAvatarMenu) return;
+      const avatar = this.wrapper.querySelector<HTMLElement>('.avatar-upload');
+      if (avatar && !avatar.contains(event.target as Node)) {
         this.editAvatarMenu.hide();
       }
     };
+
     document.addEventListener('click', this.outsideClickHandler);
   }
 
-  deleteAvatar() {
-    this.inputs.preview.src = this.defaultAvatar;
-    this.inputs.Imageinput.value = '';
+  private deleteAvatar(): void {
+    if (this.inputs.preview) {
+      this.inputs.preview.src = this.defaultAvatar;
+    }
+    if (this.inputs.Imageinput) {
+      this.inputs.Imageinput.value = '';
+    }
     this.hasCustomAvatar = false;
     this.avatarDeleted = true;
 
@@ -225,49 +310,52 @@ export class EditProfileForm {
     }
   }
 
-  handleAvatarClick() {
-    this.addEditAvatatarMenu();
+  private handleAvatarClick(): void {
+    void this.addEditAvatatarMenu();
   }
 
-  open() {
-      document.body.style.overflow = 'hidden';
-      this.render().then(() => {
-          const modalContainer = this.wrapper.querySelector('.modal-container');
-          requestAnimationFrame(() => {
-              modalContainer.classList.add('open');
-          });
+  // ===================== OPEN/CLOSE =====================
+  open(): void {
+    document.body.style.overflow = 'hidden';
+    this.render().then(() => {
+      if (!this.wrapper) return;
+      const modalContainer =
+        this.wrapper.querySelector<HTMLElement>('.modal-container');
+      if (!modalContainer) return;
+
+      requestAnimationFrame(() => {
+        modalContainer.classList.add('open');
       });
+    });
   }
 
+  close(): void {
+    if (!this.wrapper) return;
 
-    close() {
-        if (this.wrapper) {
-            this.wrapper.classList.remove('open');
+    const modalContainer =
+      this.wrapper.querySelector<HTMLElement>('.modal-container');
+    modalContainer?.classList.remove('open');
 
-            setTimeout(() => {
-                document.body.style.overflow = '';
+    setTimeout(() => {
+      document.body.style.overflow = '';
 
-                if (this.editAvatarMenu && this.outsideClickHandler) {
-                    document.removeEventListener('click', this.outsideClickHandler);
-                    this.outsideClickHandler = null;
-                    this.editAvatarMenu = null;
-                }
+      if (this.editAvatarMenu && this.outsideClickHandler) {
+        document.removeEventListener('click', this.outsideClickHandler);
+        this.outsideClickHandler = null;
+        this.editAvatarMenu = null;
+      }
 
-                if (this.wrapper) {
-                    this.wrapper.remove();
-                    this.wrapper = null;
-                }
-            }, 350);
-        }
-    }
+      this.wrapper?.remove();
+      this.wrapper = null;
+    }, 350);
+  }
 
-
-
-  async saveData() {
+  // ===================== SAVE =====================
+  async saveData(): Promise<void> {
     try {
-      const firstName = String(this.inputs.name.getValue() || '').trim();
-      const lastName = String(this.inputs.secondName.getValue() || '').trim();
-      const aboutMyself = String(this.inputs.aboutUser.getValue() || '').trim();
+      const firstName = String(this.inputs.name?.getValue() || '').trim();
+      const lastName = String(this.inputs.secondName?.getValue() || '').trim();
+      const aboutMyself = String(this.inputs.aboutUser?.getValue() || '').trim();
       const oldDob = new Date(this.profileData.dob);
 
       const monthNames = [
@@ -285,39 +373,61 @@ export class EditProfileForm {
         'Декабрь',
       ];
 
-      let year = Number(this.inputs.bthYear.getValue());
-      let monthName = this.inputs.bthMonth.getValue();
-      let day = Number(this.inputs.bthDay.getValue());
+    const rawYear = this.inputs.bthYear?.getValue();
+    const rawMonthName = this.inputs.bthMonth?.getValue();
+    const rawDay = this.inputs.bthDay?.getValue();
 
-      if (!year || isNaN(year)) year = oldDob.getFullYear();
-      if (!monthName) monthName = monthNames[oldDob.getMonth()];
-      if (!day || isNaN(day)) day = oldDob.getDate();
+    const year: number =
+      rawYear && !Number.isNaN(Number(rawYear))
+        ? Number(rawYear)
+        : oldDob.getUTCFullYear();
 
-      const month = monthNames.indexOf(monthName);
-      const dob = new Date(Date.UTC(year, month, day)).toISOString();
+    const monthName = (
+      rawMonthName && rawMonthName.length > 0
+        ? rawMonthName
+        : monthNames[oldDob.getUTCMonth()]
+    ) as string;
 
-      const gender = this.inputs.gender.getValue();
+
+    const day: number =
+      rawDay && !Number.isNaN(Number(rawDay))
+        ? Number(rawDay)
+        : oldDob.getUTCDate();
+
+    const month = monthNames.indexOf(monthName);
+
+    const dob = new Date(Date.UTC(year, month, day)).toISOString();
+
+      const gender = String(this.inputs.gender?.getValue() || this.profileData.gender);
 
       const profileJson = { firstName, lastName, aboutMyself, dob, gender };
 
-      const formData = new FormData();
-      formData.append('profile', JSON.stringify(profileJson));
+      const avatarFile =
+        this.inputs.Imageinput?.files && this.inputs.Imageinput.files[0]
+          ? this.inputs.Imageinput.files[0]
+          : null;
 
-      const avatarFile = this.inputs.Imageinput.files[0];
-      if (avatarFile) {
-        formData.append('avatar', avatarFile);
-      } else if (this.avatarDeleted) {
-        await deleteProfileAvatar();
-      }
+      await processEditProfileSubmit({
+        profileJson,
+        avatarFile,
+        avatarDeleted: this.avatarDeleted,
+      });
 
-      await updateProfile(formData);
-
-      notifier.show('Изменения сохранены', 'Изменения в вашем профиле успешно сохранены', 'success');
+      notifier.show(
+        'Изменения сохранены',
+        'Изменения в вашем профиле успешно сохранены',
+        'success',
+      );
       navigateTo(window.location.pathname);
       layout.rerenderLayout();
+      this.close();
     } catch (error) {
       console.error(error);
-      notifier.show('Изменения не сохранены', 'Что-то пошло не так, попробуйте позже', 'error');
+      notifier.show(
+        'Изменения не сохранены',
+        'Что-то пошло не так, попробуйте позже',
+        'error',
+      );
     }
   }
 }

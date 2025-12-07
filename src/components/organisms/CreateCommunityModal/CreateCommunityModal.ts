@@ -35,17 +35,20 @@ export class CreateCommunityModal {
     }
 
     const wrapper = document.createElement('div');
-    const html = CreateCommunityModalTemplate ? CreateCommunityModalTemplate({}) : '';
+    const html = CreateCommunityModalTemplate
+      ? CreateCommunityModalTemplate({})
+      : '';
 
     if (!html) {
       console.error(
         '[CreateCommunityModal] Шаблон вернул пустое значение. Проверь import CreateCommunityModalTemplate',
       );
+      return;
     }
 
-    wrapper.innerHTML = html;
-
+    wrapper.innerHTML = html.trim();
     const root = wrapper.firstElementChild as HTMLElement | null;
+
     if (!root) {
       console.error(
         '[CreateCommunityModal] Не удалось получить корневой элемент из шаблона',
@@ -53,6 +56,7 @@ export class CreateCommunityModal {
       return;
     }
 
+    document.body.appendChild(root);
     this.root = root;
 
     const aboutField = root.querySelector<HTMLElement>(
@@ -72,10 +76,13 @@ export class CreateCommunityModal {
       await this.aboutInput.render();
     }
 
-    const nameInput = root.querySelector<HTMLInputElement>('#community-name-input');
+    const nameInput = root.querySelector<HTMLInputElement>(
+      '#community-name-input',
+    );
     const counter = root.querySelector<HTMLElement>(
       '.create-community-modal__name-counter',
     );
+
     if (nameInput && counter) {
       const updateCounter = () => {
         const len = nameInput.value.length;
@@ -89,7 +96,11 @@ export class CreateCommunityModal {
       '.create-community-modal__footer',
     );
 
-    if (this.buttons) {
+    if (!this.buttons) {
+      console.error(
+        '[CreateCommunityModal] Не найден контейнер .create-community-modal__footer. Проверь класс в шаблоне HBS',
+      );
+    } else {
       this.submitButton = new BaseButton(this.buttons, {
         text: 'Создать сообщество',
         style: 'primary',
@@ -98,7 +109,7 @@ export class CreateCommunityModal {
 
       this.cancelButton = new BaseButton(this.buttons, {
         text: 'Отмена',
-        style: 'secondary',
+        style: 'default',
         onClick: () => this.handleCancel(),
       });
 
@@ -106,12 +117,18 @@ export class CreateCommunityModal {
       await this.cancelButton.render();
     }
 
-    const overlay = root.querySelector<HTMLElement>('.create-community-modal__overlay');
-    const windowEl = root.querySelector<HTMLElement>('.create-community-modal__window');
+    const overlay = root.querySelector<HTMLElement>(
+      '.create-community-modal__overlay',
+    );
+    const windowEl = root.querySelector<HTMLElement>(
+      '.create-community-modal__window',
+    );
     const closeBtn = root.querySelector<HTMLElement>(
       '.create-community-modal__close-button',
     );
-    const form = root.querySelector<HTMLFormElement>('.create-community-modal__form');
+    const form = root.querySelector<HTMLFormElement>(
+      '.create-community-modal__form',
+    );
 
     if (overlay) {
       overlay.addEventListener('click', () => this.handleCancel());
@@ -128,8 +145,6 @@ export class CreateCommunityModal {
         this.handleSubmit();
       });
     }
-
-    document.body.appendChild(root);
 
     this.boundEscHandler = (e: KeyboardEvent) => this.handleEsc(e);
     document.addEventListener('keydown', this.boundEscHandler);
@@ -168,7 +183,9 @@ export class CreateCommunityModal {
   private handleSubmit(): void {
     if (!this.root) return;
 
-    const nameInput = this.root.querySelector<HTMLInputElement>('#community-name-input');
+    const nameInput = this.root.querySelector<HTMLInputElement>(
+      '#community-name-input',
+    );
     const nameValue = nameInput ? nameInput.value : '';
     const aboutValue = this.aboutInput?.getValue() ?? '';
 
@@ -187,7 +204,9 @@ export class CreateCommunityModal {
 
   private focusName(): void {
     if (!this.root) return;
-    const nameInput = this.root.querySelector<HTMLInputElement>('#community-name-input');
+    const nameInput = this.root.querySelector<HTMLInputElement>(
+      '#community-name-input',
+    );
     nameInput?.focus();
   }
 }

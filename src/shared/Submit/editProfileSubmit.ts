@@ -1,7 +1,4 @@
-import {
-  updateProfile,
-  deleteProfileAvatar,
-} from '../api/profileApi.js';
+import { updateProfile, deleteProfileAvatar } from '../api/profileApi.js';
 
 export interface EditProfileSubmitParams {
   profileJson: {
