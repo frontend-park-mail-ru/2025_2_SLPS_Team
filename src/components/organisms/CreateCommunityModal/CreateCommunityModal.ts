@@ -2,6 +2,7 @@ import CreateCommunityModalTemplate from './CreateCommunityModal.hbs';
 import './CreateCommunityModal.css';
 
 import BaseInput from '../../atoms/BaseInput/BaseInput';
+import BaseButton from '../../atoms/BaseButton/BaseButton';
 import type { BaseInputConfig } from '../../../shared/types/components';
 import { processCommunityFormData } from '../../../shared/Submit/communitySubmit';
 
@@ -14,6 +15,9 @@ export class CreateCommunityModal {
   private root: HTMLElement | null = null;
   private aboutInput: BaseInput | null = null;
   private buttons: HTMLElement | null = null;
+
+  private submitButton: BaseButton | null = null;
+  private cancelButton: BaseButton | null = null;
 
   private onSubmitFn: (data: { name: string; about: string }) => void;
   private onCancelFn: () => void;
@@ -51,7 +55,6 @@ export class CreateCommunityModal {
 
     this.root = root;
 
-    // поле "Описание сообщества"
     const aboutField = root.querySelector<HTMLElement>(
       '.create-community-modal__about-field',
     );
@@ -69,7 +72,6 @@ export class CreateCommunityModal {
       await this.aboutInput.render();
     }
 
-    // счётчик символов имени
     const nameInput = root.querySelector<HTMLInputElement>('#community-name-input');
     const counter = root.querySelector<HTMLElement>(
       '.create-community-modal__name-counter',
@@ -86,6 +88,23 @@ export class CreateCommunityModal {
     this.buttons = root.querySelector<HTMLElement>(
       '.create-community-modal__footer',
     );
+
+    if (this.buttons) {
+      this.submitButton = new BaseButton(this.buttons, {
+        text: 'Создать сообщество',
+        style: 'primary',
+        onClick: () => this.handleSubmit(),
+      });
+
+      this.cancelButton = new BaseButton(this.buttons, {
+        text: 'Отмена',
+        style: 'secondary',
+        onClick: () => this.handleCancel(),
+      });
+
+      await this.submitButton.render();
+      await this.cancelButton.render();
+    }
 
     const overlay = root.querySelector<HTMLElement>('.create-community-modal__overlay');
     const windowEl = root.querySelector<HTMLElement>('.create-community-modal__window');
@@ -131,6 +150,8 @@ export class CreateCommunityModal {
     this.root = null;
     this.aboutInput = null;
     this.buttons = null;
+    this.submitButton = null;
+    this.cancelButton = null;
   }
 
   private handleEsc(e: KeyboardEvent): void {
@@ -141,7 +162,6 @@ export class CreateCommunityModal {
 
   private handleCancel(): void {
     this.close();
-    // тут уже всегда есть функция
     this.onCancelFn();
   }
 

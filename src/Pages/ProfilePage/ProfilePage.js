@@ -1,7 +1,7 @@
 import BasePage from '../BasePage.js';
 import { renderFeed } from '../../components/organisms/Feed/Feed.js';
 import ProfilePageTemplate from './ProfilePage.hbs';
-import { EditProfileForm } from '../../components/organisms/EditProfileForm/EditProfileForm.js';
+import { EditProfileForm } from '../../components/organisms/EditProfileForm/EditProfileForm.ts';
 import { renderCommunitiesList } from '../../components/molecules/CommunitiesList/CommunitiesList.ts';
 import { authService } from '../../services/AuthService.js';
 import { NotificationManager } from '../../components/organisms/NotificationsBlock/NotificationsManager.js';

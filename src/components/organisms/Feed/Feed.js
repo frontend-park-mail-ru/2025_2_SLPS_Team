@@ -1,6 +1,6 @@
 import { renderPost } from "../../molecules/Post/Post.ts";
 import FeedTemplate from "./Feed.hbs";
-import { CreatePostForm } from "../CreatePost/CreatePost.js";
+import { CreatePostForm } from "../CreatePost/CreatePost.ts";
 import { EventBus } from "../../../services/EventBus.js";
 import { getPosts } from "../../../shared/api/postsApi.js";
 
