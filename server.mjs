@@ -20,7 +20,7 @@ app.use((req, res, next) => {
         "default-src 'self'; " +
         "frame-src 'self'; " + 
         "script-src 'self' https://cdn.jsdelivr.net; " +
-        "style-src 'self'; object-src 'none'; " +
+        "style-src 'self' 'unsafe-inline';" +
         `connect-src 'self' ${process.env.API_BASE_URL || 'http://185.86.146.77:8080'} ${process.env.WS_URL || ''}; ` +
         `img-src 'self' ${process.env.API_BASE_URL || 'http://185.86.146.77:8080'} blob: data:;` +
         `media-src 'self' ${process.env.API_BASE_URL || 'http://185.86.146.77:8080'} blob: data:;`

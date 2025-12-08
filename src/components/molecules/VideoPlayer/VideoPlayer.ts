@@ -20,6 +20,7 @@ export class VideoPlayer {
     autoplay: boolean;
     muted: boolean;
     loop: boolean;
+    isDragging?: boolean;
 
     video!: HTMLVideoElement;
     playBtn!: HTMLImageElement;
@@ -33,6 +34,7 @@ export class VideoPlayer {
         this.autoplay = options.autoplay || false;
         this.muted = options.muted || false;
         this.loop = options.loop || false;
+        this.isDragging = false;
     }
 
     render() {
@@ -82,13 +84,17 @@ export class VideoPlayer {
         });
 
         this.progress.addEventListener('input', () => {
+            this.isDragging = true;
             const duration = this.video.duration || 0;
             const percent = parseFloat(this.progress.value);
             this.video.currentTime = (percent / 100) * duration;
-
             this.progress.style.setProperty('--progress', `${percent}%`);
         });
 
+        this.progress.addEventListener('change', () => {
+            // Пользователь отпустил кружок
+            this.isDragging = false;
+        });
 
         this.video.addEventListener('ended', () => {
             this.togglePlayButton();
@@ -137,19 +143,17 @@ export class VideoPlayer {
             if (!this.video.paused && !this.video.ended) {
                 const current = this.video.currentTime;
                 const duration = this.video.duration || 0;
-                const percent = (current / duration) * 100;
+                const percent = duration ? (current / duration) * 100 : 0;
 
-                this.progress.value = percent.toString();
-                this.progress.style.setProperty('--progress', `${percent}%`);
+                if (!this.isDragging) {
+                    this.progress.style.setProperty('--progress', `${percent}%`);
+                }
 
                 this.timeDisplay.textContent = `${this.formatTime(current)} / ${this.formatTime(duration)}`;
-
                 requestAnimationFrame(update);
             }
         };
-
         requestAnimationFrame(update);
     }
-
 
 }
