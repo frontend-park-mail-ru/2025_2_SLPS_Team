@@ -132,12 +132,13 @@ export class ImageInput {
             const file = this.selectedFiles[i];
             if (!file) continue;
 
-            if ('type' in file && file.type.startsWith('video/')) {
-                const videoWrapper = document.createElement('div');
-                videoWrapper.className = 'slide-video-wrapper';
+            const isVideoFile = 
+                (file instanceof File && file.type.startsWith('video/')) ||
+                (isExistingPhoto(file) && /\.(mp4|webm|mov|ogg)$/i.test(file.url));
 
+            if (isVideoFile) {
                 const videoPlayer = new VideoPlayer({
-                    rootElement: videoWrapper,
+                    rootElement: slide,
                     video: {
                         url: file instanceof File ? URL.createObjectURL(file) : (file as ExistingPhoto).url,
                         isBlob: file instanceof File
@@ -147,9 +148,7 @@ export class ImageInput {
                     loop: false
                 });
 
-                videoPlayer.render();
-
-                slide.appendChild(videoWrapper);
+                await videoPlayer.render();
             } else {
                 const bg = document.createElement('img');
                 bg.className = 'slide-bg';
@@ -173,6 +172,9 @@ export class ImageInput {
 
             const removeBtnContainer = document.createElement('div');
             removeBtnContainer.className = 'remove-button-container';
+            if(isVideoFile) {
+                removeBtnContainer.style.top = '0';
+            }
             removeBtnContainer.appendChild(removeBtn);
             slide.appendChild(removeBtnContainer);
 
