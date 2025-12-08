@@ -86,13 +86,14 @@ export class VideoPlayer {
         this.progress.addEventListener('input', () => {
             this.isDragging = true;
             const duration = this.video.duration || 0;
-            const percent = parseFloat(this.progress.value);
+            let percent = parseFloat(this.progress.value);
+            percent = Math.max(0, Math.min(100, percent));
+            this.progress.value = String(percent);
             this.video.currentTime = (percent / 100) * duration;
             this.progress.style.setProperty('--progress', `${percent}%`);
         });
 
         this.progress.addEventListener('change', () => {
-            // Пользователь отпустил кружок
             this.isDragging = false;
         });
 
@@ -144,11 +145,7 @@ export class VideoPlayer {
                 const current = this.video.currentTime;
                 const duration = this.video.duration || 0;
                 const percent = duration ? (current / duration) * 100 : 0;
-
-                if (!this.isDragging) {
-                    this.progress.style.setProperty('--progress', `${percent}%`);
-                }
-
+                this.progress.style.setProperty('--progress', `${percent}%`);
                 this.timeDisplay.textContent = `${this.formatTime(current)} / ${this.formatTime(duration)}`;
                 requestAnimationFrame(update);
             }
