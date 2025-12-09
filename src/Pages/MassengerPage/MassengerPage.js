@@ -1,7 +1,7 @@
 import BasePage from '../BasePage.js';
 import MessengerPageTemplate from './MassengerPage.hbs';
 import { ChatItem } from '../../components/molecules/ChatItem/ChatItem.ts';
-import { Chat } from '../../components/organisms/Chat/Chat.js';
+import { Chat } from '../../components/organisms/Chat/Chat.ts';
 import { SearchInput } from '../../components/molecules/SearchInput/SearchInput.ts';
 import { EventBus } from '../../services/EventBus.js';
 import { authService } from '../../services/AuthService.js';

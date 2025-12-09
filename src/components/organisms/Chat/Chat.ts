@@ -1,7 +1,7 @@
 import ChatTemplate from './Chat.hbs';
-import { ChatHeader } from '../../molecules/ChatHeader/ChatHeader.ts';
-import { Message } from '../../atoms/Message/Message.ts';
-import { MessageInput } from '../../molecules/MessageInput/MessageInput.ts';
+import { ChatHeader } from '../../molecules/ChatHeader/ChatHeader';
+import { Message } from '../../atoms/Message/Message';
+import { MessageInput } from '../../molecules/MessageInput/MessageInput';
 
 import { wsService } from '../../../services/WebSocketService.js';
 import { EventBus } from '../../../services/EventBus.js';
@@ -12,64 +12,185 @@ import {
   updateChatReadState,
 } from '../../../shared/api/chatsApi.js';
 
+interface ChatUserView {
+  id: number;
+  full_name: string;
+  avatar: string;
+}
+
+export interface ChatMessageView {
+  id: number;
+  text: string;
+  created_at: string;
+  User: ChatUserView;
+}
+
+interface ChatMessagesResponseAuthor {
+  fullName: string;
+  avatarPath?: string | null;
+}
+
+interface ChatMessagesResponseMessage {
+  id: number;
+  text: string;
+  createdAt: string;
+  authorID: number;
+}
+
+interface ChatMessagesResponse {
+  Messages?: ChatMessagesResponseMessage[];
+  Authors?: Record<number, ChatMessagesResponseAuthor>;
+}
+
+interface SentMessageResponse {
+  id: number;
+}
+
+export interface ChatData {
+  id: number;
+  name: string;
+  avatarPath?: string | null;
+  lastReadMessageId?: number | null;
+  lastReadMessageID?: number | null;
+}
+
+export interface ChatOptions {
+  hasBackButton?: boolean;
+  onBack?: () => void;
+}
+
+interface WsLastMessage {
+  id: number;
+  text: string;
+  createdAt: string;
+  chatID: number;
+}
+
+interface WsAuthor {
+  userID: number;
+  fullName: string;
+  avatarPath?: string | null;
+}
+
+interface WsNewMessagePayload {
+  id?: number;
+  chatId?: number;
+  chatID?: number;
+  chat_id?: number;
+
+  lastMessage?: WsLastMessage;
+  last_message?: WsLastMessage;
+  message?: WsLastMessage;
+
+  lastMessageAuthor?: WsAuthor;
+  last_message_author?: WsAuthor;
+  author?: WsAuthor;
+}
+
 export class Chat {
-  constructor(rootElement, myUserId, myUserName, myUserAvatar, data, options={}) {
+  private rootElement: HTMLElement;
+  private chatInfo: number;
+
+  private myUserId: number;
+  private myUserName: string;
+  private myUserAvatar: string;
+
+  private data: ChatData;
+
+  private hasBackButton: boolean;
+  private onBack: (() => void) | null;
+
+  private messages: ChatMessageView[] = [];
+  private chatHeader: ChatHeader | null = null;
+  private inputMes: MessageInput | null = null;
+  private messagesContainer!: HTMLDivElement;
+  private scrollButton: HTMLButtonElement | null = null;
+
+  private lastReadMessageId: number | null;
+  private unreadMessageIds: Set<number> = new Set();
+  private readUpdateInFlight = false;
+
+  private wsHandler: ((data: WsNewMessagePayload | null) => void) | null = null;
+
+  constructor(
+    rootElement: HTMLElement,
+    myUserId: number,
+    myUserName: string,
+    myUserAvatar: string,
+    data: ChatData,
+    options: ChatOptions = {},
+  ) {
     this.rootElement = rootElement;
     this.chatInfo = data.id;
+
     this.myUserId = myUserId;
     this.myUserName = myUserName;
     this.myUserAvatar = myUserAvatar;
 
-    this.messages = [];
-    this.chatHeader = null;
-    this.inputMes = null;
-    this.messagesContainer = null;
-    this.scrollButton = null;
-
     this.data = data;
 
-    this.hasBackButton = options.hasBackButton || false;
-    this.onBack = options.onBack || null;
+    this.hasBackButton = options.hasBackButton ?? false;
+    this.onBack = options.onBack ?? null;
 
     this.lastReadMessageId =
-      data.lastReadMessageId || data.lastReadMessageID || null;
-    this.unreadMessageIds = new Set();
-    this.readUpdateInFlight = false;
-
-    this.wsHandler = null;
+      data.lastReadMessageId ?? data.lastReadMessageID ?? null;
   }
 
-  async render() {
+  async render(): Promise<void> {
     const wrapper = document.createElement('div');
     wrapper.innerHTML = ChatTemplate(this.chatInfo);
 
-    const mainContainer = wrapper.querySelector('.chat-container');
+    const mainContainer = wrapper.querySelector<HTMLDivElement>('.chat-container');
+    if (!mainContainer) {
+      throw new Error('Chat: .chat-container not found');
+    }
 
-    const rawData = await getChatMessages(this.chatInfo, 1);
-    const rawMessages = rawData.Messages || [];
-    const authors = rawData.Authors || {};
+    const rawData = (await getChatMessages(
+      this.chatInfo,
+      1,
+    )) as ChatMessagesResponse;
 
-    this.messages = rawMessages.map((msg) => ({
-      id: msg.id,
-      text: msg.text,
-      created_at: msg.createdAt,
-      User: {
-        id: msg.authorID,
-        full_name: authors[msg.authorID]?.fullName || '',
-        avatar: authors[msg.authorID]?.avatarPath || '',
-      },
-    }));
+    const rawMessages: ChatMessagesResponseMessage[] = rawData.Messages ?? [];
+    const authors: Record<number, ChatMessagesResponseAuthor> = rawData.Authors ?? {};
+
+    this.messages = rawMessages.map<ChatMessageView>((msg) => {
+      const author = authors[msg.authorID];
+      return {
+        id: msg.id,
+        text: msg.text,
+        created_at: msg.createdAt,
+        User: {
+          id: msg.authorID,
+          full_name: author?.fullName ?? '',
+          avatar: author?.avatarPath ?? '',
+        },
+      };
+    });
+
+    const headerContainer = mainContainer.querySelector<HTMLDivElement>(
+      '.chat-header-container',
+    );
+    if (!headerContainer) {
+      throw new Error('Chat: .chat-header-container not found');
+    }
 
     this.chatHeader = new ChatHeader(
-      mainContainer.querySelector('.chat-header-container'),
+      headerContainer,
       this.data.name,
-      this.data.avatarPath,
+      this.data.avatarPath ?? '',
       this.hasBackButton,
-      this.onBack
+      this.onBack ?? undefined,
     );
     this.chatHeader.render();
 
-    this.messagesContainer = mainContainer.querySelector('.chat-messeges');
+    const messagesContainer = mainContainer.querySelector<HTMLDivElement>(
+      '.chat-messeges',
+    );
+    if (!messagesContainer) {
+      throw new Error('Chat: .chat-messeges not found');
+    }
+
+    this.messagesContainer = messagesContainer;
 
     this.messages.forEach((messageData, index) => {
       const isMine = messageData.User.id === this.myUserId;
@@ -89,20 +210,29 @@ export class Chat {
 
     this.initUnreadTracking();
 
-    this.inputMes = new MessageInput(
-      mainContainer.querySelector('.messege-input'),
+    const inputContainer = mainContainer.querySelector<HTMLDivElement>(
+      '.messege-input',
     );
+    if (!inputContainer) {
+      throw new Error('Chat: .messege-input not found');
+    }
+
+    this.inputMes = new MessageInput(inputContainer);
     this.inputMes.render();
 
-    this.inputMes.textarea.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        this.sendEvent(e);
-      }
-    });
+    if (this.inputMes.textarea) {
+      this.inputMes.textarea.addEventListener('keydown', (e: KeyboardEvent) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          this.sendEvent(e);
+        }
+      });
+    }
 
-    this.inputMes.sendButton.addEventListener('click', (e) => {
-      this.sendEvent(e);
-    });
+    if (this.inputMes.sendButton) {
+      this.inputMes.sendButton.addEventListener('click', (e: MouseEvent) => {
+        this.sendEvent(e);
+      });
+    }
 
     this.addScrollButton();
 
@@ -110,13 +240,12 @@ export class Chat {
       this.handleScrollRead();
     });
 
-    this.rootElement.appendChild(wrapper.firstElementChild);
+    this.rootElement.appendChild(wrapper.firstElementChild as HTMLElement);
 
     this.scrollToLastRead();
 
-      this.wsHandler = (data) => {
-      console.log('[WS new_message in Chat]', data, 'current chat:', this.chatInfo);
-
+    // Подписка на WS
+    this.wsHandler = (data: WsNewMessagePayload | null) => {
       if (!data) return;
 
       const chatIdFromEvent =
@@ -124,14 +253,9 @@ export class Chat {
         data.chatId ??
         data.chatID ??
         data.chat_id ??
-        data.lastMessage?.chatID;
-
-      console.log(
-        '[WS new_message] chatIdFromEvent =',
-        chatIdFromEvent,
-        'this.chatInfo =',
-        this.chatInfo,
-      );
+        data.lastMessage?.chatID ??
+        data.last_message?.chatID ??
+        data.message?.chatID;
 
       if (chatIdFromEvent !== this.chatInfo) {
         return;
@@ -158,16 +282,18 @@ export class Chat {
         return;
       }
 
-      const messageData = {
+      const messageData: ChatMessageView = {
         id: last.id,
         text: last.text,
         created_at: last.createdAt,
         User: {
           id: author.userID,
           full_name: author.fullName,
-          avatar: author.avatarPath || '',
+          avatar: author.avatarPath ?? '',
         },
       };
+
+      if (!this.messagesContainer) return;
 
       const isMine = messageData.User.id === this.myUserId;
 
@@ -195,12 +321,9 @@ export class Chat {
     };
 
     wsService.on('new_message', this.wsHandler);
-
-
   }
 
-
-  initUnreadTracking() {
+  private initUnreadTracking(): void {
     this.unreadMessageIds.clear();
 
     this.messages.forEach((m) => {
@@ -215,18 +338,18 @@ export class Chat {
     this.handleScrollRead(true);
   }
 
-  handleScrollRead(isInitial = false) {
+  private handleScrollRead(isInitial: boolean = false): void {
+    if (!this.messagesContainer) return;
     if (this.unreadMessageIds.size === 0) return;
 
     const containerTop = this.messagesContainer.scrollTop;
-    const containerBottom =
-      containerTop + this.messagesContainer.clientHeight;
+    const containerBottom = containerTop + this.messagesContainer.clientHeight;
 
-    let newLastReadId = this.lastReadMessageId || 0;
-    const toDelete = [];
+    let newLastReadId = this.lastReadMessageId ?? 0;
+    const toDelete: number[] = [];
 
     this.unreadMessageIds.forEach((id) => {
-      const el = this.messagesContainer.querySelector(
+      const el = this.messagesContainer!.querySelector<HTMLElement>(
         `[data-message-id="${id}"]`,
       );
       if (!el) return;
@@ -247,7 +370,7 @@ export class Chat {
       toDelete.forEach((id) => this.unreadMessageIds.delete(id));
 
       if (!isInitial) {
-        this.pushReadState();
+        void this.pushReadState();
       }
 
       EventBus.emit('chatReadUpdated', {
@@ -258,7 +381,7 @@ export class Chat {
     }
   }
 
-  async pushReadState() {
+  private async pushReadState(): Promise<void> {
     if (!this.lastReadMessageId) return;
     if (this.readUpdateInFlight) return;
     this.readUpdateInFlight = true;
@@ -272,19 +395,24 @@ export class Chat {
     }
   }
 
-  scrollToBottom() {
+
+  private scrollToBottom(): void {
+    if (!this.messagesContainer) return;
+
     this.messagesContainer.scrollTop =
       this.messagesContainer.scrollHeight -
       this.messagesContainer.clientHeight;
   }
 
-  scrollToLastRead() {
+  private scrollToLastRead(): void {
+    if (!this.messagesContainer) return;
+
     if (!this.lastReadMessageId) {
       this.scrollToBottom();
       return;
     }
 
-    const el = this.messagesContainer.querySelector(
+    const el = this.messagesContainer.querySelector<HTMLElement>(
       `[data-message-id="${this.lastReadMessageId}"]`,
     );
 
@@ -299,11 +427,19 @@ export class Chat {
     this.messagesContainer.scrollTop = Math.max(targetTop, 0);
   }
 
-  addScrollButton() {
-    this.scrollButton =
-      this.messagesContainer.querySelector('.scroll-to-bottom-btn');
+  private addScrollButton(): void {
+    if (!this.messagesContainer) return;
+
+    this.scrollButton = this.messagesContainer.querySelector<HTMLButtonElement>(
+      '.scroll-to-bottom-btn',
+    );
+    if (!this.scrollButton) {
+      return;
+    }
 
     this.messagesContainer.addEventListener('scroll', () => {
+      if (!this.messagesContainer || !this.scrollButton) return;
+
       const maxScroll =
         this.messagesContainer.scrollHeight -
         this.messagesContainer.clientHeight;
@@ -318,6 +454,8 @@ export class Chat {
     });
 
     this.scrollButton.addEventListener('click', () => {
+      if (!this.messagesContainer) return;
+
       const el = this.messagesContainer;
       const smoothPart = 700;
 
@@ -334,17 +472,22 @@ export class Chat {
     });
   }
 
-  async sendEvent(e) {
+  private async sendEvent(e: Event): Promise<void> {
     e.preventDefault();
+    if (!this.inputMes || !this.messagesContainer) return;
+
     const text = this.inputMes.getValue();
     if (!text) return;
 
     const chatID = this.chatInfo;
 
     try {
-      const data = await sendChatMessage(chatID, text);
+      const data = (await sendChatMessage(
+        chatID,
+        text,
+      )) as SentMessageResponse;
 
-      const message = {
+      const message: ChatMessageView = {
         id: data.id,
         text,
         created_at: new Date().toISOString(),
@@ -355,7 +498,13 @@ export class Chat {
         },
       };
 
-      const msg = new Message(this.messagesContainer, message, true);
+      const msg = new Message(
+        this.messagesContainer,
+        message,
+        true,
+        true,
+        true,
+      );
       msg.render(true);
 
       this.messages.push(message);
@@ -366,7 +515,7 @@ export class Chat {
 
       this.lastReadMessageId = message.id;
       this.unreadMessageIds.clear();
-      this.pushReadState();
+      void this.pushReadState();
       EventBus.emit('chatReadUpdated', {
         chatId: this.chatInfo,
         unreadCount: 0,
@@ -376,6 +525,13 @@ export class Chat {
       this.scrollToBottom();
     } catch (err) {
       console.error('Ошибка при отправке сообщения:', err);
+    }
+  }
+
+  destroy(): void {
+    if (this.wsHandler) {
+      wsService.off?.('new_message', this.wsHandler);
+      this.wsHandler = null;
     }
   }
 }
