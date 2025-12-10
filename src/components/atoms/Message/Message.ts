@@ -1,5 +1,8 @@
 import MessageTemplate from './Message.hbs';
 import type { MessageData } from '@shared/types/components.js';
+import emojiRegex from 'emoji-regex';
+
+const regex = emojiRegex();
 
 export class Message {
     wrapper: HTMLElement | null = null;
@@ -33,6 +36,11 @@ export class Message {
             this.wrapper.classList.add('no-anim');
         }
 
+        if (this.isSingleEmoji(this.messageData.text)) {
+            const message = this.wrapper.querySelector('.message') as HTMLElement
+            message.classList.add('emoji');
+        }
+
         if (this.isLastInGroup) {
             if (this.isMine) {
                 this.wrapper.classList.add('last-in-group');
@@ -52,5 +60,13 @@ export class Message {
         if (!datetime) return '';
         const date = new Date(datetime);
         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    private isSingleEmoji(text: string): boolean {
+        const t = text.trim();
+        if (!t) return false;
+
+        const matches = Array.from(t.matchAll(regex)).map(m => m[0]);
+        return matches.length === 1 && matches[0] === t;
     }
 }
