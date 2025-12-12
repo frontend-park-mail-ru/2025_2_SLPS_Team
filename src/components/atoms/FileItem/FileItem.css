@@ -1,0 +1,85 @@
+.file-item {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background-color: var(--accent-purple);
+    padding: 8px;
+    width: fit-content;
+    border-radius: 9px;
+    position: relative;
+}
+
+.file-download-btn {
+    border: none;
+    width: fit-content;
+    height: fit-content;
+    padding: 0;
+    background: none;
+    position: relative;
+    cursor: pointer;
+}
+
+.file-download-btn.downloading img {
+    animation: arrow-down 0.6s ease-in-out 1 forwards;
+}
+
+@keyframes arrow-down {
+    0%   { transform: translateY(0); }
+    50%  { transform: translateY(6px); }
+    100% { transform: translateY(0); }
+}
+
+.file-download-btn img {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+}
+
+.dowanload-text {
+    color: var(--base-purple);
+    cursor: pointer;
+    transition: text-decoration 0.2s ease;
+}
+
+.dowanload-text:hover {
+    text-decoration: underline;
+}
+
+.file-size {
+    display: flex;
+    gap: 6px;
+    font-family: 'Nunito Sans';
+    font-size: 12px;
+    color: var(--dark-gray);
+}
+
+.file-name {
+    font-size: 14px;
+    font-weight: 350;
+}
+
+.file-delete-btn {
+    background: none;
+    border: none;
+    position: absolute;
+    top: -5px;
+    right: -12px;
+}
+
+.file-delete-icon {
+    width: 18px;
+    height: 18px;
+    box-shadow: 0 0 1px rgba(0,0,0,0.1);
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.file-item:hover .file-delete-icon {
+    opacity: 1;
+    transform: scale(1);
+}

@@ -88,6 +88,12 @@
     gap: 12px;
 }
 
+.file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
 @media (max-width: 768px) {
     .new-post-modal {
         align-items: flex-end;

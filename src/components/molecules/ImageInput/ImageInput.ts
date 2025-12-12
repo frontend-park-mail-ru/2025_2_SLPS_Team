@@ -29,11 +29,17 @@ export class ImageInput {
     selectedFiles: ImageItem[];
     currentIndex: number;
 
-    constructor(rootElement: HTMLElement) {
+    onFileDropped?: (file: File) => void;
+
+    constructor(rootElement: HTMLElement, options?: { onFileDropped?: (file: File) => void }) {
         this.rootElement = rootElement;
         this.wrapper = null;
         this.selectedFiles = [];
         this.currentIndex = 0;
+
+        if (options?.onFileDropped) {
+            this.onFileDropped = options.onFileDropped;
+        }
     }
 
     render(): void {
@@ -111,16 +117,26 @@ export class ImageInput {
     }
 
     addFiles(files: File[]): void {
-        const imageFiles = files.filter(f => 
-            f.type.startsWith('image/') || f.type.startsWith('video/')
-        );
-        if (imageFiles.length === 0) return;
+        const imageOrVideo: File[] = [];
 
-        this.selectedFiles = [...this.selectedFiles, ...imageFiles];
+        files.forEach(file => {
+            if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
+                imageOrVideo.push(file);
+            } else {
+                if (this.onFileDropped) {
+                    this.onFileDropped(file);
+                }
+            }
+        });
+
+        if (imageOrVideo.length === 0) return;
+
+        this.selectedFiles = [...this.selectedFiles, ...imageOrVideo];
         this.currentIndex = this.selectedFiles.length - 1;
-        this.inputContainer.classList.add('hidden');
         this.displayCarousel();
+        this.inputContainer.classList.remove('hidden');
     }
+
 
     async displayCarousel() {
         this.sliderTrack.innerHTML = '';
@@ -181,7 +197,6 @@ export class ImageInput {
             this.sliderTrack.appendChild(slide);
         }
 
-        this.inputContainer.classList.add('hidden');
         this.originalLabel.classList.add('active');
         this.preview.classList.add('active');
 

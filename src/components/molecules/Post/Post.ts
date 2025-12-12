@@ -10,6 +10,7 @@ import { EventBus } from '../../../services/EventBus.js';
 import { togglePostLike } from '../../../shared/api/postsApi.js';
 import { navigateTo } from '../../../app/router/navigateTo.js';
 import { Post } from './PostTypes';
+import { FileItem } from '../../atoms/FileItem/FileItem';
 
 const notifier = new NotificationManager();
 
@@ -188,6 +189,18 @@ export async function renderPost(rawPostData: Post | Record<string, any>): Promi
 
   const photoElement = await renderPostPhoto(postData.photos);
   postHeader.insertAdjacentElement('afterend', photoElement);
+
+  if (Array.isArray(postData.attachments) && postData.attachments.length > 0) {
+    const attachmentsContainer = postElement.querySelector('.post-file-list') as HTMLElement;
+
+    for (const att of postData.attachments) {
+      const fileItem = new FileItem(attachmentsContainer, {
+        fileUrl: `${process.env.API_BASE_URL}/uploads/${att}`
+      });
+
+      await fileItem.render();
+    }
+  }
 
   const postFooterRoot = postElement.querySelector('.post-footer') as HTMLElement | null;
   if (!postFooterRoot) return postElement;

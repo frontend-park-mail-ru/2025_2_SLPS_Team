@@ -1,0 +1,17 @@
+<div class="file-item">
+    <button class="file-download-btn">
+        <img src="/public/globalImages/DowwanloadIcon.svg">
+    </button>
+    <div class="file-info">
+        <div class="file-name">{{fileName}}</div>
+        <div class="file-size">
+            {{fileSize}}
+            <div class="dowanload-text">загрузить</div>
+        </div>
+    </div>
+    {{#if canDelete}}
+        <button class="file-delete-btn">
+            <img  class="file-delete-icon" src="/public/globalImages/CancelIcon.svg">
+        </button>
+    {{/if}}
+</div>

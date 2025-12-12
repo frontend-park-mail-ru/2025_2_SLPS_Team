@@ -8,6 +8,7 @@ import {
   processUpdatePostData,
   SelectedFile,
 } from '../../../shared/Submit/createPostSubmit';
+import { FileItem } from '../../atoms/FileItem/FileItem';
 
 const notifier = new NotificationManager();
 
@@ -24,6 +25,7 @@ interface PostData {
   communityID?: number | null;
   post?: PostData;
   [key: string]: unknown;
+  attachments?: string[];
 }
 
 export class CreatePostForm {
@@ -34,6 +36,11 @@ export class CreatePostForm {
   private mode: CreatePostMode;
   private postData: PostData | null;
   private communityId: number | null;
+  private attachments: File[] = [];
+
+  private existingPhotos: string[] = [];
+
+  private suppressAdding = false;
 
   private outsideClickHandler: ((e: MouseEvent) => void) | null = null;
 
@@ -51,7 +58,14 @@ export class CreatePostForm {
     this.communityId = options.communityId ?? null;
   }
 
+  private keyOf(item: File | string) {
+    return item instanceof File
+      ? `file:${item.name}:${item.size}:${item.lastModified}`
+      : `url:${item}`;
+  }
+
   async render(): Promise<void> {
+    console.log(this.postData)
     this.wrapper = document.createElement('div');
     this.wrapper.id = 'new-post-wrapper';
     this.wrapper.innerHTML = CreatePostTemplate({});
@@ -67,7 +81,14 @@ export class CreatePostForm {
       this.wrapper.querySelector<HTMLElement>('.input-image__block');
 
     if (inputContainer) {
-      this.input = new ImageInput(inputContainer);
+      const onFileDroppedHandler = (file: File) => {
+          this.attachments.push(file);
+          this.renderFileList();
+      };
+
+      this.input = new ImageInput(inputContainer, {
+        onFileDropped: onFileDroppedHandler,
+      });
       await this.input.render();
     }
 
@@ -85,8 +106,22 @@ export class CreatePostForm {
         [];
 
       if (Array.isArray(photos) && photos.length > 0 && this.input) {
-        this.input.displayExistingImages(photos);
+        this.suppressAdding = true;
+        try {
+          this.input.displayExistingImages(photos);
+        } finally {
+          this.suppressAdding = false;
+        }
+
+        this.existingPhotos = photos.slice();
       }
+      for (const att of this.postData.attachments || []) {
+        const file = await this.downloadUrlAsFile(att);
+        if (file) {
+          this.attachments.push(file);
+        }
+      }
+      this.renderFileList();
     }
 
     const buttonContainer =
@@ -115,6 +150,8 @@ export class CreatePostForm {
   }
 
   open(): void {
+    if (this.wrapper) return;
+
     document.body.style.overflow = 'hidden';
 
     this.render().then(() => {
@@ -186,6 +223,7 @@ export class CreatePostForm {
       await processCreatePostData({
         text,
         files,
+        attachments: this.attachments,
         communityId: this.communityId,
       });
 
@@ -237,9 +275,12 @@ export class CreatePostForm {
       await processUpdatePostData({
         text,
         selectedFiles,
+        attachments: this.attachments,
         communityIdFromPost: communityId,
         postId,
       });
+
+      console.log(this.attachments)
 
       notifier.show('Пост изменён', 'Изменения успешно сохранены', 'success');
 
@@ -259,4 +300,63 @@ export class CreatePostForm {
       notifier.show('Ошибка', 'Не удалось изменить пост', 'error');
     }
   }
+
+  private renderFileList() {
+    const container = this.wrapper?.querySelector('.file-list') as HTMLElement;
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    this.attachments = this.getUniqueAttachments(this.attachments);
+    console.log(this.attachments);
+
+    this.attachments.forEach((fileOrUrl) => {
+      const fileComponent = new FileItem(container, {
+        file: fileOrUrl instanceof File ? fileOrUrl : undefined,
+        fileUrl: typeof fileOrUrl === 'string' ? fileOrUrl : undefined,
+        canDelete: true,
+        onDelete: () => this.deleteAttachment(fileOrUrl),
+      });
+      void fileComponent.render();
+    });
+  }
+
+  private deleteAttachment(file: File) {
+      this.attachments = this.attachments.filter(f => f !== file);
+      this.renderFileList();
+    }
+
+  private async downloadUrlAsFile(url: string): Promise<File | null> {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        console.error("Failed to fetch", url);
+        return null;
+      }
+
+      const blob = await response.blob();
+
+      const parts = url.split("/");
+      const filename = parts[parts.length - 1] || "image.jpg";
+
+      return new File([blob], filename, { type: blob.type });
+    } catch (e) {
+      console.error("Error downloading", url, e);
+      return null;
+    }
+  }
+
+  private getUniqueAttachments(files: File[]): File[] {
+    const map = new Map<string, File>();
+
+    for (const file of files) {
+      const key = `${file.name}:${file.size}:${file.lastModified}`;
+      if (!map.has(key)) {
+        map.set(key, file);
+      }
+    }
+
+    return Array.from(map.values());
+  }
+
 }

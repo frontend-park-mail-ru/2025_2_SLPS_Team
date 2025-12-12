@@ -9,12 +9,14 @@ export type SelectedFile = File | ExistingFileDescriptor;
 export interface CreatePostSubmitParams {
   text: string;
   files: SelectedFile[];
+  attachments?: File[]; 
   communityId?: number | null;
 }
 
 export async function processCreatePostData({
   text,
   files,
+  attachments = [],
   communityId,
 }: CreatePostSubmitParams): Promise<void> {
   const formData = new FormData();
@@ -32,11 +34,17 @@ export async function processCreatePostData({
     }
   }
 
+  for (const file of attachments) {
+    formData.append('attachments', file);
+    console.log(file);
+  }
+
   if (communityId) {
     formData.append('communityID', String(communityId));
   }
 
   await createPost(formData);
+  console.log(formData.values.apply);
 }
 
 export interface UpdatePostSubmitParams {
@@ -44,14 +52,12 @@ export interface UpdatePostSubmitParams {
   selectedFiles: SelectedFile[];
   communityIdFromPost: number | null;
   postId: number;
+  attachments?: File[];
 }
 
-export async function processUpdatePostData({
-  text,
-  selectedFiles,
-  communityIdFromPost,
-  postId,
-}: UpdatePostSubmitParams): Promise<void> {
+export async function processUpdatePostData(params: UpdatePostSubmitParams): Promise<void> {
+  const { text, selectedFiles, attachments, communityIdFromPost, postId } = params;
+
   const formData = new FormData();
   formData.append('text', text);
 
@@ -67,9 +73,19 @@ export async function processUpdatePostData({
     }
   }
 
+  if (attachments) {
+    for (const file of attachments) {
+      formData.append('attachments', file);
+      console.log(file);
+    }
+  } else {
+    formData.append('attachments', '');
+  }
+
   if (communityIdFromPost) {
     formData.append('communityID', String(communityIdFromPost));
   }
 
   await updatePost(postId, formData);
 }
+
