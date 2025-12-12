@@ -129,3 +129,42 @@ export interface CreatePostFormOptions {
   postId?: number;
   communityId?: number;
 }
+
+export type ModalVoidCallback = () => void;
+
+export interface CommunityEntity {
+  id: number;
+  name?: string;
+  description?: string;
+  avatarPath?: string | null;
+  [key: string]: unknown;
+}
+
+export interface EditCommunitySubmitPayload {
+  name: string;
+  about: string;
+}
+
+export interface EditCommunityInitialFormData {
+  name?: string;
+  description?: string;
+  avatarPath?: string | null;
+}
+
+export interface EditCommunityModalCallbacks {
+  onSubmit?: (data: EditCommunitySubmitPayload) => void;
+  onCancel?: ModalVoidCallback;
+  onSuccess?: (freshCommunity: CommunityEntity) => void;
+}
+
+export interface EditCommunityModalOptions extends EditCommunityModalCallbacks {
+  communityId?: number;
+  FormData?: EditCommunityInitialFormData;
+}
+
+export interface AvatarState {
+  defaultAvatar: string;
+  hasCustomAvatar: boolean;
+  avatarDeleted: boolean;
+  currentAvatarBlob: string | null;
+}

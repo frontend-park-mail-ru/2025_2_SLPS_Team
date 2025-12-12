@@ -11,7 +11,7 @@ import { authService } from '../../services/AuthService.js';
 import { navigateTo } from '../../app/router/navigateTo.js';
 import DropDown from '../../components/atoms/dropDown/dropDown.ts';
 import BaseButton from '../../components/atoms/BaseButton/BaseButton.ts';
-import { EditCommunityModal } from '../../components/organisms/EditCommunityModal/EditCommunityModal.js';
+import { EditCommunityModal } from '../../components/organisms/EditCommunityModal/EditCommunityModal.ts';
 
 import {
   getCommunity,
