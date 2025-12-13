@@ -5,7 +5,7 @@ import DropDown from '../../atoms/dropDown/dropDown';
 import BaseButton from '../../atoms/BaseButton/BaseButton';
 import { NotificationManager } from '../NotificationsBlock/NotificationsManager';
 import { navigateTo } from '../../../app/router/navigateTo.js';
-import { layout } from '../../../Pages/LayoutManager.js';
+import { layout } from '../../../Pages/LayoutManager';
 import { processEditProfileSubmit } from '../../../shared/Submit/editProfileSubmit';
 import type { ProfileData } from '../../../shared/types/components';
 

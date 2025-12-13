@@ -3,7 +3,6 @@ import DropDown from '../../atoms/dropDown/dropDown';
 import BaseButton from '../../atoms/BaseButton/BaseButton';
 import { ModalConfirm } from '../ModalConfirm/ModalConfirm';
 import { NotificationManager } from '../../organisms/NotificationsBlock/NotificationsManager';
-import { authService } from '../../../services/AuthService.js';
 import { navigateTo } from '../../../app/router/navigateTo.js';
 import { deleteFriend, acceptFriend, sendFriendRequest} from '../../../shared/api/friendsApi.js';
 
@@ -151,19 +150,26 @@ export function renderFriendCard(context: FriendCardContext = {}): HTMLElement |
     const addBtn = new BaseButton(buttonContainer, {
       text: 'Добавить в друзья',
       style: 'normal',
-      onClick: async (e) => {
+      onClick: async (e: MouseEvent) => {
         e.stopPropagation();
-        const res = await sendFriendRequest(userID!);
+        if (!userID) return;
+
+        const btn = e.currentTarget as HTMLButtonElement;
+        btn.disabled = true;
+
+        const res = await sendFriendRequest(userID);
+
         if (res.ok) {
           notifier.show(
             'Заявка отправлена',
             `Вы отправили заявку пользователю ${name}`,
-            'success'
+            'success',
           );
 
-          const btn = e.target as HTMLButtonElement;
-          btn.disabled = true;
+          btn.textContent = 'Заявка отправлена';
+
         } else {
+          btn.disabled = false;
           notifier.show('Ошибка', 'Не удалось отправить заявку', 'error');
         }
       },

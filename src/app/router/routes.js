@@ -6,7 +6,7 @@ import { renderRegPage } from '../../Pages/RegPage/RegPage.js';
 import { renderLoginPage } from '../../Pages/LoginPage/LoginPage.js';
 import { FriendsPage } from '../../Pages/FriendsPage/FriendsPage.ts';
 import { HelpPage } from '../../Pages/HelpPage/HelpPage.js';
-import { layout } from '../../Pages/LayoutManager.js';
+import { layout } from '../../Pages/LayoutManager.ts';
 import { SupportFormPage } from '../../Pages/SupportFormPage/SupportFormPage.js';
 import { CommunityCheckPage } from '../../Pages/CommunityCheckPage/CommunityCheckPage.js'
 

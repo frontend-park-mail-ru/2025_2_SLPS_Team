@@ -11,7 +11,7 @@ import { gsap } from "gsap";
 import { getProfile } from '../../shared/api/profileApi.js';
 import { getChats, getChatWithUser } from '../../shared/api/chatsApi.js';
 import { cachedFetch } from "../../services/CacheService.js"; 
-import { layout } from '../LayoutManager.js';
+import { layout } from '../LayoutManager.ts';
 
 export class MessengerPage extends BasePage {
   constructor(rootElement) {
