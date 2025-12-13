@@ -1,31 +1,34 @@
-type IsLoggedInResponse = { userID?: number };
+type IsLoggedInResponse = {
+  userID?: number;
+};
+
 type CsrfCookieName = 'CSRF_token' | (string & {});
 
 const AUTH_SINGLETON_KEY = '__AUTH_SERVICE_SINGLETON__';
-const AUTH_ENDPOINT_BROKEN_KEY = '__AUTH_ISLOGGEDIN_BROKEN__';
+const AUTH_GUARD_KEY = '__AUTH_CHECK_GUARD__';
 
-function getGlobalFlag(): boolean {
-  return Boolean((globalThis as any)[AUTH_ENDPOINT_BROKEN_KEY]);
-}
+type GuardState = {
+  broken: boolean;
+  inFlight: Promise<boolean> | null;
+  lastAt: number;
+  lastResult: boolean | null;
+};
 
-function setGlobalFlag(v: boolean): void {
-  (globalThis as any)[AUTH_ENDPOINT_BROKEN_KEY] = v;
+function getGuard(): GuardState {
+  const g = (globalThis as unknown as Record<string, unknown>)[AUTH_GUARD_KEY] as GuardState | undefined;
+  if (g) return g;
+
+  const init: GuardState = { broken: false, inFlight: null, lastAt: 0, lastResult: null };
+  (globalThis as unknown as Record<string, unknown>)[AUTH_GUARD_KEY] = init;
+  return init;
 }
 
 export class AuthService {
   private userId: number | null = null;
   private isLoggedIn = false;
 
-  private checkAuthPromise: Promise<boolean> | null = null;
-  private lastAuthResult: boolean | null = null;
-  private lastAuthAt = 0;
-
   private readonly authTtlMs = 15_000;
-  private readonly failTtlMs = 60_000;
-
-  private logoutPromise: Promise<boolean> | null = null;
-  private lastLogoutAt = 0;
-  private readonly logoutTtlMs = 10_000;
+  private readonly minIntervalMs = 2_000;
 
   constructor() {
     const cachedUserId = localStorage.getItem('userId');
@@ -36,8 +39,10 @@ export class AuthService {
       if (Number.isFinite(parsed)) {
         this.userId = parsed;
         this.isLoggedIn = true;
-        this.lastAuthResult = true;
-        this.lastAuthAt = Date.now();
+
+        const guard = getGuard();
+        guard.lastResult = true;
+        guard.lastAt = Date.now();
       }
     }
   }
@@ -49,29 +54,31 @@ export class AuthService {
     localStorage.removeItem('userId');
     localStorage.removeItem('isLoggedIn');
 
-    this.lastAuthResult = false;
-    this.lastAuthAt = Date.now();
+    const guard = getGuard();
+    guard.lastResult = false;
+    guard.lastAt = Date.now();
   }
 
   async checkAuth(force = false): Promise<boolean> {
-    if (getGlobalFlag()) {
+    const guard = getGuard();
+    const now = Date.now();
+
+    if (guard.broken) {
       this.clearAuth();
       return false;
     }
 
-    const now = Date.now();
+    if (guard.inFlight) return guard.inFlight;
 
-    if (this.lastAuthResult === false && now - this.lastAuthAt < this.failTtlMs) {
-      return false;
+    if (now - guard.lastAt < this.minIntervalMs && guard.lastResult !== null) {
+      return guard.lastResult;
     }
 
-    if (!force && this.lastAuthResult !== null && now - this.lastAuthAt < this.authTtlMs) {
-      return this.lastAuthResult;
+    if (!force && guard.lastResult !== null && now - guard.lastAt < this.authTtlMs) {
+      return guard.lastResult;
     }
 
-    if (this.checkAuthPromise) return this.checkAuthPromise;
-
-    this.checkAuthPromise = (async () => {
+    guard.inFlight = (async () => {
       try {
         const res = await fetch(`${process.env.API_BASE_URL}/api/auth/isloggedin`, {
           method: 'GET',
@@ -79,13 +86,17 @@ export class AuthService {
         });
 
         if (res.status === 404) {
-          setGlobalFlag(true);
+          guard.broken = true;
           this.clearAuth();
+          guard.lastResult = false;
+          guard.lastAt = Date.now();
           return false;
         }
 
         if (!res.ok) {
           this.clearAuth();
+          guard.lastResult = false;
+          guard.lastAt = Date.now();
           return false;
         }
 
@@ -94,6 +105,8 @@ export class AuthService {
 
         if (!id) {
           this.clearAuth();
+          guard.lastResult = false;
+          guard.lastAt = Date.now();
           return false;
         }
 
@@ -103,18 +116,20 @@ export class AuthService {
         localStorage.setItem('userId', String(id));
         localStorage.setItem('isLoggedIn', 'true');
 
-        this.lastAuthResult = true;
-        this.lastAuthAt = Date.now();
+        guard.lastResult = true;
+        guard.lastAt = Date.now();
         return true;
       } catch {
         this.clearAuth();
+        guard.lastResult = false;
+        guard.lastAt = Date.now();
         return false;
       } finally {
-        this.checkAuthPromise = null;
+        guard.inFlight = null;
       }
     })();
 
-    return this.checkAuthPromise;
+    return guard.inFlight;
   }
 
   getUserId(): number | null {
@@ -135,35 +150,22 @@ export class AuthService {
   }
 
   async logout(): Promise<boolean> {
-    const now = Date.now();
+    try {
+      const csrf = this.getCsrfToken('CSRF_token');
+      const headers: Record<string, string> = { Accept: 'application/json' };
+      if (csrf) headers['X-CSRF-Token'] = csrf;
 
-    if (this.logoutPromise) return this.logoutPromise;
-    if (now - this.lastLogoutAt < this.logoutTtlMs) return false;
+      await fetch(`${process.env.API_BASE_URL}/api/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+        headers,
+      });
+    } catch {
+      // ignore
+    }
 
-    this.lastLogoutAt = now;
-
-    this.logoutPromise = (async () => {
-      try {
-        const csrf = this.getCsrfToken('CSRF_token');
-        const headers: Record<string, string> = { Accept: 'application/json' };
-        if (csrf) headers['X-CSRF-Token'] = csrf;
-
-        const res = await fetch(`${process.env.API_BASE_URL}/api/auth/logout`, {
-          method: 'POST',
-          credentials: 'include',
-          headers,
-        });
-
-      } catch {
-      } finally {
-        this.clearAuth();
-        this.logoutPromise = null;
-      }
-
-      return true;
-    })();
-
-    return this.logoutPromise;
+    this.clearAuth();
+    return true;
   }
 }
 
