@@ -5,32 +5,27 @@ type IsLoggedInResponse = {
 type CsrfCookieName = 'CSRF_token' | (string & {});
 
 const AUTH_SINGLETON_KEY = '__AUTH_SERVICE_SINGLETON__';
-const AUTH_GUARD_KEY = '__AUTH_CHECK_GUARD__';
-
-type GuardState = {
-  broken: boolean;
-  inFlight: Promise<boolean> | null;
-  lastAt: number;
-  lastResult: boolean | null;
-};
-
-function getGuard(): GuardState {
-  const g = (globalThis as unknown as Record<string, unknown>)[AUTH_GUARD_KEY] as GuardState | undefined;
-  if (g) return g;
-
-  const init: GuardState = { broken: false, inFlight: null, lastAt: 0, lastResult: null };
-  (globalThis as unknown as Record<string, unknown>)[AUTH_GUARD_KEY] = init;
-  return init;
-}
+const ISLOGGEDIN_BROKEN_LS_KEY = '__isloggedin_404__';
 
 export class AuthService {
   private userId: number | null = null;
   private isLoggedIn = false;
 
+  private checkAuthPromise: Promise<boolean> | null = null;
+  private lastAuthResult: boolean | null = null;
+  private lastAuthAt = 0;
+
   private readonly authTtlMs = 15_000;
-  private readonly minIntervalMs = 2_000;
 
   constructor() {
+    if (localStorage.getItem(ISLOGGEDIN_BROKEN_LS_KEY) === 'true') {
+      this.userId = null;
+      this.isLoggedIn = false;
+      this.lastAuthResult = false;
+      this.lastAuthAt = Date.now();
+      return;
+    }
+
     const cachedUserId = localStorage.getItem('userId');
     const cachedLogged = localStorage.getItem('isLoggedIn') === 'true';
 
@@ -39,10 +34,8 @@ export class AuthService {
       if (Number.isFinite(parsed)) {
         this.userId = parsed;
         this.isLoggedIn = true;
-
-        const guard = getGuard();
-        guard.lastResult = true;
-        guard.lastAt = Date.now();
+        this.lastAuthResult = true;
+        this.lastAuthAt = Date.now();
       }
     }
   }
@@ -54,31 +47,28 @@ export class AuthService {
     localStorage.removeItem('userId');
     localStorage.removeItem('isLoggedIn');
 
-    const guard = getGuard();
-    guard.lastResult = false;
-    guard.lastAt = Date.now();
+    this.lastAuthResult = false;
+    this.lastAuthAt = Date.now();
   }
 
   async checkAuth(force = false): Promise<boolean> {
-    const guard = getGuard();
-    const now = Date.now();
-
-    if (guard.broken) {
+    // ⛔ глобальный стоп — больше НИ ОДНОГО fetch
+    if (localStorage.getItem(ISLOGGEDIN_BROKEN_LS_KEY) === 'true') {
       this.clearAuth();
       return false;
     }
 
-    if (guard.inFlight) return guard.inFlight;
+    const now = Date.now();
 
-    if (now - guard.lastAt < this.minIntervalMs && guard.lastResult !== null) {
-      return guard.lastResult;
+    if (!force && this.lastAuthResult !== null && now - this.lastAuthAt < this.authTtlMs) {
+      return this.lastAuthResult;
     }
 
-    if (!force && guard.lastResult !== null && now - guard.lastAt < this.authTtlMs) {
-      return guard.lastResult;
+    if (this.checkAuthPromise) {
+      return this.checkAuthPromise;
     }
 
-    guard.inFlight = (async () => {
+    this.checkAuthPromise = (async () => {
       try {
         const res = await fetch(`${process.env.API_BASE_URL}/api/auth/isloggedin`, {
           method: 'GET',
@@ -86,50 +76,41 @@ export class AuthService {
         });
 
         if (res.status === 404) {
-          guard.broken = true;
+          localStorage.setItem(ISLOGGEDIN_BROKEN_LS_KEY, 'true');
           this.clearAuth();
-          guard.lastResult = false;
-          guard.lastAt = Date.now();
           return false;
         }
 
         if (!res.ok) {
           this.clearAuth();
-          guard.lastResult = false;
-          guard.lastAt = Date.now();
           return false;
         }
 
         const data = (await res.json()) as IsLoggedInResponse;
-        const id = typeof data.userID === 'number' && Number.isFinite(data.userID) ? data.userID : null;
 
-        if (!id) {
+        if (typeof data.userID !== 'number' || !Number.isFinite(data.userID)) {
           this.clearAuth();
-          guard.lastResult = false;
-          guard.lastAt = Date.now();
           return false;
         }
 
-        this.userId = id;
+        this.userId = data.userID;
         this.isLoggedIn = true;
 
-        localStorage.setItem('userId', String(id));
+        localStorage.setItem('userId', String(data.userID));
         localStorage.setItem('isLoggedIn', 'true');
 
-        guard.lastResult = true;
-        guard.lastAt = Date.now();
+        this.lastAuthResult = true;
+        this.lastAuthAt = Date.now();
         return true;
       } catch {
         this.clearAuth();
-        guard.lastResult = false;
-        guard.lastAt = Date.now();
         return false;
       } finally {
-        guard.inFlight = null;
+        this.checkAuthPromise = null;
       }
     })();
 
-    return guard.inFlight;
+    return this.checkAuthPromise;
   }
 
   getUserId(): number | null {
