@@ -246,6 +246,7 @@ export class Chat {
 
     // Подписка на WS
     this.wsHandler = (data: WsNewMessagePayload | null) => {
+      console.log(data);
       if (!data) return;
 
       const chatIdFromEvent =
@@ -305,6 +306,7 @@ export class Chat {
         true,
       );
       msg.render(true);
+      console.log(messageData);
 
       this.messages.push(messageData);
 
