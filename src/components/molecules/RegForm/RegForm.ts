@@ -2,7 +2,6 @@ import FormInput from "../../atoms/FormInput/FromInput";
 import { renderFormButton } from "../../atoms/FormButtons/FormButtons";
 import RegFormTemplate from './RegForm.hbs';
 import { gsap } from "gsap";
-import { authService } from "../../../services/AuthService.js";
 import SelectInput from "../../atoms/SelectInput/SelectInput";
 import { ModalConfirm } from '../ModalConfirm/ModalConfirm';
 import { RegistrationFormOptions, SavedValues, MONTH_NAMES } from "./RegFormTypes";
