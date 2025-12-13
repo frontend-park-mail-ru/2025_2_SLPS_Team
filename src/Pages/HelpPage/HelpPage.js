@@ -1,4 +1,4 @@
-import BasePage from '../BasePage.js';
+import BasePage from '../BasePage.ts';
 
 import HelpPageTemplate from './HelpPage.hbs';
 import './HelpPage.css';

@@ -1,4 +1,4 @@
-import BasePage from '../BasePage.js';
+import BasePage from '../BasePage.ts';
 import MessengerPageTemplate from './MassengerPage.hbs';
 import { ChatItem } from '../../components/molecules/ChatItem/ChatItem.ts';
 import { Chat } from '../../components/organisms/Chat/Chat.ts';

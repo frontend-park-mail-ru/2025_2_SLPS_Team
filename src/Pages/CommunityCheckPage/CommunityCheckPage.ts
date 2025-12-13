@@ -2,7 +2,7 @@ import BasePage from '../BasePage';
 import CommunityCheckPageTemplate from './CommunityCheckPage.hbs';
 import './CommunityCheckPage.css';
 
-import { renderCommunitySubscriberRow } from '../../components/molecules/CommunitySubscriberRow/CommunitySubscriberRow';
+import * as SubscriberRowModule from '../../components/molecules/CommunitySubscriberRow/CommunitySubscriberRow';
 import { renderFeed } from '../../components/organisms/Feed/Feed';
 import { NotificationManager } from '../../components/organisms/NotificationsBlock/NotificationsManager';
 import { ModalConfirm } from '../../components/molecules/ModalConfirm/ModalConfirm';
@@ -42,13 +42,9 @@ type CommunityEntity = {
 };
 
 type SubscriberEntity = {
-  userID?: number | null;
-  userId?: number | null;
-  id?: number | null;
-  firstName?: string | null;
-  lastName?: string | null;
-  fullName?: string | null;
-  avatarPath?: string | null;
+  userID: number;
+  fullName: string;
+  avatarPath: string | null;
 };
 
 type ToggleSubscriptionResponse = { isSubscribed?: boolean };
@@ -65,6 +61,20 @@ type TemplateCommunity = CommunityEntity & {
 };
 
 type TemplateData = { community: TemplateCommunity };
+
+type SubscriberRowArgs = {
+  id: number;
+  fullName: string;
+  avatarPath: string;
+  onClick: (id: number) => void;
+};
+
+type RenderSubscriberRowFn = (args: SubscriberRowArgs) => Node | null;
+
+type SubscriberRowModuleShape = {
+  renderCommunitySubscriberRow?: unknown;
+  default?: unknown;
+};
 
 const notifier = new NotificationManager();
 
@@ -100,23 +110,20 @@ function resolveImagePath(path: string | null | undefined, fallback: string): st
   return `${uploadsBaseUrl()}${path}`;
 }
 
-function resolveSubscriberId(user: SubscriberEntity): number | null {
-  const id = user.userID ?? user.userId ?? user.id;
-  return typeof id === 'number' ? id : null;
-}
-
-function resolveFullName(user: SubscriberEntity): string {
-  const full = user.fullName?.trim();
-  if (full) return full;
-
-  const parts = [user.firstName, user.lastName].filter(Boolean) as string[];
-  const joined = parts.join(' ').trim();
-  return joined || 'Без имени';
-}
-
 function isNode(v: unknown): v is Node {
   return v instanceof Node;
 }
+
+function resolveSubscriberRowRenderer(): RenderSubscriberRowFn {
+  const mod = SubscriberRowModule as unknown as SubscriberRowModuleShape;
+  const candidate = mod.renderCommunitySubscriberRow ?? mod.default;
+  if (typeof candidate !== 'function') {
+    throw new Error('[CommunityCheckPage] renderCommunitySubscriberRow is not a function');
+  }
+  return candidate as RenderSubscriberRowFn;
+}
+
+const renderCommunitySubscriberRow = resolveSubscriberRowRenderer();
 
 export class CommunityCheckPage extends BasePage {
   private params: PageParams;
@@ -316,8 +323,23 @@ export class CommunityCheckPage extends BasePage {
   }
 
   private initHeaderActions(): void {
-    if (this.isOwner) this.initOwnerMenu();
-    else this.initSubscribeButton();
+    if (!this.root) return;
+
+    const ownerButton = this.root.querySelector('.owner-menu-button') as HTMLElement | null;
+    const ownerDropdown = this.root.querySelector('.owner-menu-dropdown') as HTMLElement | null;
+
+    if (this.isOwner) {
+      if (this.subscribeBtn) this.subscribeBtn.style.display = 'none';
+      if (ownerButton) ownerButton.style.display = '';
+      if (ownerDropdown) ownerDropdown.style.display = '';
+      this.initOwnerMenu();
+      return;
+    }
+
+    if (ownerButton) ownerButton.style.display = 'none';
+    if (ownerDropdown) ownerDropdown.style.display = 'none';
+    if (this.subscribeBtn) this.subscribeBtn.style.display = '';
+    this.initSubscribeButton();
   }
 
   private initSubscribeButton(): void {
@@ -340,20 +362,27 @@ export class CommunityCheckPage extends BasePage {
 
     updateView();
 
-    btn.addEventListener('click', async () => {
-      try {
-        const res = (await toggleCommunitySubscription(
-          this.communityId!,
-          this.isSubscribed,
-        )) as ToggleSubscriptionResponse;
+    btn.onclick = null;
 
-        this.isSubscribed = Boolean(res?.isSubscribed);
-        updateView();
-      } catch (err) {
-        console.error(err);
-        notifier.show('Ошибка', 'Не удалось изменить подписку, попробуйте позже', 'error');
-      }
-    });
+    btn.addEventListener('click', async () => {
+    const id = this.communityId;
+    if (id == null) return;
+
+    try {
+      const res = (await toggleCommunitySubscription(
+        id,
+        this.isSubscribed,
+      )) as ToggleSubscriptionResponse;
+
+      this.isSubscribed = Boolean(res?.isSubscribed);
+      updateView();
+
+      void this.renderSubscribersBlock();
+    } catch (err) {
+      console.error(err);
+      notifier.show('Ошибка', 'Не удалось изменить подписку, попробуйте позже', 'error');
+    }
+  });
   }
 
   private async renderFeedBlock(): Promise<void> {
@@ -376,11 +405,13 @@ export class CommunityCheckPage extends BasePage {
     if (!this.subscribersList || !this.communityId) return;
 
     const list = this.subscribersList;
-    const subscribers = (await getCommunitySubscribers(this.communityId, 5)) as SubscriberEntity[];
+
+    const raw = await getCommunitySubscribers(this.communityId, 5);
+    const subscribers = (Array.isArray(raw) ? raw : []) as SubscriberEntity[];
 
     list.innerHTML = '';
 
-    if (!subscribers?.length) {
+    if (subscribers.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'community-subscribers-card__empty';
       empty.textContent = 'Пока нет подписчиков';
@@ -391,29 +422,16 @@ export class CommunityCheckPage extends BasePage {
     const fragment = document.createDocumentFragment();
 
     for (const user of subscribers) {
-      const subscriberId = resolveSubscriberId(user);
-      if (subscriberId === null) continue;
-
-      const avatarPath = resolveImagePath(
-        user.avatarPath,
-        '/public/globalImages/DefaultAvatar.svg',
-      );
-
-      const fullName = resolveFullName(user);
+      const avatarPath = resolveImagePath(user.avatarPath, '/public/globalImages/DefaultAvatar.svg');
 
       const row = renderCommunitySubscriberRow({
-        id: subscriberId,
-        fullName,
+        id: user.userID,
+        fullName: user.fullName?.trim() || 'Без имени',
         avatarPath,
-        onClick: (id: number) => {
-          navigateTo(`/profile/${id}`);
-        },
+        onClick: (id: number) => navigateTo(`/profile/${id}`),
       });
 
-      if (row instanceof Node) {
-        fragment.appendChild(row);
-      }
-
+      if (row) fragment.appendChild(row);
     }
 
     list.appendChild(fragment);
@@ -483,8 +501,10 @@ export class CommunityCheckPage extends BasePage {
           label: 'Редактировать сообщество',
           icon: '/public/globalImages/EditIcon.svg',
           onClick: () => {
+            const id = this.communityId;
+            if (id == null) return;
             const communityModal = new EditCommunityModal({
-              communityId: this.communityId!,
+              communityId: id,
               onSubmit: () => {},
               onCancel: () => {},
               FormData: {
@@ -496,7 +516,6 @@ export class CommunityCheckPage extends BasePage {
                 this.applyUpdatedCommunity(updatedCommunity);
               },
             });
-
             communityModal.open();
           },
         },
@@ -539,8 +558,8 @@ export class CommunityCheckPage extends BasePage {
       const actions = this.root.querySelector('.community-owner-actions') as HTMLElement | null;
       if (!actions) return;
 
-      const target = e.target as Node | null;
-      if (target && !actions.contains(target)) dropdown.hide();
+      const target = e.target;
+      if (target instanceof Node && !actions.contains(target)) dropdown.hide();
     };
 
     document.addEventListener('click', this.boundDocClick);
