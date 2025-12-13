@@ -4,7 +4,7 @@ import { registerUser, loginUser } from '../../shared/api/authApi';
 import { navigateTo } from '../../app/router/navigateTo';
 
 type RenderRegPageOptions = {
-  onSubmit?: (data: Record<string, any>) => void;
+  onSubmit?: (data: Record<string, unknown>) => void;
   onLog?: () => void;
 };
 
@@ -26,7 +26,11 @@ function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null;
 }
 
-function getBackendMessage(err: unknown): string {
+function toStr(v: unknown): string {
+  return String(v ?? '').trim();
+}
+
+function backendMessage(err: unknown): string {
   if (!isRecord(err)) return '';
   const data = isRecord(err.data) ? err.data : undefined;
   const msg = typeof data?.message === 'string' ? data.message : '';
@@ -34,10 +38,20 @@ function getBackendMessage(err: unknown): string {
   return msg || e || '';
 }
 
-function getStatus(err: unknown): number | undefined {
+function backendStatus(err: unknown): number | undefined {
   if (!isRecord(err)) return undefined;
   return typeof err.status === 'number' ? err.status : undefined;
 }
+
+type FormDataFromRegForm = Record<string, unknown>;
+type RegisterPayload = Parameters<typeof registerUser>[0];
+type LoginPayload = Parameters<typeof loginUser>[0];
+
+type RegisterPayloadWithConfirm = RegisterPayload & { confirmPassword: string };
+
+const registerUserWithConfirm = registerUser as unknown as (
+  payload: RegisterPayloadWithConfirm,
+) => ReturnType<typeof registerUser>;
 
 export async function renderRegPage(
   container: HTMLElement,
@@ -51,24 +65,29 @@ export async function renderRegPage(
   const tempContainer = document.createElement('div');
 
   const regForm = new RegistrationForm(tempContainer, {
-    onSubmit: (formData: Record<string, any>) => {
+    onSubmit: ((formData: FormDataFromRegForm) => {
       void (async () => {
         try {
-          await registerUser({
-            email: String(formData.email ?? '').trim(),
-            password: String(formData.password ?? '').trim(),
-            firstName: String(formData.firstName ?? '').trim(),
-            lastName: String(formData.lastName ?? '').trim(),
-            gender: formData.gender ?? null,
-            dob: String(formData.dob ?? ''),
-          } as any);
+          const genderValue = toStr(formData.gender);
+          const safeGender = genderValue || 'Мужской';
+
+          await registerUserWithConfirm({
+            confirmPassword: toStr(formData.confirmPassword),
+            email: toStr(formData.email),
+            password: toStr(formData.password),
+            firstName: toStr(formData.firstName),
+            lastName: toStr(formData.lastName),
+            dob: toStr(formData.dob),
+            gender: safeGender,
+          });
 
           try {
             await loginUser({
-              email: String(formData.email ?? '').trim(),
-              password: String(formData.password ?? '').trim(),
+              ...(formData as unknown as LoginPayload),
+              email: toStr(formData.email),
+              password: toStr(formData.password),
               rememberMe: true,
-            } as any);
+            });
           } catch {
             window.location.href = '/login';
             return;
@@ -80,12 +99,15 @@ export async function renderRegPage(
 
           window.location.href = '/';
         } catch (e: unknown) {
-          const backendMessage = getBackendMessage(e);
-          const status = getStatus(e);
-          const low = backendMessage.toLowerCase();
+          const msg = backendMessage(e);
+          const status = backendStatus(e);
+          const low = msg.toLowerCase();
 
           const isEmailAlreadyExists =
-            status === 409 || low.includes('already') || low.includes('exist') || low.includes('существ');
+            status === 409 ||
+            low.includes('already') ||
+            low.includes('exist') ||
+            low.includes('существ');
 
           if (isEmailAlreadyExists) {
             (regForm as unknown as RegFormInstance).emailError = true;
@@ -95,10 +117,10 @@ export async function renderRegPage(
             return;
           }
 
-          alert(backendMessage || 'Произошла ошибка при регистрации. Попробуйте позже');
+          alert(msg || 'Произошла ошибка при регистрации. Попробуйте позже');
         }
       })();
-    },
+    }) as unknown as (data: Record<string, any>) => void,
 
     onLog: () => {
       if (typeof options.onLog === 'function') {
