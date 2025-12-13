@@ -1,22 +1,31 @@
-type IsLoggedInResponse = {
-  userID?: number;
-};
-
+type IsLoggedInResponse = { userID?: number };
 type CsrfCookieName = 'CSRF_token' | (string & {});
+
+const AUTH_SINGLETON_KEY = '__AUTH_SERVICE_SINGLETON__';
+const AUTH_ENDPOINT_BROKEN_KEY = '__AUTH_ISLOGGEDIN_BROKEN__';
+
+function getGlobalFlag(): boolean {
+  return Boolean((globalThis as any)[AUTH_ENDPOINT_BROKEN_KEY]);
+}
+
+function setGlobalFlag(v: boolean): void {
+  (globalThis as any)[AUTH_ENDPOINT_BROKEN_KEY] = v;
+}
 
 export class AuthService {
   private userId: number | null = null;
   private isLoggedIn = false;
 
   private checkAuthPromise: Promise<boolean> | null = null;
-
   private lastAuthResult: boolean | null = null;
   private lastAuthAt = 0;
 
   private readonly authTtlMs = 15_000;
+  private readonly failTtlMs = 60_000;
 
-  // 🔥 ГЛАВНЫЙ ФЛАГ
-  private isAuthEndpointBroken = false;
+  private logoutPromise: Promise<boolean> | null = null;
+  private lastLogoutAt = 0;
+  private readonly logoutTtlMs = 10_000;
 
   constructor() {
     const cachedUserId = localStorage.getItem('userId');
@@ -45,19 +54,22 @@ export class AuthService {
   }
 
   async checkAuth(force = false): Promise<boolean> {
-    if (this.isAuthEndpointBroken) {
+    if (getGlobalFlag()) {
+      this.clearAuth();
       return false;
     }
 
     const now = Date.now();
 
+    if (this.lastAuthResult === false && now - this.lastAuthAt < this.failTtlMs) {
+      return false;
+    }
+
     if (!force && this.lastAuthResult !== null && now - this.lastAuthAt < this.authTtlMs) {
       return this.lastAuthResult;
     }
 
-    if (this.checkAuthPromise) {
-      return this.checkAuthPromise;
-    }
+    if (this.checkAuthPromise) return this.checkAuthPromise;
 
     this.checkAuthPromise = (async () => {
       try {
@@ -67,7 +79,7 @@ export class AuthService {
         });
 
         if (res.status === 404) {
-          this.isAuthEndpointBroken = true;
+          setGlobalFlag(true);
           this.clearAuth();
           return false;
         }
@@ -78,16 +90,17 @@ export class AuthService {
         }
 
         const data = (await res.json()) as IsLoggedInResponse;
+        const id = typeof data.userID === 'number' && Number.isFinite(data.userID) ? data.userID : null;
 
-        if (typeof data.userID !== 'number' || !Number.isFinite(data.userID)) {
+        if (!id) {
           this.clearAuth();
           return false;
         }
 
-        this.userId = data.userID;
+        this.userId = id;
         this.isLoggedIn = true;
 
-        localStorage.setItem('userId', String(data.userID));
+        localStorage.setItem('userId', String(id));
         localStorage.setItem('isLoggedIn', 'true');
 
         this.lastAuthResult = true;
@@ -122,28 +135,37 @@ export class AuthService {
   }
 
   async logout(): Promise<boolean> {
-    try {
-      const csrf = this.getCsrfToken('CSRF_token');
-      const headers: Record<string, string> = { Accept: 'application/json' };
-      if (csrf) headers['X-CSRF-Token'] = csrf;
+    const now = Date.now();
 
-      const res = await fetch(`${process.env.API_BASE_URL}/api/auth/logout`, {
-        method: 'POST',
-        credentials: 'include',
-        headers,
-      });
+    if (this.logoutPromise) return this.logoutPromise;
+    if (now - this.lastLogoutAt < this.logoutTtlMs) return false;
 
-      if (!res.ok) return false;
-    } catch {
-      return false;
-    }
+    this.lastLogoutAt = now;
 
-    this.clearAuth();
-    return true;
+    this.logoutPromise = (async () => {
+      try {
+        const csrf = this.getCsrfToken('CSRF_token');
+        const headers: Record<string, string> = { Accept: 'application/json' };
+        if (csrf) headers['X-CSRF-Token'] = csrf;
+
+        const res = await fetch(`${process.env.API_BASE_URL}/api/auth/logout`, {
+          method: 'POST',
+          credentials: 'include',
+          headers,
+        });
+
+      } catch {
+      } finally {
+        this.clearAuth();
+        this.logoutPromise = null;
+      }
+
+      return true;
+    })();
+
+    return this.logoutPromise;
   }
 }
-
-const AUTH_SINGLETON_KEY = '__AUTH_SERVICE_SINGLETON__';
 
 export const authService: AuthService =
   (globalThis as any)[AUTH_SINGLETON_KEY] ??
