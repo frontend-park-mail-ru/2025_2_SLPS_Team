@@ -2,7 +2,7 @@ import { renderNavbar } from '../components/molecules/Navbar/Navbar';
 import { renderMenu } from '../components/molecules/Menu/Menu';
 import { NotificationManager } from '../components/organisms/NotificationsBlock/NotificationsManager';
 import { authService } from '../services/AuthService';
-import { SupportWidget } from '../components/organisms/SupportWidget/SupportWidget.js';
+import { SupportWidget } from '../components/organisms/SupportWidget/SupportWidget';
 
 import { navigateTo as defaultNavigateTo } from '../index';
 

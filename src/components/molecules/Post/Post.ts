@@ -1,7 +1,7 @@
 import { renderPostPhoto } from '../../atoms/PostPhoto/PostPhoto';
 import { renderIconButton } from '../../atoms/IconButton/IconButton';
 import PostTemplate from './Post.hbs';
-import { authService } from '../../../services/AuthService.js';
+import { authService } from '../../../services/AuthService';
 import DropDown from '../../atoms/dropDown/dropDown';
 import { ModalConfirm } from '../ModalConfirm/ModalConfirm';
 import { NotificationManager } from '../../organisms/NotificationsBlock/NotificationsManager';

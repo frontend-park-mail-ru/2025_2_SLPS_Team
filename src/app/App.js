@@ -1,6 +1,6 @@
 import { createRouter } from './router/createRouter.js';
 import { routes } from './router/routes.js';
-import { authService } from '../services/AuthService.js';
+import { authService } from '../services/AuthService.ts';
 import '../index.css';
 
 export class App {

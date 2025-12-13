@@ -3,7 +3,7 @@ import { renderFeed } from '../../components/organisms/Feed/Feed.ts';
 import ProfilePageTemplate from './ProfilePage.hbs';
 import { EditProfileForm } from '../../components/organisms/EditProfileForm/EditProfileForm.ts';
 import { renderCommunitiesList } from '../../components/molecules/CommunitiesList/CommunitiesList.ts';
-import { authService } from '../../services/AuthService.js';
+import { authService } from '../../services/AuthService.ts';
 import { NotificationManager } from '../../components/organisms/NotificationsBlock/NotificationsManager.ts';
 import { ModalConfirm } from '../../components/molecules/ModalConfirm/ModalConfirm.ts';
 import { EventBus } from '../../services/EventBus.js';

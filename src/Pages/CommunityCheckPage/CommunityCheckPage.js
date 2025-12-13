@@ -7,7 +7,7 @@ import { renderFeed } from '../../components/organisms/Feed/Feed.ts';
 import { NotificationManager } from '../../components/organisms/NotificationsBlock/NotificationsManager.ts';
 import { ModalConfirm } from '../../components/molecules/ModalConfirm/ModalConfirm.ts';
 import { EventBus } from '../../services/EventBus.js';
-import { authService } from '../../services/AuthService.js';
+import { authService } from '../../services/AuthService.ts';
 import { navigateTo } from '../../app/router/navigateTo.js';
 import DropDown from '../../components/atoms/dropDown/dropDown.ts';
 import BaseButton from '../../components/atoms/BaseButton/BaseButton.ts';

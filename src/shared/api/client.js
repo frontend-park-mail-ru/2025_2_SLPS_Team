@@ -1,4 +1,4 @@
-import { authService } from '../../services/AuthService.js';
+import { authService } from '../../services/AuthService.ts';
 
 const API_BASE_URL = process.env.API_BASE_URL
 
