@@ -1,13 +1,14 @@
-import BasePage from '../BasePage.js';
-import { CreateSupportForm } from '../../components/organisms/CreateSupportForm/CreateSupportForm.ts';
+import BasePage from '../BasePage';
+import { CreateSupportForm } from '../../components/organisms/CreateSupportForm/CreateSupportForm';
 
 export class SupportFormPage extends BasePage {
-  constructor(rootElement) {
+  private form: CreateSupportForm | null = null;
+
+  constructor(rootElement: HTMLElement) {
     super(rootElement);
-    this.form = null;
   }
 
-  async render() {
+  async render(): Promise<void> {
     const existingWrapper = document.getElementById('page-wrapper');
     if (existingWrapper) existingWrapper.remove();
 
