@@ -13,12 +13,6 @@ import { CommunityCheckPage } from '../../Pages/CommunityCheckPage/CommunityChec
 import { navigateTo } from './navigateTo';
 import type { RoutesMap } from './createRouter';
 
-window.addEventListener('DOMContentLoaded', () => {
-  layout.init().then(() => {
-    layout.updateNavbarVisibility();
-  });
-});
-
 export const routes: RoutesMap = {
   '/': {
     renderFunc: async () => layout.renderPage(FeedPage),
