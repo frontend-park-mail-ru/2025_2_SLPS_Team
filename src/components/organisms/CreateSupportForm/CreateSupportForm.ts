@@ -16,12 +16,8 @@ import {
   type SupportWidgetPostMessage,
 } from '../../../shared/types/support';
 
-import {
-  buildSupportPayload,
-  clearErrors,
-  filesToBase64,
-  markError,
-} from '../../../shared/Submit/supportSubmit';
+import { buildSupportPayload, clearErrors, filesToBase64, markError } from '../../../shared/Submit/supportSubmit';
+
 
 const notifier = new NotificationManager();
 

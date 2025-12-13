@@ -2,57 +2,42 @@ import FriendsListTemplate from './FriendsList.hbs';
 import { renderFriendCard } from '../../molecules/FriendCard/FriendCard';
 import './FriendsList.css';
 
-export interface Friend {
-  id: number;
-  avatar?: string | null;
-  fullName: string;
-  aboutMyself?: string;
-  [key: string]: unknown;
-}
-
-export type FriendsListType = 'friends' | 'subscribers' | 'possible';
+import type { FriendListItem, FriendsListType } from '../../../shared/types/friends';
 
 export interface FriendsListContext {
-  friends?: Friend[];
+  friends?: FriendListItem[];
   listType?: FriendsListType;
 }
 
-export function renderFriendsList(
-  context: FriendsListContext = {},
-): HTMLElement {
+export function renderFriendsList(context: FriendsListContext = {}): HTMLElement {
   const { friends = [], listType = 'friends' } = context;
 
   const listElement = document.createElement('div');
 
   let title = 'Ваши друзья';
-  if (listType === 'subscribers') {
-    title = 'Подписчики';
-  } else if (listType === 'possible') {
-    title = 'Возможные друзья';
-  }
+  if (listType === 'subscribers') title = 'Подписчики';
+  else if (listType === 'possible') title = 'Возможные друзья';
 
-  const html = FriendsListTemplate({ title });
-  listElement.innerHTML = html;
+  listElement.innerHTML = FriendsListTemplate({ title });
 
   const friendsList = listElement.firstElementChild as HTMLElement | null;
-  if (!friendsList) {
-    return listElement;
-  }
+  if (!friendsList) return listElement;
 
-  const gridContainer =
-    friendsList.querySelector<HTMLElement>('.friends-list__grid');
+  const gridContainer = friendsList.querySelector<HTMLElement>('.friends-list__grid');
 
   if (gridContainer) {
     friends.forEach((friend) => {
-      const friendCard = renderFriendCard({
-        ...friend,
-        listType,
-      }) as HTMLElement | null;
-
-      if (friendCard) {
-        gridContainer.appendChild(friendCard);
-      }
+        const friendCard = renderFriendCard({
+      userID: friend.userID,
+      name: friend.name,
+      ...(friend.avatarPath != null ? { avatarPath: friend.avatarPath } : {}),
+      ...(friend.age != null ? { age: friend.age } : {}),
+      listType,
     });
+
+
+    if (friendCard) gridContainer.appendChild(friendCard);
+  });
   }
 
   return friendsList;

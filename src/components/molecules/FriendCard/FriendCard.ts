@@ -72,7 +72,7 @@ export function renderFriendCard(context: FriendCardContext = {}): HTMLElement |
               'Подтвердите действие',
               `Вы уверены что хотите удалить пользователя ${name} из друзей?`,
               async () => {
-                const res = await deleteFriend(userID, authService.getCsrfToken());
+                const res = await deleteFriend(userID!);
                 if (res.ok) {
                   notifier.show(
                     'Пользователь удален',
@@ -130,7 +130,7 @@ export function renderFriendCard(context: FriendCardContext = {}): HTMLElement |
         const btn = e.target as HTMLButtonElement;
         btn.disabled = true;
 
-        const res = await acceptFriend(userID, authService.getCsrfToken());
+        const res = await acceptFriend(userID!);
         if (res.ok) {
           notifier.show('Друг добавлен', `Вы добавили пользователя ${name} в друзья`, 'success');
           const textElement = document.createElement('span');
@@ -153,7 +153,7 @@ export function renderFriendCard(context: FriendCardContext = {}): HTMLElement |
       style: 'normal',
       onClick: async (e) => {
         e.stopPropagation();
-        const res = await sendFriendRequest(userID, authService.getCsrfToken());
+        const res = await sendFriendRequest(userID!);
         if (res.ok) {
           notifier.show(
             'Заявка отправлена',

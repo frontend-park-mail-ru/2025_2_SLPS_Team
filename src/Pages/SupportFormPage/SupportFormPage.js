@@ -1,5 +1,5 @@
 import BasePage from '../BasePage.js';
-import { CreateSupportForm } from '../../components/organisms/CreateSupportForm/CreateSupportForm.js';
+import { CreateSupportForm } from '../../components/organisms/CreateSupportForm/CreateSupportForm.ts';
 
 export class SupportFormPage extends BasePage {
   constructor(rootElement) {
