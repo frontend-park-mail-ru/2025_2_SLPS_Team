@@ -26,7 +26,7 @@ export function renderNavbar(photo?: string | null): HTMLElement {
   const buttonIcon = wrapper.querySelector('.dropdown-button-icon');
   const profileActionsConatiner = wrapper.querySelector('.navbar-profile-actions');
 
-  if (!(button instanceof HTMLButtonElement)) {
+  if (!(button instanceof HTMLElement)) {
     throw new Error('[Navbar] .dropdown-button not found');
   }
   if (!(buttonIcon instanceof HTMLElement)) {
