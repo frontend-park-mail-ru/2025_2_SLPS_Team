@@ -20,7 +20,7 @@ import {
   deleteCommunity,
 } from '../../shared/api/communityApi.js';
 
-import { getCommunityPosts } from '../../shared/api/postsApi.js';
+import { getCommunityPosts } from '../../shared/api/postsApi.ts';
 
 import { renderHeaderCard } from '../../components/molecules/HeaderCard/HeaderCard.ts';
 

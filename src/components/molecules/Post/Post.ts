@@ -7,7 +7,7 @@ import { ModalConfirm } from '../ModalConfirm/ModalConfirm';
 import { NotificationManager } from '../../organisms/NotificationsBlock/NotificationsManager';
 import { CreatePostForm } from '../../organisms/CreatePost/CreatePost';
 import { EventBus } from '../../../services/EventBus.js';
-import { togglePostLike } from '../../../shared/api/postsApi.js';
+import { togglePostLike } from '../../../shared/api/postsApi';
 import { navigateTo } from '../../../app/router/navigateTo.js';
 import { Post } from './PostTypes';
 import { FileItem } from '../../atoms/FileItem/FileItem';

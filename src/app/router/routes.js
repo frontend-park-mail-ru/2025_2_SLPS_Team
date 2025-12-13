@@ -1,4 +1,4 @@
-import { FeedPage } from '../../Pages/FeedPage/FeedPage.js';
+import { FeedPage } from '../../Pages/FeedPage/FeedPage.ts';
 import { ProfilePage } from '../../Pages/ProfilePage/ProfilePage.ts';
 import { MessengerPage } from '../../Pages/MassengerPage/MassengerPage.js';
 import { CommunityPage } from '../../Pages/CommunityPage/CommunityPage.js';
