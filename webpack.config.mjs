@@ -16,7 +16,7 @@ export default {
   devtool: 'source-map',
   entry: {
     main: './src/index.ts',
-    'service-worker': './src/service-worker.ts',
+    'service-worker': './src/service-worker.js',
   },
   output: {
     filename: '[name].js',
