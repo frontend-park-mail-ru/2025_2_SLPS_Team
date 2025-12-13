@@ -3,103 +3,95 @@ import RegPageTemplate from './RegPage.hbs';
 import { registerUser, loginUser } from '../../shared/api/authApi';
 import { navigateTo } from '../../app/router/navigateTo';
 
-type Step = 1 | 2 | 3;
+type RenderRegPageOptions = {
+  onSubmit?: (data: Record<string, any>) => void;
+  onLog?: () => void;
+};
 
-type StepInfoItem = { big: string; small: string };
+type RegFormInstance = {
+  render: () => Promise<void>;
+  renderStep: () => void;
+  emailError: boolean;
+  currentStep: number;
+  animationStatus: 'forward' | 'back';
+};
 
-const stepInfo: Record<Step, StepInfoItem> = {
+const stepInfo: Record<number, { big: string; small: string }> = {
   1: { big: 'Создать аккаунт', small: 'Введите email и пароль' },
   2: { big: 'Создать аккаунт', small: 'Введите имя и фамилию' },
   3: { big: 'Создать аккаунт', small: 'Укажите возраст и пол' },
 };
 
-export type RegFormData = {
-  email: string;
-  password: string;
-  confirmPassword: string;
-  firstName: string;
-  lastName: string;
-  gender: string;
-  dob: string;
-};
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null;
+}
 
-type RegPageOptions = {
-  onSubmit?: (formData: RegFormData) => void;
-  onLog?: () => void;
-};
+function getBackendMessage(err: unknown): string {
+  if (!isRecord(err)) return '';
+  const data = isRecord(err.data) ? err.data : undefined;
+  const msg = typeof data?.message === 'string' ? data.message : '';
+  const e = typeof data?.error === 'string' ? data.error : '';
+  return msg || e || '';
+}
 
-type ApiErrorLike = {
-  status?: number;
-  data?: { message?: string; error?: string };
-};
-
-function isApiErrorLike(e: unknown): e is ApiErrorLike {
-  return typeof e === 'object' && e !== null;
+function getStatus(err: unknown): number | undefined {
+  if (!isRecord(err)) return undefined;
+  return typeof err.status === 'number' ? err.status : undefined;
 }
 
 export async function renderRegPage(
   container: HTMLElement,
-  options: RegPageOptions = {},
-): Promise<RegistrationForm> {
+  options: RenderRegPageOptions = {},
+): Promise<RegFormInstance> {
   const html = RegPageTemplate({ logo: '/public/globalImages/Logo.svg' });
   container.innerHTML = html;
 
-  const infoContainer = container.querySelector('.reg-form-info') as HTMLElement | null;
-  const formContainer = container.querySelector('#reg-form-container') as HTMLElement | null;
-
+  const infoContainer = container.querySelector<HTMLElement>('.reg-form-info');
+  const formContainer = container.querySelector<HTMLElement>('#reg-form-container');
   const tempContainer = document.createElement('div');
 
   const regForm = new RegistrationForm(tempContainer, {
-    onSubmit: (formData: RegFormData) => {
+    onSubmit: (formData: Record<string, any>) => {
       void (async () => {
         try {
-          if (formData.password !== formData.confirmPassword) {
-            alert('Пароли не совпадают');
-            return;
-          }
-
           await registerUser({
-            email: formData.email,
-            password: formData.password,
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            gender: formData.gender,
-            dob: formData.dob,
-          });
+            email: String(formData.email ?? '').trim(),
+            password: String(formData.password ?? '').trim(),
+            firstName: String(formData.firstName ?? '').trim(),
+            lastName: String(formData.lastName ?? '').trim(),
+            gender: formData.gender ?? null,
+            dob: String(formData.dob ?? ''),
+          } as any);
 
           try {
             await loginUser({
-              email: formData.email,
-              password: formData.password,
-            });
-          } catch (e) {
-            console.warn('Не удалось залогиниться сразу после регистрации', e);
+              email: String(formData.email ?? '').trim(),
+              password: String(formData.password ?? '').trim(),
+              rememberMe: true,
+            } as any);
+          } catch {
             window.location.href = '/login';
             return;
           }
 
-          options.onSubmit?.(formData);
+          if (typeof options.onSubmit === 'function') {
+            options.onSubmit(formData);
+          }
+
           window.location.href = '/';
         } catch (e: unknown) {
-          console.error('Ошибка регистрации:', e);
-
-          const backendMessage = isApiErrorLike(e)
-            ? e.data?.message || e.data?.error || ''
-            : '';
-
-          const msgLower = backendMessage.toLowerCase();
+          const backendMessage = getBackendMessage(e);
+          const status = getStatus(e);
+          const low = backendMessage.toLowerCase();
 
           const isEmailAlreadyExists =
-            (isApiErrorLike(e) && e.status === 409) ||
-            msgLower.includes('already') ||
-            msgLower.includes('exist') ||
-            msgLower.includes('существ');
+            status === 409 || low.includes('already') || low.includes('exist') || low.includes('существ');
 
           if (isEmailAlreadyExists) {
-            (regForm as unknown as { emailError: boolean }).emailError = true;
-            (regForm as unknown as { currentStep: number }).currentStep = 1;
-            (regForm as unknown as { animationStatus: 'forward' | 'back' }).animationStatus = 'back';
-            (regForm as unknown as { renderStep: () => void }).renderStep();
+            (regForm as unknown as RegFormInstance).emailError = true;
+            (regForm as unknown as RegFormInstance).currentStep = 1;
+            (regForm as unknown as RegFormInstance).animationStatus = 'back';
+            (regForm as unknown as RegFormInstance).renderStep();
             return;
           }
 
@@ -109,22 +101,24 @@ export async function renderRegPage(
     },
 
     onLog: () => {
-      if (typeof options.onLog === 'function') options.onLog();
-      else navigateTo('/login');
+      if (typeof options.onLog === 'function') {
+        options.onLog();
+      } else {
+        navigateTo('/login');
+      }
     },
 
     onStepChange: (step: number) => {
-      const s = step as Step;
-      const info = stepInfo[s];
+      const info = stepInfo[step];
       if (!info || !infoContainer) return;
 
-      const big = infoContainer.querySelector('.info-text-big') as HTMLElement | null;
-      const small = infoContainer.querySelector('.info-text-small') as HTMLElement | null;
+      const big = infoContainer.querySelector<HTMLElement>('.info-text-big');
+      const small = infoContainer.querySelector<HTMLElement>('.info-text-small');
 
       if (big) big.textContent = info.big;
       if (small) small.textContent = info.small;
     },
-  });
+  }) as unknown as RegFormInstance;
 
   await regForm.render();
 
