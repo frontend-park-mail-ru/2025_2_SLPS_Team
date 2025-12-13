@@ -14,25 +14,20 @@ dotenv.config();
 export default {
   mode: 'development',
   devtool: 'source-map',
-  entry: './src/index.ts',
+  entry: {
+    main: './src/index.ts',
+    'service-worker': './src/service-worker.ts',
+  },
   output: {
-    filename: 'bundle.js',
-    path: path.resolve('./dist'),
+    filename: '[name].js',
+    path: path.resolve(__dirname, 'dist'),
     clean: true,
     publicPath: '/',
   },
   module: {
     rules: [
-      {
-        test: /\.ts$/,
-        use: "ts-loader",
-        exclude: /node_modules/,
-      },
-      {
-        test: /\.(js|mjs)$/,
-        exclude: /node_modules/,
-        use: 'babel-loader',
-      },
+      { test: /\.ts$/, use: 'ts-loader', exclude: /node_modules/ },
+      { test: /\.(js|mjs)$/, exclude: /node_modules/, use: 'babel-loader' },
       {
         test: /\.hbs$/,
         loader: 'handlebars-loader',
@@ -42,12 +37,7 @@ export default {
         test: /\.css$/,
         use: [
           MiniCssExtractPlugin.loader,
-          {
-            loader: 'css-loader',
-            options: {
-              url: false,
-            },
-          },
+          { loader: 'css-loader', options: { url: false } },
         ],
       },
       {
@@ -65,8 +55,11 @@ export default {
   plugins: [
     new CopyWebpackPlugin({
       patterns: [
-        { from: path.resolve(__dirname, 'src/service-worker.js'), to: path.resolve(__dirname, 'dist/service-worker.js') },
-        { from: path.resolve(__dirname, 'public'), to: path.resolve(__dirname, 'dist/public'), noErrorOnMissing: true },
+        {
+          from: path.resolve(__dirname, 'public'),
+          to: path.resolve(__dirname, 'dist/public'),
+          noErrorOnMissing: true,
+        },
       ],
     }),
 
@@ -74,41 +67,36 @@ export default {
       template: path.resolve(__dirname, 'src', 'index.html'),
       filename: 'index.html',
       favicon: './public/globalImages/favicon.svg',
+      chunks: ['main'],
     }),
 
     new webpack.DefinePlugin({
-      'process.env.API_BASE_URL': JSON.stringify(process.env.API_BASE_URL || 'http://localhost:8080'),
-      'process.env.WS_URL': JSON.stringify(process.env.WS_URL || 'ws://localhost:8080/api/ws'),
+      'process.env.API_BASE_URL': JSON.stringify(
+        process.env.API_BASE_URL || 'http://localhost:8080',
+      ),
+      'process.env.WS_URL': JSON.stringify(
+        process.env.WS_URL || 'ws://localhost:8080/api/ws',
+      ),
     }),
 
     new MiniCssExtractPlugin({
       filename: 'styles/[name].css',
     }),
-
-    new CopyWebpackPlugin({
-      patterns: [
-        { from: path.resolve(__dirname, 'public'), to: path.resolve(__dirname, 'dist/public'), noErrorOnMissing: true },
-      ],
-    }),
   ],
   resolve: {
-  extensions: ['.js', '.mjs','.ts'],
-  alias: {
-    '@': path.resolve(__dirname, 'src'),
-    '@app': path.resolve(__dirname, 'src/app'),
-    '@shared': path.resolve(__dirname, 'src/shared'),
+    extensions: ['.js', '.mjs', '.ts'],
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+      '@app': path.resolve(__dirname, 'src/app'),
+      '@shared': path.resolve(__dirname, 'src/shared'),
+    },
   },
-},
   devServer: {
     static: {
       directory: path.resolve(__dirname, 'dist'),
     },
     hot: true,
     port: 3000,
-    historyApiFallback: true, // на всякий
-    // и можно сразу проксировать на бэк, тогда даже env не нужен:
-    // proxy: {
-    //   '/api': 'http://localhost:8080',
-    // },
+    historyApiFallback: true,
   },
 };

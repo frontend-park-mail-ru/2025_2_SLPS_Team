@@ -1,10 +1,10 @@
 import FormInput from "../../atoms/FormInput/FromInput";
 import { renderFormButton } from "../../atoms/FormButtons/FormButtons";
-import RegFormTemplate from './RegForm.hbs';
+import RegFormTemplate from "./RegForm.hbs";
 import { gsap } from "gsap";
 import SelectInput from "../../atoms/SelectInput/SelectInput";
-import { ModalConfirm } from '../ModalConfirm/ModalConfirm';
-import { SavedValues, MONTH_NAMES } from "./RegFormTypes";
+import { ModalConfirm } from "../ModalConfirm/ModalConfirm";
+import { MONTH_NAMES } from "./RegFormTypes";
 
 export type RegistrationFormOptions = {
   onSubmit?: (data: any) => void;
@@ -12,40 +12,57 @@ export type RegistrationFormOptions = {
   onStepChange?: (step: number) => void;
 };
 
+type SavedValuesLocal = {
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+  firstName?: string;
+  lastName?: string;
+  bthDay?: string;
+  bthMonth?: string;
+  bthYear?: string;
+  gender?: string;
+  dob?: string;
+};
+
 export default class RegistrationForm {
-    container: HTMLElement;
-    options: RegistrationFormOptions;
-    form: HTMLFormElement | undefined;
-    inputContainer!: HTMLElement;
-    buttons!: HTMLElement;
-    inputs: Record<string, any> = {};
-    currentStep = 1;
-    savedValues: any = {};
-    emailError = false;
-    animationStatus: 'forward' | 'back' = 'forward';
+  container: HTMLElement;
+  options: RegistrationFormOptions;
 
-    constructor(container: HTMLElement, options: RegistrationFormOptions = {}) {
-      this.container = container;
-      this.options = options;
-    }
+  form: HTMLFormElement | undefined;
+  inputContainer!: HTMLElement;
+  buttons!: HTMLElement;
 
-  async render() {
-    const template = RegFormTemplate;
-    const html = template({});
+  inputs: Record<string, any> = {};
 
+  currentStep = 1;
+  savedValues: SavedValuesLocal = {};
+  emailError = false;
+  animationStatus: "forward" | "back" = "forward";
+
+  constructor(container: HTMLElement, options: RegistrationFormOptions = {}) {
+    this.container = container;
+    this.options = options;
+  }
+
+  async render(): Promise<void> {
+    const html = RegFormTemplate({});
     const wrapper = document.createElement("div");
     wrapper.innerHTML = html.trim();
 
     this.form = wrapper.querySelector("form") as HTMLFormElement;
     this.container.appendChild(this.form);
 
-    this.inputContainer = this.form.querySelector(".input-container") as HTMLInputElement;
+    this.inputContainer = this.form.querySelector(".input-container") as HTMLElement;
     this.buttons = this.form.querySelector(".button-container") as HTMLElement;
 
     this.renderStep();
   }
 
-  async renderStepAnimated(renderFn: () => Promise<void>, direction: "forward" | "back" = "forward") {
+  async renderStepAnimated(
+    renderFn: () => Promise<void>,
+    direction: "forward" | "back" = "forward",
+  ): Promise<void> {
     const stepContainer = document.createElement("div");
     stepContainer.classList.add("step-wrapper");
     stepContainer.style.display = "flex";
@@ -67,7 +84,7 @@ export default class RegistrationForm {
     await gsap.fromTo(
       stepContainer,
       { opacity: 0, x: direction === "forward" ? offset : -offset },
-      { opacity: 1, x: 0, duration: 0.3, ease: "power1.inOut" }
+      { opacity: 1, x: 0, duration: 0.3, ease: "power1.inOut" },
     );
 
     this.form!.appendChild(this.inputContainer);
@@ -75,24 +92,22 @@ export default class RegistrationForm {
     stepContainer.remove();
   }
 
-  renderStep() {
+  renderStep(): void {
     this.inputContainer.innerHTML = "";
     this.buttons.innerHTML = "";
 
-    if (this.options.onStepChange) {
-      this.options.onStepChange(this.currentStep);
-    }
+    this.options.onStepChange?.(this.currentStep);
 
     if (this.currentStep === 1) {
-      this.renderStepAnimated(() => this.renderStep1(), this.animationStatus);
+      void this.renderStepAnimated(() => this.renderStep1(), this.animationStatus);
     } else if (this.currentStep === 2) {
-      this.renderStepAnimated(() => this.renderStep2(), this.animationStatus);
+      void this.renderStepAnimated(() => this.renderStep2(), this.animationStatus);
     } else if (this.currentStep === 3) {
-      this.renderStepAnimated(() => this.renderStep3(), this.animationStatus);
+      void this.renderStepAnimated(() => this.renderStep3(), this.animationStatus);
     }
   }
 
-  async renderStep1() {
+  async renderStep1(): Promise<void> {
     this.inputs.email = new FormInput(this.inputContainer, {
       name: "email",
       label: "Email",
@@ -100,7 +115,7 @@ export default class RegistrationForm {
       placeholder: "Введите email",
       required: true,
       showRequired: true,
-      value: this.savedValues?.email || ""
+      value: this.savedValues.email || "",
     });
     await this.inputs.email.render();
 
@@ -111,7 +126,7 @@ export default class RegistrationForm {
       placeholder: "Введите пароль",
       required: true,
       showRequired: true,
-      value: this.savedValues?.password || ""
+      value: this.savedValues.password || "",
     });
     await this.inputs.password.render();
 
@@ -122,7 +137,7 @@ export default class RegistrationForm {
       placeholder: "Повторите пароль",
       required: true,
       showRequired: true,
-      value: this.savedValues?.confirmPassword || ""
+      value: this.savedValues.confirmPassword || "",
     });
     await this.inputs.confirmPassword.render();
 
@@ -130,32 +145,33 @@ export default class RegistrationForm {
       this.validateStep1();
     }
 
-    await renderFormButton(this.buttons, "button", "Далее", "accent", (e) => {
+    await renderFormButton(this.buttons, "button", "Далее", "accent", (e: Event) => {
       e.preventDefault();
       if (this.validateStep1()) {
         this.savedValues.email = this.inputs.email.input.value;
         this.savedValues.password = this.inputs.password.input.value;
         this.savedValues.confirmPassword = this.inputs.confirmPassword.input.value;
+
         this.animationStatus = "forward";
         this.currentStep = 2;
         this.renderStep();
       }
     });
 
-    renderFormButton(this.buttons, "button", "Войти", "base", (e) => {
+    await renderFormButton(this.buttons, "button", "Войти", "base", (e: Event) => {
       e.preventDefault();
       this.handleLogin();
     });
   }
 
-  async renderStep2() {
+  async renderStep2(): Promise<void> {
     this.inputs.firstName = new FormInput(this.inputContainer, {
       name: "firstName",
       label: "Имя",
       type: "text",
       placeholder: "Введите имя",
       required: true,
-      value: this.savedValues?.firstName || ""
+      value: this.savedValues.firstName || "",
     });
     await this.inputs.firstName.render();
 
@@ -165,22 +181,23 @@ export default class RegistrationForm {
       type: "text",
       placeholder: "Введите фамилию",
       required: true,
-      value: this.savedValues?.lastName || ""
+      value: this.savedValues.lastName || "",
     });
     await this.inputs.lastName.render();
 
-    await renderFormButton(this.buttons, "button", "Далее", "accent", (e) => {
+    await renderFormButton(this.buttons, "button", "Далее", "accent", (e: Event) => {
       e.preventDefault();
       if (this.validateStep2()) {
         this.savedValues.firstName = this.inputs.firstName.input.value;
         this.savedValues.lastName = this.inputs.lastName.input.value;
+
         this.animationStatus = "forward";
         this.currentStep = 3;
         this.renderStep();
       }
     });
 
-    await renderFormButton(this.buttons, "button", "Назад", "base", (e) => {
+    await renderFormButton(this.buttons, "button", "Назад", "base", (e: Event) => {
       e.preventDefault();
       this.animationStatus = "back";
       this.currentStep = 1;
@@ -188,7 +205,17 @@ export default class RegistrationForm {
     });
   }
 
-  async renderStep3() {
+  private syncBirthFromSelects(): void {
+    const day = this.inputs.bthDay?.getValue?.();
+    const month = this.inputs.bthMonth?.getValue?.();
+    const year = this.inputs.bthYear?.getValue?.();
+
+    if (day != null) this.savedValues.bthDay = String(day);
+    if (month != null) this.savedValues.bthMonth = String(month);
+    if (year != null) this.savedValues.bthYear = String(year);
+  }
+
+  async renderStep3(): Promise<void> {
     const dobLabel = document.createElement("div");
     dobLabel.textContent = "Дата рождения";
     dobLabel.classList.add("small-lable");
@@ -237,17 +264,19 @@ export default class RegistrationForm {
     yearContainer.classList.add("reg-bth-year");
     dobRow.appendChild(yearContainer);
 
-    const years = [];
+    const years: Array<{ label: string; value: string; active: boolean }> = [];
     for (let y = maxYear; y >= minYear; y--) {
-      years.push({
-        label: String(y),
-        value: String(y),
-        active: y === savedYear,
-      });
+      years.push({ label: String(y), value: String(y), active: y === savedYear });
     }
 
     this.inputs.bthYear = new SelectInput(yearContainer, { values: years, pressedStyle: true });
     await this.inputs.bthYear.render();
+
+    this.syncBirthFromSelects();
+
+    dobRow.addEventListener("click", () => this.syncBirthFromSelects());
+    dobRow.addEventListener("pointerup", () => this.syncBirthFromSelects());
+    dobRow.addEventListener("keyup", () => this.syncBirthFromSelects(), true);
 
     const genderLabel = document.createElement("div");
     genderLabel.textContent = "Выберите пол";
@@ -284,18 +313,26 @@ export default class RegistrationForm {
           checkboxes.forEach((cb) => {
             if (cb !== checkbox) cb.checked = false;
           });
+          this.savedValues.gender = checkbox.value;
+        } else {
+          if (this.savedValues.gender === checkbox.value) {
+            delete this.savedValues.gender;
+          }
         }
       });
     });
 
-    await renderFormButton(this.buttons, "submit", "Завершить", "accent", (e) => {
+    await renderFormButton(this.buttons, "submit", "Завершить", "accent", (e: Event) => {
       e.preventDefault();
+
+      this.syncBirthFromSelects();
+
       if (this.validateStep3()) {
         this.handleSubmit();
       }
     });
 
-    await renderFormButton(this.buttons, "button", "Назад", "base", (e) => {
+    await renderFormButton(this.buttons, "button", "Назад", "base", (e: Event) => {
       e.preventDefault();
       this.currentStep = 2;
       this.animationStatus = "back";
@@ -303,8 +340,9 @@ export default class RegistrationForm {
     });
   }
 
-  validateStep1() {
+  validateStep1(): boolean {
     let valid = true;
+
     const email = this.inputs.email.input.value.trim();
     const pass = this.inputs.password.input.value.trim();
     const confirm = this.inputs.confirmPassword.input.value.trim();
@@ -319,8 +357,7 @@ export default class RegistrationForm {
       this.emailError = false;
     }
 
-    const emailRegex =
-      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/u;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/u;
 
     if (!emailRegex.test(email)) {
       this.inputs.email.showError("Введите корректный email");
@@ -338,8 +375,9 @@ export default class RegistrationForm {
     return valid;
   }
 
-  validateStep2() {
+  validateStep2(): boolean {
     let valid = true;
+
     const firstName = this.inputs.firstName.input.value.trim();
     const lastName = this.inputs.lastName.input.value.trim();
 
@@ -358,33 +396,26 @@ export default class RegistrationForm {
     return valid;
   }
 
-validateStep3() {
+  validateStep3(): boolean {
     const showError = (message: string) => {
-      const modal = new ModalConfirm(
-        'Ошибка валидации',
-        message,
-        () => {}
-      );
+      const modal = new ModalConfirm("Ошибка валидации", message, () => {});
       modal.open();
     };
 
-    let day = Number(this.inputs.bthDay.getValue());
-    let monthName = this.inputs.bthMonth.getValue();
-    let year = Number(this.inputs.bthYear.getValue());
+    this.syncBirthFromSelects();
+
+    const day = Number(this.savedValues.bthDay);
+    const monthName = this.savedValues.bthMonth;
+    const year = Number(this.savedValues.bthYear);
 
     if (!day || !monthName || !year) {
-      const MIN_AGE = 14;
-      const currentYear = new Date().getFullYear();
-      const maxYear = currentYear - MIN_AGE;
-
-      day = 1;
-      monthName = MONTH_NAMES[0];
-      year = maxYear;
+      showError("Выберите дату рождения");
+      return false;
     }
 
     const monthIndex = MONTH_NAMES.indexOf(monthName);
     if (monthIndex === -1) {
-      showError('Выбран некорректный месяц');
+      showError("Выбран некорректный месяц");
       return false;
     }
 
@@ -398,37 +429,26 @@ validateStep3() {
     }
 
     if (age < 14 || age > 120) {
-      showError('Возраст должен быть от 14 до 120 лет');
+      showError("Возраст должен быть от 14 до 120 лет");
       return false;
     }
 
-    const genderInput = this.form!.querySelector<HTMLInputElement>('input[name="gender"]:checked');
-    if (!genderInput) {
-      showError('Выберите пол');
+    const gender = this.savedValues.gender;
+    if (!gender) {
+      showError("Выберите пол");
       return false;
     }
 
-    this.savedValues.bthDay = String(day);
-    this.savedValues.bthMonth = monthName;
-    this.savedValues.bthYear = String(year);
-    this.savedValues.gender = genderInput.value;
     this.savedValues.dob = birthDate.toISOString();
-
     return true;
   }
 
+  handleSubmit(): void {
+    this.syncBirthFromSelects();
 
-    handleSubmit() {
-    const day = Number(this.savedValues.bthDay);
-    const monthName = this.savedValues.bthMonth;
-    const year = Number(this.savedValues.bthYear);
-    const monthIndex = MONTH_NAMES.indexOf(String(monthName));
-
-    const dob = new Date(Date.UTC(year, monthIndex, day)).toISOString();
-    const genderInput = this.form!.querySelector<HTMLInputElement>('input[name="gender"]:checked');
-    const gender = genderInput?.value || null;
-
-    this.savedValues.dob = dob;
+    if (!this.savedValues.dob) {
+      if (!this.validateStep3()) return;
+    }
 
     const data = {
       email: this.inputs.email.input.value.trim(),
@@ -436,19 +456,14 @@ validateStep3() {
       confirmPassword: this.inputs.confirmPassword.input.value.trim(),
       firstName: this.inputs.firstName.input.value.trim(),
       lastName: this.inputs.lastName.input.value.trim(),
-      dob,
-      gender,
+      dob: this.savedValues.dob!,
+      gender: this.savedValues.gender!,
     };
 
-    if (this.options.onSubmit) {
-      this.options.onSubmit(data);
-    }
+    this.options.onSubmit?.(data);
   }
 
-
-  handleLogin() {
-    if (this.options.onLog) {
-      this.options.onLog();
-    }
+  handleLogin(): void {
+    this.options.onLog?.();
   }
 }
