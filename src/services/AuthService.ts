@@ -11,7 +11,9 @@ export class AuthService {
   private checkAuthPromise: Promise<boolean> | null = null;
   private lastAuthResult: boolean | null = null;
   private lastAuthAt = 0;
+
   private readonly authTtlMs = 15_000;
+  private readonly failTtlMs = 60_000;
 
   constructor() {
     const cachedUserId = localStorage.getItem('userId');
@@ -28,32 +30,47 @@ export class AuthService {
     }
   }
 
+  private clearAuth(): void {
+    this.userId = null;
+    this.isLoggedIn = false;
+
+    localStorage.removeItem('userId');
+    localStorage.removeItem('isLoggedIn');
+
+    this.lastAuthResult = false;
+    this.lastAuthAt = Date.now();
+  }
+
   async checkAuth(force = false): Promise<boolean> {
     const now = Date.now();
 
+    if (this.lastAuthResult === false && now - this.lastAuthAt < this.failTtlMs) {
+      return false;
+    }
+
     if (!force && this.lastAuthResult !== null && now - this.lastAuthAt < this.authTtlMs) {
-        return this.lastAuthResult;
+      return this.lastAuthResult;
     }
 
     if (this.checkAuthPromise) return this.checkAuthPromise;
 
     this.checkAuthPromise = (async () => {
-        try {
+      try {
         const res = await fetch(`${process.env.API_BASE_URL}/api/auth/isloggedin`, {
-            method: 'GET',
-            credentials: 'include',
+          method: 'GET',
+          credentials: 'include',
         });
 
         if (!res.ok) {
-            this.clearAuth();
-            return false;
+          this.clearAuth();
+          return false;
         }
 
         const data = (await res.json()) as IsLoggedInResponse;
 
         if (typeof data.userID !== 'number' || !Number.isFinite(data.userID)) {
-            this.clearAuth();
-            return false;
+          this.clearAuth();
+          return false;
         }
 
         this.userId = data.userID;
@@ -65,16 +82,16 @@ export class AuthService {
         this.lastAuthResult = true;
         this.lastAuthAt = Date.now();
         return true;
-        } catch {
+      } catch {
         this.clearAuth();
         return false;
-        } finally {
+      } finally {
         this.checkAuthPromise = null;
-        }
+      }
     })();
 
     return this.checkAuthPromise;
-    }
+  }
 
   getUserId(): number | null {
     return this.userId;
@@ -94,18 +111,6 @@ export class AuthService {
     return value;
   }
 
-    private clearAuth(): void {
-    this.userId = null;
-    this.isLoggedIn = false;
-
-    localStorage.removeItem('userId');
-    localStorage.removeItem('isLoggedIn');
-
-    this.lastAuthResult = false;
-    this.lastAuthAt = Date.now();
-    }
-
-
   async logout(): Promise<boolean> {
     try {
       const csrf = this.getCsrfToken('CSRF_token');
@@ -123,15 +128,7 @@ export class AuthService {
       return false;
     }
 
-    this.userId = null;
-    this.isLoggedIn = false;
-
-    localStorage.removeItem('userId');
-    localStorage.removeItem('isLoggedIn');
-
-    this.lastAuthResult = false;
-    this.lastAuthAt = Date.now();
-
+    this.clearAuth();
     return true;
   }
 }
@@ -139,5 +136,6 @@ export class AuthService {
 const AUTH_SINGLETON_KEY = '__AUTH_SERVICE_SINGLETON__';
 
 export const authService: AuthService =
-  (globalThis as any)[AUTH_SINGLETON_KEY] ??
-  ((globalThis as any)[AUTH_SINGLETON_KEY] = new AuthService());
+  (globalThis as unknown as Record<string, unknown>)[AUTH_SINGLETON_KEY] instanceof AuthService
+    ? ((globalThis as unknown as Record<string, unknown>)[AUTH_SINGLETON_KEY] as AuthService)
+    : (((globalThis as unknown as Record<string, unknown>)[AUTH_SINGLETON_KEY] = new AuthService()) as AuthService);
