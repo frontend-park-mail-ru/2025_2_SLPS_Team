@@ -120,6 +120,7 @@ export class Chat {
     data: ChatData,
     options: ChatOptions = {},
   ) {
+    console.log("AAA");
     this.rootElement = rootElement;
     this.chatInfo = data.id;
 
@@ -135,9 +136,14 @@ export class Chat {
     this.lastReadMessageId =
       data.lastReadMessageId ?? data.lastReadMessageID ?? null;
 
+    console.log(wsService)
     this.wsHandler = this.handleWSMessage.bind(this);
-
-    wsService.on('new_message', this.wsHandler);
+    wsService.onOpen(() => {
+      if (this.wsHandler) {
+        wsService.on('new_message', this.wsHandler);
+        console.log('[WS] subscribe new_message');
+      }
+    });
   }
 
   async render(): Promise<void> {
@@ -247,84 +253,6 @@ export class Chat {
     this.rootElement.appendChild(wrapper.firstElementChild as HTMLElement);
 
     this.scrollToLastRead();
-
-    // Подписка на WS
-    this.wsHandler = (data: WsNewMessagePayload | null) => {
-      console.log(data);
-      if (!data) return;
-
-      const chatIdFromEvent =
-        data.id ??
-        data.chatId ??
-        data.chatID ??
-        data.chat_id ??
-        data.lastMessage?.chatID ??
-        data.last_message?.chatID ??
-        data.message?.chatID;
-
-      if (chatIdFromEvent !== this.chatInfo) {
-        return;
-      }
-
-      const last =
-        data.lastMessage ??
-        data.last_message ??
-        data.message ??
-        null;
-
-      const author =
-        data.lastMessageAuthor ??
-        data.last_message_author ??
-        data.author ??
-        null;
-
-      if (!last || !author) {
-        console.warn('[Chat] WS new_message без lastMessage/lastMessageAuthor', data);
-        return;
-      }
-
-      if (this.messages.some((m) => m.id === last.id)) {
-        return;
-      }
-
-      const messageData: ChatMessageView = {
-        id: last.id,
-        text: last.text,
-        created_at: last.createdAt,
-        User: {
-          id: author.userID,
-          full_name: author.fullName,
-          avatar: author.avatarPath ?? '',
-        },
-      };
-
-      if (!this.messagesContainer) return;
-
-      const isMine = messageData.User.id === this.myUserId;
-
-      const msg = new Message(
-        this.messagesContainer,
-        messageData,
-        isMine,
-        true,
-        true,
-      );
-      msg.render(true);
-      console.log(messageData);
-
-      this.messages.push(messageData);
-
-      if (!isMine) {
-        this.unreadMessageIds.add(messageData.id);
-        EventBus.emit('chatReadUpdated', {
-          chatId: this.chatInfo,
-          unreadCount: this.unreadMessageIds.size,
-          lastReadMessageId: this.lastReadMessageId,
-        });
-      }
-
-      this.scrollToBottom();
-    };
   }
 
   private initUnreadTracking(): void {
@@ -540,55 +468,56 @@ export class Chat {
   }
 
   private handleWSMessage(data: WsNewMessagePayload | null) {
-  console.log('[WS EVENT] new_message received', data);
-  if (!data) return;
+    console.log(data);
+    console.log('[WS EVENT] new_message received', data);
+    if (!data) return;
 
-  const chatIdFromEvent =
-    data.id ?? data.chatId ?? data.chatID ?? data.chat_id ??
-    data.lastMessage?.chatID ?? data.last_message?.chatID ?? data.message?.chatID;
+    const chatIdFromEvent =
+      data.id ?? data.chatId ?? data.chatID ?? data.chat_id ??
+      data.lastMessage?.chatID ?? data.last_message?.chatID ?? data.message?.chatID;
 
-  if (chatIdFromEvent !== this.chatInfo) return;
+    if (chatIdFromEvent !== this.chatInfo) return;
 
-  const last = data.lastMessage ?? data.last_message ?? data.message ?? null;
-  const author = data.lastMessageAuthor ?? data.last_message_author ?? data.author ?? null;
+    const last = data.lastMessage ?? data.last_message ?? data.message ?? null;
+    const author = data.lastMessageAuthor ?? data.last_message_author ?? data.author ?? null;
 
-  if (!last || !author) {
-    console.warn('[Chat] WS new_message без lastMessage/lastMessageAuthor', data);
-    return;
-  }
+    if (!last || !author) {
+      console.warn('[Chat] WS new_message без lastMessage/lastMessageAuthor', data);
+      return;
+    }
 
-  if (this.messages.some((m) => m.id === last.id)) return;
+    if (this.messages.some((m) => m.id === last.id)) return;
 
-  const messageData: ChatMessageView = {
-    id: last.id,
-    text: last.text,
-    created_at: last.createdAt,
-    User: {
-      id: author.userID,
-      full_name: author.fullName,
-      avatar: author.avatarPath ?? '',
-    },
-  };
+    const messageData: ChatMessageView = {
+      id: last.id,
+      text: last.text,
+      created_at: last.createdAt,
+      User: {
+        id: author.userID,
+        full_name: author.fullName,
+        avatar: author.avatarPath ?? '',
+      },
+    };
 
-  if (!this.messagesContainer) return;
+    if (!this.messagesContainer) return;
 
-  const isMine = messageData.User.id === this.myUserId;
+    const isMine = messageData.User.id === this.myUserId;
 
-  const msg = new Message(this.messagesContainer, messageData, isMine, true, true);
-  msg.render(true);
+    const msg = new Message(this.messagesContainer, messageData, isMine, true, true);
+    msg.render(true);
 
-  this.messages.push(messageData);
+    this.messages.push(messageData);
 
-  if (!isMine) {
-    this.unreadMessageIds.add(messageData.id);
-    EventBus.emit('chatReadUpdated', {
-      chatId: this.chatInfo,
-      unreadCount: this.unreadMessageIds.size,
-      lastReadMessageId: this.lastReadMessageId,
-    });
-  }
+    if (!isMine) {
+      this.unreadMessageIds.add(messageData.id);
+      EventBus.emit('chatReadUpdated', {
+        chatId: this.chatInfo,
+        unreadCount: this.unreadMessageIds.size,
+        lastReadMessageId: this.lastReadMessageId,
+      });
+    }
 
-  this.scrollToBottom();
+    this.scrollToBottom();
 }
 
 }

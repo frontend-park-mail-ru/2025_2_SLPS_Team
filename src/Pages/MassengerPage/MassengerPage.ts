@@ -14,6 +14,8 @@ import { layout } from '../LayoutManager';
 
 import type { ChatItemData, ProfileData } from '../../shared/types/components';
 
+console.log('MessengerPage module loaded');
+
 type ChatOpenData = {
   id: number;
   avatarPath: string;
@@ -47,10 +49,12 @@ export class MessengerPage extends BasePage {
   private chatItems: ChatItem[] = [];
 
   constructor(rootElement: HTMLElement) {
+    console.log('aaa');
     super(rootElement);
   }
 
   async render(): Promise<void> {
+    console.log('ffff');
     this.chats = (await getChats(1)) as ChatItemData[];
 
     const uid = (await authService.getUserId()) as number | null | undefined;
