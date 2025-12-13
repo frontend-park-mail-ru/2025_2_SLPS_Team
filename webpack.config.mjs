@@ -84,12 +84,12 @@ export default {
     }),
   ],
   resolve: {
-    extensions: ['.js', '.mjs', '.ts'],
-    alias: {
-      '@': path.resolve(__dirname, 'src'),
-      '@app': path.resolve(__dirname, 'src/app'),
-      '@shared': path.resolve(__dirname, 'src/shared'),
-    },
+  extensions: ['.js', '.mjs','.ts'],
+  alias: {
+    '@': path.resolve(__dirname, 'src'),
+    '@app': path.resolve(__dirname, 'src/app'),
+    '@shared': path.resolve(__dirname, 'src/shared'),
+    services: path.resolve(__dirname, 'src/services'),
   },
   devServer: {
     static: {

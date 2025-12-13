@@ -3,7 +3,7 @@ import { ChatHeader } from '../../molecules/ChatHeader/ChatHeader';
 import { Message } from '../../atoms/Message/Message';
 import { MessageInput } from '../../molecules/MessageInput/MessageInput';
 
-import { wsService } from '../../../services/WebSocketService.js';
+import wsService from 'services/WebSocketService';
 import { EventBus } from '../../../services/EventBus';
 
 import {
@@ -134,6 +134,10 @@ export class Chat {
 
     this.lastReadMessageId =
       data.lastReadMessageId ?? data.lastReadMessageID ?? null;
+
+    this.wsHandler = this.handleWSMessage.bind(this);
+
+    wsService.on('new_message', this.wsHandler);
   }
 
   async render(): Promise<void> {
@@ -321,8 +325,6 @@ export class Chat {
 
       this.scrollToBottom();
     };
-
-    wsService.on('new_message', this.wsHandler);
   }
 
   private initUnreadTracking(): void {
@@ -536,4 +538,57 @@ export class Chat {
       this.wsHandler = null;
     }
   }
+
+  private handleWSMessage(data: WsNewMessagePayload | null) {
+  console.log('[WS EVENT] new_message received', data);
+  if (!data) return;
+
+  const chatIdFromEvent =
+    data.id ?? data.chatId ?? data.chatID ?? data.chat_id ??
+    data.lastMessage?.chatID ?? data.last_message?.chatID ?? data.message?.chatID;
+
+  if (chatIdFromEvent !== this.chatInfo) return;
+
+  const last = data.lastMessage ?? data.last_message ?? data.message ?? null;
+  const author = data.lastMessageAuthor ?? data.last_message_author ?? data.author ?? null;
+
+  if (!last || !author) {
+    console.warn('[Chat] WS new_message без lastMessage/lastMessageAuthor', data);
+    return;
+  }
+
+  if (this.messages.some((m) => m.id === last.id)) return;
+
+  const messageData: ChatMessageView = {
+    id: last.id,
+    text: last.text,
+    created_at: last.createdAt,
+    User: {
+      id: author.userID,
+      full_name: author.fullName,
+      avatar: author.avatarPath ?? '',
+    },
+  };
+
+  if (!this.messagesContainer) return;
+
+  const isMine = messageData.User.id === this.myUserId;
+
+  const msg = new Message(this.messagesContainer, messageData, isMine, true, true);
+  msg.render(true);
+
+  this.messages.push(messageData);
+
+  if (!isMine) {
+    this.unreadMessageIds.add(messageData.id);
+    EventBus.emit('chatReadUpdated', {
+      chatId: this.chatInfo,
+      unreadCount: this.unreadMessageIds.size,
+      lastReadMessageId: this.lastReadMessageId,
+    });
+  }
+
+  this.scrollToBottom();
+}
+
 }

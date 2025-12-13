@@ -5,7 +5,7 @@ import { Chat } from '../../components/organisms/Chat/Chat';
 import { SearchInput } from '../../components/molecules/SearchInput/SearchInput';
 import { EventBus } from '../../services/EventBus';
 import { authService } from '../../services/AuthService';
-import { wsService } from '../../services/WebSocketService.js';
+import wsService from 'services/WebSocketService';
 import { gsap } from 'gsap';
 
 import { getProfile } from '../../shared/api/profileApi';

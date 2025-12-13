@@ -1,21 +1,15 @@
 class WebSocketService {
-    static instance = null;
-
     constructor(url) {
-        if (WebSocketService.instance) {
-            return WebSocketService.instance;
-        }
-
         this.url = url;
         this.ws = null;
         this.listeners = new Map();
-
         this.connect();
-
-        WebSocketService.instance = this;
     }
 
     connect() {
+        if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
+            return;
+        }
         this.ws = new WebSocket(this.url);
 
         this.ws.onopen = () => {
@@ -31,6 +25,8 @@ class WebSocketService {
 
             const type = parsed.type || parsed.Type || null;
             const data = parsed.data ?? parsed.Data ?? null;
+
+            console.log(type,data);
 
             if (type) {
                 this.emit(type, data);
@@ -77,4 +73,5 @@ class WebSocketService {
     }
 }
 
-export const wsService = new WebSocketService('ws://185.86.146.77:8080/api/ws');
+const wsService = new WebSocketService('ws://localhost:8080/api/ws');
+export default wsService;
