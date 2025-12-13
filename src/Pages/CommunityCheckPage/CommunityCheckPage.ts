@@ -270,7 +270,10 @@ export class CommunityCheckPage extends BasePage {
 
     this.feedContainer = this.root.querySelector('[data-role="community-feed"]') as HTMLElement | null;
     this.subscribersList = this.root.querySelector('[data-role="subscribers-list"]') as HTMLElement | null;
-    this.subscribeBtn = this.root.querySelector('[data-role="subscribe-toggle"]') as HTMLElement | null;
+
+    this.subscribeBtn = this.headerRoot?.querySelector(
+      '[data-role="subscribe-toggle"]'
+    ) as HTMLElement | null;
   }
 
   private renderHeader(templateData: TemplateData): void {

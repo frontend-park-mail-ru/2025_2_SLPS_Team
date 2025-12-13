@@ -1,6 +1,6 @@
 import { FeedPage } from '../../Pages/FeedPage/FeedPage.ts';
 import { ProfilePage } from '../../Pages/ProfilePage/ProfilePage.ts';
-import { MessengerPage } from '../../Pages/MassengerPage/MassengerPage.js';
+import { MessengerPage } from '../../Pages/MassengerPage/MassengerPage.ts';
 import { CommunityPage } from '../../Pages/CommunityPage/CommunityPage.ts';
 import { renderRegPage } from '../../Pages/RegPage/RegPage.js';
 import { renderLoginPage } from '../../Pages/LoginPage/LoginPage.js';
