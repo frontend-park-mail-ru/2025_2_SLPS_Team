@@ -1,4 +1,4 @@
-import * as RegFormModule from '../../components/molecules/RegForm/RegForm';
+import RegistrationForm from '../../components/molecules/RegForm/RegForm';
 import RegPageTemplate from './RegPage.hbs';
 import { registerUser, loginUser } from '../../shared/api/authApi';
 import { navigateTo } from '../../app/router/navigateTo';
@@ -37,59 +37,10 @@ function isApiErrorLike(e: unknown): e is ApiErrorLike {
   return typeof e === 'object' && e !== null;
 }
 
-type RegistrationFormInstance = {
-  render: () => Promise<void>;
-  emailError?: boolean;
-  currentStep?: number;
-  animationStatus?: 'forward' | 'back' | string;
-  renderStep?: () => void;
-};
-
-type RegistrationFormCtor = new (
-  container: HTMLElement,
-  options?: unknown,
-) => RegistrationFormInstance;
-
-function unwrapDefault(v: unknown): unknown {
-  let cur = v;
-
-  for (let i = 0; i < 5; i++) {
-    if (typeof cur === 'function') return cur;
-
-    if (cur && typeof cur === 'object' && 'default' in cur) {
-      cur = (cur as { default: unknown }).default;
-      continue;
-    }
-
-    break;
-  }
-
-  return cur;
-}
-
-function resolveRegistrationFormCtor(): RegistrationFormCtor {
-  const m = RegFormModule as unknown as {
-    default?: unknown;
-    RegistrationForm?: unknown;
-  };
-
-  const candidates: unknown[] = [m.default, m.RegistrationForm, RegFormModule];
-
-  for (const c of candidates) {
-    const resolved = unwrapDefault(c);
-    if (typeof resolved === 'function') return resolved as RegistrationFormCtor;
-  }
-
-  console.error('[RegPage] RegFormModule debug:', RegFormModule);
-  throw new Error('[RegPage] RegistrationForm export is not a constructor');
-}
-
-const RegistrationForm = resolveRegistrationFormCtor();
-
 export async function renderRegPage(
   container: HTMLElement,
   options: RegPageOptions = {},
-): Promise<RegistrationFormInstance> {
+): Promise<RegistrationForm> {
   const html = RegPageTemplate({ logo: '/public/globalImages/Logo.svg' });
   container.innerHTML = html;
 
@@ -145,10 +96,10 @@ export async function renderRegPage(
             msgLower.includes('существ');
 
           if (isEmailAlreadyExists) {
-            regForm.emailError = true;
-            regForm.currentStep = 1;
-            regForm.animationStatus = 'back';
-            regForm.renderStep?.();
+            (regForm as unknown as { emailError: boolean }).emailError = true;
+            (regForm as unknown as { currentStep: number }).currentStep = 1;
+            (regForm as unknown as { animationStatus: 'forward' | 'back' }).animationStatus = 'back';
+            (regForm as unknown as { renderStep: () => void }).renderStep();
             return;
           }
 

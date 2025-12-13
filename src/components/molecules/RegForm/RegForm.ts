@@ -4,26 +4,30 @@ import RegFormTemplate from './RegForm.hbs';
 import { gsap } from "gsap";
 import SelectInput from "../../atoms/SelectInput/SelectInput";
 import { ModalConfirm } from '../ModalConfirm/ModalConfirm';
-import { RegistrationFormOptions, SavedValues, MONTH_NAMES } from "./RegFormTypes";
+import { SavedValues, MONTH_NAMES } from "./RegFormTypes";
 
-
+export type RegistrationFormOptions = {
+  onSubmit?: (data: any) => void;
+  onLog?: () => void;
+  onStepChange?: (step: number) => void;
+};
 
 export default class RegistrationForm {
-  container: HTMLElement;
-  options: RegistrationFormOptions;
-  form: HTMLFormElement | undefined;
-  inputContainer!: HTMLElement;
-  buttons!: HTMLElement;
-  inputs: Record<string, any> = {};
-  currentStep = 1;
-  savedValues: SavedValues = {};
-  emailError = false;
-  animationStatus: "forward" | "back" = "forward";
+    container: HTMLElement;
+    options: RegistrationFormOptions;
+    form: HTMLFormElement | undefined;
+    inputContainer!: HTMLElement;
+    buttons!: HTMLElement;
+    inputs: Record<string, any> = {};
+    currentStep = 1;
+    savedValues: any = {};
+    emailError = false;
+    animationStatus: 'forward' | 'back' = 'forward';
 
-  constructor(container: HTMLElement, options: RegistrationFormOptions = {}) {
-    this.container = container;
-    this.options = options;
-  }
+    constructor(container: HTMLElement, options: RegistrationFormOptions = {}) {
+      this.container = container;
+      this.options = options;
+    }
 
   async render() {
     const template = RegFormTemplate;
