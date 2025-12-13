@@ -9,11 +9,14 @@ export class AuthService {
   private isLoggedIn = false;
 
   private checkAuthPromise: Promise<boolean> | null = null;
+
   private lastAuthResult: boolean | null = null;
   private lastAuthAt = 0;
 
   private readonly authTtlMs = 15_000;
-  private readonly failTtlMs = 60_000;
+
+  // 🔥 ГЛАВНЫЙ ФЛАГ
+  private isAuthEndpointBroken = false;
 
   constructor() {
     const cachedUserId = localStorage.getItem('userId');
@@ -42,17 +45,19 @@ export class AuthService {
   }
 
   async checkAuth(force = false): Promise<boolean> {
-    const now = Date.now();
-
-    if (this.lastAuthResult === false && now - this.lastAuthAt < this.failTtlMs) {
+    if (this.isAuthEndpointBroken) {
       return false;
     }
+
+    const now = Date.now();
 
     if (!force && this.lastAuthResult !== null && now - this.lastAuthAt < this.authTtlMs) {
       return this.lastAuthResult;
     }
 
-    if (this.checkAuthPromise) return this.checkAuthPromise;
+    if (this.checkAuthPromise) {
+      return this.checkAuthPromise;
+    }
 
     this.checkAuthPromise = (async () => {
       try {
@@ -60,6 +65,12 @@ export class AuthService {
           method: 'GET',
           credentials: 'include',
         });
+
+        if (res.status === 404) {
+          this.isAuthEndpointBroken = true;
+          this.clearAuth();
+          return false;
+        }
 
         if (!res.ok) {
           this.clearAuth();
@@ -102,13 +113,12 @@ export class AuthService {
   }
 
   getCsrfToken(name: CsrfCookieName = 'CSRF_token'): string | null {
-    const value =
+    return (
       document.cookie
         .split('; ')
         .find((row) => row.startsWith(`${name}=`))
-        ?.split('=')[1] ?? null;
-
-    return value;
+        ?.split('=')[1] ?? null
+    );
   }
 
   async logout(): Promise<boolean> {
@@ -136,6 +146,5 @@ export class AuthService {
 const AUTH_SINGLETON_KEY = '__AUTH_SERVICE_SINGLETON__';
 
 export const authService: AuthService =
-  (globalThis as unknown as Record<string, unknown>)[AUTH_SINGLETON_KEY] instanceof AuthService
-    ? ((globalThis as unknown as Record<string, unknown>)[AUTH_SINGLETON_KEY] as AuthService)
-    : (((globalThis as unknown as Record<string, unknown>)[AUTH_SINGLETON_KEY] = new AuthService()) as AuthService);
+  (globalThis as any)[AUTH_SINGLETON_KEY] ??
+  ((globalThis as any)[AUTH_SINGLETON_KEY] = new AuthService());
