@@ -19,8 +19,7 @@ export class AuthService {
 
   constructor() {
     if (localStorage.getItem(ISLOGGEDIN_BROKEN_LS_KEY) === 'true') {
-      this.userId = null;
-      this.isLoggedIn = false;
+      this.clearLocalAuth();
       this.lastAuthResult = false;
       this.lastAuthAt = Date.now();
       return;
@@ -40,21 +39,17 @@ export class AuthService {
     }
   }
 
-  private clearAuth(): void {
+  private clearLocalAuth(): void {
     this.userId = null;
     this.isLoggedIn = false;
 
     localStorage.removeItem('userId');
     localStorage.removeItem('isLoggedIn');
-
-    this.lastAuthResult = false;
-    this.lastAuthAt = Date.now();
   }
 
   async checkAuth(force = false): Promise<boolean> {
-    // ⛔ глобальный стоп — больше НИ ОДНОГО fetch
     if (localStorage.getItem(ISLOGGEDIN_BROKEN_LS_KEY) === 'true') {
-      this.clearAuth();
+      this.clearLocalAuth();
       return false;
     }
 
@@ -75,21 +70,28 @@ export class AuthService {
           credentials: 'include',
         });
 
+        // 🚨 404 → ЭНДПОИНТА НЕТ → ПОЛНЫЙ LOGOUT
         if (res.status === 404) {
           localStorage.setItem(ISLOGGEDIN_BROKEN_LS_KEY, 'true');
-          this.clearAuth();
+          await this.logout(); // ⬅️ ВАЖНО
+          this.lastAuthResult = false;
+          this.lastAuthAt = Date.now();
           return false;
         }
 
         if (!res.ok) {
-          this.clearAuth();
+          this.clearLocalAuth();
+          this.lastAuthResult = false;
+          this.lastAuthAt = Date.now();
           return false;
         }
 
         const data = (await res.json()) as IsLoggedInResponse;
 
         if (typeof data.userID !== 'number' || !Number.isFinite(data.userID)) {
-          this.clearAuth();
+          this.clearLocalAuth();
+          this.lastAuthResult = false;
+          this.lastAuthAt = Date.now();
           return false;
         }
 
@@ -103,7 +105,9 @@ export class AuthService {
         this.lastAuthAt = Date.now();
         return true;
       } catch {
-        this.clearAuth();
+        this.clearLocalAuth();
+        this.lastAuthResult = false;
+        this.lastAuthAt = Date.now();
         return false;
       } finally {
         this.checkAuthPromise = null;
@@ -142,10 +146,11 @@ export class AuthService {
         headers,
       });
     } catch {
-      // ignore
     }
 
-    this.clearAuth();
+    this.clearLocalAuth();
+    this.lastAuthResult = false;
+    this.lastAuthAt = Date.now();
     return true;
   }
 }
