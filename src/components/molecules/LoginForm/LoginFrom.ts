@@ -19,9 +19,6 @@ interface InputsMap {
     email?: FormInput;
     password?: FormInput;
 }
-function isValidEmail(email: string): boolean {
-    return true;
-}
 
 function isValidPassword(password: string): boolean {
     return password.length >= 6;
@@ -84,7 +81,7 @@ export default class LoginForm {
     }
 
 
-    handleSubmit(): void {
+  handleSubmit(): void {
         if (!this.form || !this.inputs.email || !this.inputs.password) return;
 
         const emailInput = this.inputs.email.input;
@@ -99,15 +96,12 @@ export default class LoginForm {
         this.clearInputError(passwordInput);
 
         if (!email) {
-            this.setInputError(emailInput, 'Email обязателен');
-            isValid = false;
-        } else if (!isValidEmail(email)) {
-            this.setInputError(emailInput, 'Некорректный email');
+            this.setInputError(emailInput, 'Введите email');
             isValid = false;
         }
 
         if (!password) {
-            this.setInputError(passwordInput, 'Пароль обязателен');
+            this.setInputError(passwordInput, 'Введите пароль');
             isValid = false;
         } else if (!isValidPassword(password)) {
             this.setInputError(passwordInput, 'Минимум 6 символов');
@@ -124,7 +118,7 @@ export default class LoginForm {
             password,
             rememberMe: rememberMeInput?.checked ?? false,
         });
-    }
+        }
 
     handleRegister(): void {
         this.options.onReg?.();

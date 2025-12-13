@@ -1,14 +1,11 @@
-import RegistrationForm from '../../components/molecules/RegForm/RegForm';
+import * as RegFormModule from '../../components/molecules/RegForm/RegForm';
 import RegPageTemplate from './RegPage.hbs';
 import { registerUser, loginUser } from '../../shared/api/authApi';
 import { navigateTo } from '../../app/router/navigateTo';
 
 type Step = 1 | 2 | 3;
 
-type StepInfoItem = {
-  big: string;
-  small: string;
-};
+type StepInfoItem = { big: string; small: string };
 
 const stepInfo: Record<Step, StepInfoItem> = {
   1: { big: 'Создать аккаунт', small: 'Введите email и пароль' },
@@ -40,10 +37,36 @@ function isApiErrorLike(e: unknown): e is ApiErrorLike {
   return typeof e === 'object' && e !== null;
 }
 
+type RegistrationFormInstance = {
+  render: () => Promise<void>;
+  emailError?: boolean;
+  currentStep?: number;
+  animationStatus?: 'forward' | 'back' | string;
+  renderStep?: () => void;
+};
+
+type RegistrationFormCtor = new (container: HTMLElement, options?: unknown) => RegistrationFormInstance;
+
+function resolveRegistrationFormCtor(): RegistrationFormCtor {
+  const m = RegFormModule as unknown as {
+    default?: unknown;
+    RegistrationForm?: unknown;
+  };
+
+  const candidate = m.default ?? m.RegistrationForm;
+  if (typeof candidate !== 'function') {
+    throw new Error('[RegPage] RegistrationForm export is not a constructor');
+  }
+
+  return candidate as RegistrationFormCtor;
+}
+
+const RegistrationForm = resolveRegistrationFormCtor();
+
 export async function renderRegPage(
   container: HTMLElement,
   options: RegPageOptions = {},
-): Promise<RegistrationForm> {
+): Promise<RegistrationFormInstance> {
   const html = RegPageTemplate({ logo: '/public/globalImages/Logo.svg' });
   container.innerHTML = html;
 
@@ -53,7 +76,7 @@ export async function renderRegPage(
   const tempContainer = document.createElement('div');
 
   const regForm = new RegistrationForm(tempContainer, {
-    onSubmit: (data: Record<string, any>) => {
+    onSubmit: (data: Record<string, unknown>) => {
       const formData = data as RegFormData;
 
       void (async () => {
@@ -83,10 +106,7 @@ export async function renderRegPage(
             return;
           }
 
-          if (typeof options.onSubmit === 'function') {
-            options.onSubmit(formData);
-          }
-
+          options.onSubmit?.(formData);
           window.location.href = '/';
         } catch (e: unknown) {
           console.error('Ошибка регистрации:', e);
@@ -104,11 +124,11 @@ export async function renderRegPage(
             msgLower.includes('существ');
 
           if (isEmailAlreadyExists) {
-            (regForm as unknown as { emailError?: boolean }).emailError = true;
+            regForm.emailError = true;
 
-            (regForm as unknown as { currentStep: number }).currentStep = 1;
-            (regForm as unknown as { animationStatus: string }).animationStatus = 'back';
-            (regForm as unknown as { renderStep: () => void }).renderStep();
+            regForm.currentStep = 1;
+            regForm.animationStatus = 'back';
+            regForm.renderStep?.();
             return;
           }
 
@@ -118,11 +138,8 @@ export async function renderRegPage(
     },
 
     onLog: () => {
-      if (typeof options.onLog === 'function') {
-        options.onLog();
-      } else {
-        navigateTo('/login');
-      }
+      if (typeof options.onLog === 'function') options.onLog();
+      else navigateTo('/login');
     },
 
     onStepChange: (step: number) => {

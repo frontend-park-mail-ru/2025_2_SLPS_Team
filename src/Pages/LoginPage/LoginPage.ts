@@ -6,11 +6,11 @@ import { navigateTo } from '../../app/router/navigateTo';
 type LoginFormData = {
   email: string;
   password: string;
-  rememberMe?: boolean;
+  rememberMe: boolean;
 };
 
 type LoginPageOptions = {
-  onSubmit?: (data: LoginFormData) => void;
+  onSubmit?: (data: { email: string; password: string; rememberMe: boolean }) => void;
   onReg?: () => void;
 };
 
@@ -25,18 +25,12 @@ export async function renderLoginPage(
   const tempContainer = document.createElement('div');
 
   const loginForm = new LoginForm(tempContainer, {
-    onSubmit: (data: Record<string, unknown>) => {
-      const { email, password, rememberMe } = data as LoginFormData;
-
+    onSubmit: (data: LoginFormData) => {
       void (async () => {
         try {
-          await loginUser({ email, password });
+          await loginUser({ email: data.email, password: data.password });
 
-          if (typeof options.onSubmit === 'function') {
-            const payload: LoginFormData = { email, password };
-            if (rememberMe !== undefined) payload.rememberMe = rememberMe;
-            options.onSubmit(payload);
-          }
+          options.onSubmit?.(data);
 
           window.location.href = '/';
         } catch (e: unknown) {
@@ -46,11 +40,8 @@ export async function renderLoginPage(
     },
 
     onReg: () => {
-      if (typeof options.onReg === 'function') {
-        options.onReg();
-      } else {
-        navigateTo('/register');
-      }
+      if (typeof options.onReg === 'function') options.onReg();
+      else navigateTo('/register');
     },
   });
 
