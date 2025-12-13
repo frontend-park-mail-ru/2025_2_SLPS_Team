@@ -1,7 +1,7 @@
 import LoginForm from '../../components/molecules/LoginForm/LoginFrom.ts';
 import loginPageTemplate from './LoginPage.hbs';
 import { loginUser } from '../../shared/api/authApi.ts';
-import { navigateTo } from '../../app/router/navigateTo.js';
+import { navigateTo } from '../../app/router/navigateTo.ts';
 
 export async function renderLoginPage(container, options = {}) {
   const html = loginPageTemplate({ logo: '/public/globalImages/Logo.svg' });

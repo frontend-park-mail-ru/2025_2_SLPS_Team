@@ -3,7 +3,7 @@ import DropDown from '../../atoms/dropDown/dropDown';
 import BaseButton from '../../atoms/BaseButton/BaseButton';
 import { ModalConfirm } from '../ModalConfirm/ModalConfirm';
 import { NotificationManager } from '../../organisms/NotificationsBlock/NotificationsManager';
-import { navigateTo } from '../../../app/router/navigateTo.js';
+import { navigateTo } from '../../../app/router/navigateTo';
 import { deleteFriend, acceptFriend, sendFriendRequest} from '../../../shared/api/friendsApi';
 
 import './FriendCard.css';

@@ -9,7 +9,7 @@ import { CreatePostForm } from '../../organisms/CreatePost/CreatePost';
 import { EventBus } from '../../../services/EventBus';
 import { togglePostLike, deletePost } from '../../../shared/api/postsApi';
 import type { ApiError } from '../../../shared/api/client';
-import { navigateTo } from '../../../app/router/navigateTo.js';
+import { navigateTo } from '../../../app/router/navigateTo';
 import { Post } from './PostTypes';
 import { FileItem } from '../../atoms/FileItem/FileItem';
 

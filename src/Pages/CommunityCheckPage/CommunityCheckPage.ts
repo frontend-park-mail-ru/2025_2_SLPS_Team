@@ -23,7 +23,7 @@ import {
 import { getCommunityPosts } from '../../shared/api/postsApi';
 import { renderHeaderCard } from '../../components/molecules/HeaderCard/HeaderCard';
 
-type PageParams = { id?: string | number };
+type PageParams = { id?: string };
 
 type SubscribersFormat = { full: string; short: string };
 
@@ -145,11 +145,10 @@ export class CommunityCheckPage extends BasePage {
   private onCommunityPostChange: (() => void) | null = null;
   private boundDocClick: ((e: MouseEvent) => void) | null = null;
 
-  constructor(rootElement: HTMLElement, params: PageParams) {
+  constructor(rootElement: HTMLElement, params: PageParams = {}) {
     super(rootElement);
     this.params = params;
   }
-
   async render(): Promise<void> {
     this.resolveCommunityId();
 

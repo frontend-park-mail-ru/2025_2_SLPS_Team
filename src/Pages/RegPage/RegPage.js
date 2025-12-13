@@ -1,7 +1,7 @@
 import RegistrationForm from '../../components/molecules/RegForm/RegForm.ts';
 import RegPageTemplate from './RegPage.hbs';
 import { registerUser, loginUser } from '../../shared/api/authApi.ts';
-import { navigateTo } from '../../app/router/navigateTo.js';
+import { navigateTo } from '../../app/router/navigateTo.ts';
 
 export async function renderRegPage(container, options = {}) {
   const html = RegPageTemplate({ logo: '/public/globalImages/Logo.svg' });

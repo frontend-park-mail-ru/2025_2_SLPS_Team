@@ -1,5 +1,5 @@
-import { App } from './app/App.js';
-import { navigateTo } from './app/router/navigateTo.js';
+import { App } from './app/App.ts';
+import { navigateTo } from './app/router/navigateTo.ts';
 
 const root = document.getElementById('root');
 const app = new App(root);

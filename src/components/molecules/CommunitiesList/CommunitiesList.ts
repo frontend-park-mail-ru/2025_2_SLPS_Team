@@ -3,7 +3,7 @@ import {
   getUserCommunities,
   UPLOADS_BASE,
 } from '../../../shared/api/communityApi';
-import { navigateTo } from '../../../app/router/navigateTo.js';
+import { navigateTo } from '../../../app/router/navigateTo';
 import type { Community } from '@shared/types/components';
 
 const DEFAULT_AVATAR = '/public/globalImages/DefaultAvatar.svg';

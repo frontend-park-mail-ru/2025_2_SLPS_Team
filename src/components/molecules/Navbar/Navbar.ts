@@ -2,7 +2,7 @@ import NavbarTemplate from './Navbar.hbs';
 import DropDown from '../../atoms/dropDown/dropDown';
 import { navigateTo } from '../../../index.js';
 import { authService } from '../../../services/AuthService';
-import { NavbarSearchModal } from '../../molecules/NavbarSearchModal/NavbarSearchModal.js';
+import { NavbarSearchModal } from '../../molecules/NavbarSearchModal/NavbarSearchModal';
 
 export function renderNavbar(photo?: string | null): HTMLElement {
   const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
