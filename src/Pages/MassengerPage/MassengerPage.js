@@ -3,7 +3,7 @@ import MessengerPageTemplate from './MassengerPage.hbs';
 import { ChatItem } from '../../components/molecules/ChatItem/ChatItem.ts';
 import { Chat } from '../../components/organisms/Chat/Chat.ts';
 import { SearchInput } from '../../components/molecules/SearchInput/SearchInput.ts';
-import { EventBus } from '../../services/EventBus.js';
+import { EventBus } from '../../services/EventBus.ts';
 import { authService } from '../../services/AuthService.ts';
 import { wsService } from '../../services/WebSocketService.js';
 import { gsap } from "gsap";

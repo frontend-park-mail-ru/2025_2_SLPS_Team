@@ -1,7 +1,7 @@
 import { renderPost } from '../../molecules/Post/Post';
 import FeedTemplate from './Feed.hbs';
 import { CreatePostForm } from '../CreatePost/CreatePost';
-import { EventBus } from '../../../services/EventBus.js';
+import { EventBus } from '../../../services/EventBus';
 import { getPosts } from '../../../shared/api/postsApi';
 
 

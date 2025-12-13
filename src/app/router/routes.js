@@ -8,7 +8,7 @@ import { FriendsPage } from '../../Pages/FriendsPage/FriendsPage.ts';
 import { HelpPage } from '../../Pages/HelpPage/HelpPage.js';
 import { layout } from '../../Pages/LayoutManager.ts';
 import { SupportFormPage } from '../../Pages/SupportFormPage/SupportFormPage.ts';
-import { CommunityCheckPage } from '../../Pages/CommunityCheckPage/CommunityCheckPage.js'
+import { CommunityCheckPage } from '../../Pages/CommunityCheckPage/CommunityCheckPage.ts'
 
 import { navigateTo } from './navigateTo.js'; 
 

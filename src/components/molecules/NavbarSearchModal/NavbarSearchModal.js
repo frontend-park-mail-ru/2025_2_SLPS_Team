@@ -13,7 +13,7 @@ import {
   getMyCommunities,
   getOtherCommunities,
   searchCommunities,
-} from '../../../shared/api/communityApi.js';
+} from '../../../shared/api/communityApi.ts';
 
 export class NavbarSearchModal {
   constructor(containerEl, baseUploadsUrl) {

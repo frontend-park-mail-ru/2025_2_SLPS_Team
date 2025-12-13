@@ -6,8 +6,9 @@ import DropDown from '../../atoms/dropDown/dropDown';
 import { ModalConfirm } from '../ModalConfirm/ModalConfirm';
 import { NotificationManager } from '../../organisms/NotificationsBlock/NotificationsManager';
 import { CreatePostForm } from '../../organisms/CreatePost/CreatePost';
-import { EventBus } from '../../../services/EventBus.js';
-import { togglePostLike } from '../../../shared/api/postsApi';
+import { EventBus } from '../../../services/EventBus';
+import { togglePostLike, deletePost } from '../../../shared/api/postsApi';
+import type { ApiError } from '../../../shared/api/client';
 import { navigateTo } from '../../../app/router/navigateTo.js';
 import { Post } from './PostTypes';
 import { FileItem } from '../../atoms/FileItem/FileItem';
@@ -357,23 +358,29 @@ export async function renderPost(rawPostData: Post | Record<string, any>): Promi
           label: 'Удалить пост',
           icon: '/public/globalImages/DeleteImg.svg',
           onClick: () => {
-            const blockConfirm = new ModalConfirm(
-              'Подтвердите действие',
-              `Вы уверены что хотите удалить пост?`,
-              async () => {
-                const request = await PostDelete(postData.id);
-                if (request?.ok) {
-                  notifier.show(
-                    'Пост удален',
-                    `Ваш пост успешно удален`,
-                    'error',
-                  );
-                  EventBus.emit('posts:deleted');
-                }
-              },
-            );
-            blockConfirm.open();
-          },
+          const blockConfirm = new ModalConfirm(
+            'Подтвердите действие',
+            'Вы уверены что хотите удалить пост?',
+            async () => {
+              try {
+                await deletePost(postData.id);
+                notifier.show('Пост удален', 'Ваш пост успешно удален', 'success');
+                EventBus.emit('posts:deleted');
+              } catch (err: unknown) {
+                console.error(err);
+
+                const apiErr = err as ApiError<unknown>;
+                notifier.show(
+                  'Ошибка',
+                  `Не удалось удалить пост (status ${apiErr?.status ?? 'unknown'})`,
+                  'error',
+                );
+              }
+            },
+  );
+
+  blockConfirm.open();
+},
         },
         {
           label: 'Редактировать',
@@ -410,28 +417,4 @@ export async function renderPost(rawPostData: Post | Record<string, any>): Promi
   }
 
   return postElement;
-}
-
-async function PostDelete(postId: number) {
-  try {
-    const csrfToken = authService.getCsrfToken() ?? undefined;
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
-    };
-    const res = await fetch(
-      `${process.env.API_BASE_URL}/api/posts/${postId}`,
-      {
-        method: 'DELETE',
-        headers,
-        credentials: 'include',
-      },
-    );
-    if (res.ok) {
-      EventBus.emit('posts:deleted');
-    }
-    return res;
-  } catch (error) {
-    notifier.show('Ошибка', 'Не удалось удалить пост', 'error');
-  }
 }

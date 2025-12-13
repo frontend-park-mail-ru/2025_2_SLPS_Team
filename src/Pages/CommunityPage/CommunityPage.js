@@ -13,7 +13,7 @@ import {
   toggleCommunitySubscription,
   getCreatedCommunities,
   UPLOADS_BASE,
-} from '../../shared/api/communityApi.js';
+} from '../../shared/api/communityApi.ts';
 
 import { navigateTo } from '../../app/router/navigateTo.js';
 

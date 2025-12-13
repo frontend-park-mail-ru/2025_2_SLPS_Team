@@ -4,7 +4,7 @@ import { Message } from '../../atoms/Message/Message';
 import { MessageInput } from '../../molecules/MessageInput/MessageInput';
 
 import { wsService } from '../../../services/WebSocketService.js';
-import { EventBus } from '../../../services/EventBus.js';
+import { EventBus } from '../../../services/EventBus';
 
 import {
   getChatMessages,
