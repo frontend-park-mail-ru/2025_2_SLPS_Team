@@ -8,7 +8,7 @@ import { authService } from '../../services/AuthService.ts';
 import { wsService } from '../../services/WebSocketService.js';
 import { gsap } from "gsap";
 
-import { getProfile } from '../../shared/api/profileApi.js';
+import { getProfile } from '../../shared/api/profileApi.ts';
 import { getChats, getChatWithUser } from '../../shared/api/chatsApi.js';
 import { cachedFetch } from "../../services/CacheService.js"; 
 import { layout } from '../LayoutManager.ts';

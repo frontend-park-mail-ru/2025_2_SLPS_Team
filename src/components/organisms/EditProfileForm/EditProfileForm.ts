@@ -42,7 +42,7 @@ export class EditProfileForm {
   constructor(rootElement: HTMLElement, profileData: ProfileData) {
     this.rootElement = rootElement;
     this.profileData = profileData;
-    this.hasCustomAvatar = !!profileData.avatar;
+    this.hasCustomAvatar = !!profileData.avatarPath;
   }
 
   async render(): Promise<void> {
@@ -50,7 +50,7 @@ export class EditProfileForm {
     this.wrapper.id = 'edit-profile-wrapper';
     this.wrapper.classList.add('edit-profile-modal');
     this.wrapper.innerHTML = EditProfileTemplate({
-      AvatarUrl: this.resolveAvatarUrl(this.profileData.avatar ?? null),
+      AvatarUrl: this.resolveAvatarUrl(this.profileData.avatarPath ?? null),
       profileData: this.profileData,
     });
 

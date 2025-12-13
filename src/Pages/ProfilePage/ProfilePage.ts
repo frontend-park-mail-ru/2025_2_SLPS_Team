@@ -117,7 +117,7 @@ export class ProfilePage extends BasePage {
     if (editButton) {
       const editModal = new EditProfileForm(this.rootElement, {
         fullName: `${this.profileData.firstName} ${this.profileData.lastName}`,
-        avatar: avatarPath,
+        avatarPath: this.profileData.avatarPath ?? null,
         aboutMyself: (this.profileData as unknown as { aboutMyself?: string | null }).aboutMyself ?? '',
         dob: this.profileData.dob ?? new Date().toISOString(),
         gender: (this.profileData as unknown as { gender?: string | null }).gender ?? 'Мужской',
@@ -203,32 +203,42 @@ export class ProfilePage extends BasePage {
   }
 
   private addListeners(userData: ProfileTemplateData['user']): void {
-    const addFriendBtn = this.wrapper?.querySelector<HTMLButtonElement>('.add-friend-btn');
+    const addFriendBtn =
+      this.wrapper?.querySelector<HTMLButtonElement>('.add-friend-btn');
+
     if (addFriendBtn) {
       addFriendBtn.addEventListener(
         'click',
         async () => {
           try {
-            const res = await sendProfileFriendRequest(this.userId, authService.getCsrfToken());
-            if (!res.ok) {
-              notifier.show('Ошибка', 'Не удалось отправить заявку, попробуйте позже', 'error');
-              return;
-            }
+            await sendProfileFriendRequest(this.userId);
 
-            notifier.show('Заявка отправлена', 'Заявка в друзья отправлена успешно', 'success');
+            notifier.show(
+              'Заявка отправлена',
+              'Заявка в друзья отправлена успешно',
+              'success',
+            );
+
             addFriendBtn.textContent = 'Заявка отправлена';
             addFriendBtn.classList.remove('add-friend-btn');
             addFriendBtn.classList.add('request-text');
             addFriendBtn.disabled = true;
-          } catch (err) {
+          } catch (err: unknown) {
             console.error(err);
+            notifier.show(
+              'Ошибка',
+              'Не удалось отправить заявку, попробуйте позже',
+              'error',
+            );
           }
         },
         { once: true },
       );
     }
 
-    const messageBtn = this.wrapper?.querySelector<HTMLButtonElement>('.message-btn');
+    const messageBtn =
+      this.wrapper?.querySelector<HTMLButtonElement>('.message-btn');
+
     if (messageBtn) {
       messageBtn.addEventListener('click', async () => {
         try {
@@ -242,13 +252,16 @@ export class ProfilePage extends BasePage {
           };
 
           setTimeout(() => EventBus.emit('openChat', { data: userPayload }), 100);
-        } catch (err) {
+        } catch (err: unknown) {
           console.error(err);
+          notifier.show('Ошибка', 'Не удалось открыть чат', 'error');
         }
       });
     }
 
-    const unblockButton = this.wrapper?.querySelector<HTMLButtonElement>('.unblock-user-btn');
+    const unblockButton =
+      this.wrapper?.querySelector<HTMLButtonElement>('.unblock-user-btn');
+
     if (unblockButton) {
       unblockButton.addEventListener('click', () => {
         const blockConfirm = new ModalConfirm(
@@ -270,13 +283,33 @@ export class ProfilePage extends BasePage {
               newBtn.addEventListener(
                 'click',
                 async () => {
-                  await sendProfileFriendRequest(this.userId, authService.getCsrfToken());
+                  try {
+                    await sendProfileFriendRequest(this.userId);
+
+                    notifier.show(
+                      'Заявка отправлена',
+                      'Заявка в друзья отправлена успешно',
+                      'success',
+                    );
+
+                    newBtn.textContent = 'Заявка отправлена';
+                    newBtn.classList.remove('add-friend-btn');
+                    newBtn.classList.add('request-text');
+                    newBtn.disabled = true;
+                  } catch (err: unknown) {
+                    console.error(err);
+                    notifier.show(
+                      'Ошибка',
+                      'Не удалось отправить заявку, попробуйте позже',
+                      'error',
+                    );
+                  }
                 },
                 { once: true },
               );
-            } catch (err) {
-              notifier.show('Ошибка', 'Не удалось разблокировать пользователя', 'error');
+            } catch (err: unknown) {
               console.error(err);
+              notifier.show('Ошибка', 'Не удалось разблокировать пользователя', 'error');
             }
           },
         );
@@ -285,4 +318,5 @@ export class ProfilePage extends BasePage {
       });
     }
   }
+
 }

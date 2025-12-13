@@ -24,7 +24,7 @@ export const SEARCH_TYPES_BY_LIST: Record<FriendsListType, FriendsSearchBackendT
   subscribers: 'pending',
   possible: 'notFriends',
 };
-export type FriendStatus = '' | 'pending' | 'accepted' | 'blocked';
+export type FriendStatus = '' | 'pending' | 'accepted' | 'blocked' | 'sent';
 
 export interface FriendsCount {
   count_friends: number;

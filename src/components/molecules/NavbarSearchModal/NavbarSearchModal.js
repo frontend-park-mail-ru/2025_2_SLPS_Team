@@ -7,7 +7,7 @@ import {
   getPossibleFriends,
   searchProfiles,
   sendFriendRequest,
-} from '../../../shared/api/friendsApi.js';
+} from '../../../shared/api/friendsApi.ts';
 
 import {
   getMyCommunities,

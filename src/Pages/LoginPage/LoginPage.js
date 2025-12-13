@@ -1,6 +1,6 @@
 import LoginForm from '../../components/molecules/LoginForm/LoginFrom.ts';
 import loginPageTemplate from './LoginPage.hbs';
-import { loginUser } from '../../shared/api/authApi.js';
+import { loginUser } from '../../shared/api/authApi.ts';
 import { navigateTo } from '../../app/router/navigateTo.js';
 
 export async function renderLoginPage(container, options = {}) {
