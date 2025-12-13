@@ -32,50 +32,49 @@ export class AuthService {
     const now = Date.now();
 
     if (!force && this.lastAuthResult !== null && now - this.lastAuthAt < this.authTtlMs) {
-      return this.lastAuthResult;
+        return this.lastAuthResult;
     }
 
     if (this.checkAuthPromise) return this.checkAuthPromise;
 
     this.checkAuthPromise = (async () => {
-      try {
+        try {
         const res = await fetch(`${process.env.API_BASE_URL}/api/auth/isloggedin`, {
-          method: 'GET',
-          credentials: 'include',
+            method: 'GET',
+            credentials: 'include',
         });
 
-        if (!res.ok) throw new Error('Not authorized');
+        if (!res.ok) {
+            this.clearAuth();
+            return false;
+        }
 
         const data = (await res.json()) as IsLoggedInResponse;
-        const id = typeof data.userID === 'number' && Number.isFinite(data.userID) ? data.userID : null;
-        if (!id) throw new Error('Invalid userID');
 
-        this.userId = id;
+        if (typeof data.userID !== 'number' || !Number.isFinite(data.userID)) {
+            this.clearAuth();
+            return false;
+        }
+
+        this.userId = data.userID;
         this.isLoggedIn = true;
 
-        localStorage.setItem('userId', String(id));
+        localStorage.setItem('userId', String(data.userID));
         localStorage.setItem('isLoggedIn', 'true');
 
         this.lastAuthResult = true;
         this.lastAuthAt = Date.now();
         return true;
-      } catch {
-        this.userId = null;
-        this.isLoggedIn = false;
-
-        localStorage.removeItem('userId');
-        localStorage.removeItem('isLoggedIn');
-
-        this.lastAuthResult = false;
-        this.lastAuthAt = Date.now();
+        } catch {
+        this.clearAuth();
         return false;
-      } finally {
+        } finally {
         this.checkAuthPromise = null;
-      }
+        }
     })();
 
     return this.checkAuthPromise;
-  }
+    }
 
   getUserId(): number | null {
     return this.userId;
@@ -94,6 +93,18 @@ export class AuthService {
 
     return value;
   }
+
+    private clearAuth(): void {
+    this.userId = null;
+    this.isLoggedIn = false;
+
+    localStorage.removeItem('userId');
+    localStorage.removeItem('isLoggedIn');
+
+    this.lastAuthResult = false;
+    this.lastAuthAt = Date.now();
+    }
+
 
   async logout(): Promise<boolean> {
     try {
