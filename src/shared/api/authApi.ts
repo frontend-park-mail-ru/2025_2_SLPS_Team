@@ -3,16 +3,19 @@ import { api, apiRaw } from './client';
 export interface LoginPayload {
   email: string;
   password: string;
+  rememberMe?: boolean;
 }
 
 export interface RegisterPayload {
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
-  gender: string;
-  dob: string;
+
+  firstName?: string;
+  lastName?: string;
+  gender?: string;
+  dob?: string;
 }
+
 export interface IsLoggedInResponse {
   userID: number;
 }

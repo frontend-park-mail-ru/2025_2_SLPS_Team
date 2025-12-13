@@ -13,7 +13,7 @@ const stepInfo: Record<Step, StepInfoItem> = {
   3: { big: 'Создать аккаунт', small: 'Укажите возраст и пол' },
 };
 
-type RegFormData = {
+export type RegFormData = {
   email: string;
   password: string;
   confirmPassword: string;
@@ -45,7 +45,27 @@ type RegistrationFormInstance = {
   renderStep?: () => void;
 };
 
-type RegistrationFormCtor = new (container: HTMLElement, options?: unknown) => RegistrationFormInstance;
+type RegistrationFormCtor = new (
+  container: HTMLElement,
+  options?: unknown,
+) => RegistrationFormInstance;
+
+function unwrapDefault(v: unknown): unknown {
+  let cur = v;
+
+  for (let i = 0; i < 5; i++) {
+    if (typeof cur === 'function') return cur;
+
+    if (cur && typeof cur === 'object' && 'default' in cur) {
+      cur = (cur as { default: unknown }).default;
+      continue;
+    }
+
+    break;
+  }
+
+  return cur;
+}
 
 function resolveRegistrationFormCtor(): RegistrationFormCtor {
   const m = RegFormModule as unknown as {
@@ -53,12 +73,15 @@ function resolveRegistrationFormCtor(): RegistrationFormCtor {
     RegistrationForm?: unknown;
   };
 
-  const candidate = m.default ?? m.RegistrationForm;
-  if (typeof candidate !== 'function') {
-    throw new Error('[RegPage] RegistrationForm export is not a constructor');
+  const candidates: unknown[] = [m.default, m.RegistrationForm, RegFormModule];
+
+  for (const c of candidates) {
+    const resolved = unwrapDefault(c);
+    if (typeof resolved === 'function') return resolved as RegistrationFormCtor;
   }
 
-  return candidate as RegistrationFormCtor;
+  console.error('[RegPage] RegFormModule debug:', RegFormModule);
+  throw new Error('[RegPage] RegistrationForm export is not a constructor');
 }
 
 const RegistrationForm = resolveRegistrationFormCtor();
@@ -76,9 +99,7 @@ export async function renderRegPage(
   const tempContainer = document.createElement('div');
 
   const regForm = new RegistrationForm(tempContainer, {
-    onSubmit: (data: Record<string, unknown>) => {
-      const formData = data as RegFormData;
-
+    onSubmit: (formData: RegFormData) => {
       void (async () => {
         try {
           if (formData.password !== formData.confirmPassword) {
@@ -125,7 +146,6 @@ export async function renderRegPage(
 
           if (isEmailAlreadyExists) {
             regForm.emailError = true;
-
             regForm.currentStep = 1;
             regForm.animationStatus = 'back';
             regForm.renderStep?.();
