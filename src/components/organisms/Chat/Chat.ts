@@ -10,7 +10,7 @@ import {
   getChatMessages,
   sendChatMessage,
   updateChatReadState,
-} from '../../../shared/api/chatsApi.js';
+} from '../../../shared/api/chatsApi';
 
 interface ChatUserView {
   id: number;

@@ -9,7 +9,7 @@ import { wsService } from '../../services/WebSocketService.js';
 import { gsap } from 'gsap';
 
 import { getProfile } from '../../shared/api/profileApi';
-import { getChats, getChatWithUser } from '../../shared/api/chatsApi.js';
+import { getChats, getChatWithUser } from '../../shared/api/chatsApi';
 import { layout } from '../LayoutManager';
 
 import type { ChatItemData, ProfileData } from '../../shared/types/components';
@@ -130,7 +130,6 @@ export class MessengerPage extends BasePage {
           chatBlockEl?.classList.add('open');
         }
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.error('Ошибка открытия чата:', err);
       }
     });
