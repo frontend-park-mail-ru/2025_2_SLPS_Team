@@ -50,7 +50,7 @@ export class EditProfileForm {
     this.wrapper.id = 'edit-profile-wrapper';
     this.wrapper.classList.add('edit-profile-modal');
     this.wrapper.innerHTML = EditProfileTemplate({
-      AvatarUrl: this.profileData.avatar || this.defaultAvatar,
+      AvatarUrl: this.resolveAvatarUrl(this.profileData.avatar ?? null),
       profileData: this.profileData,
     });
 
@@ -296,6 +296,21 @@ export class EditProfileForm {
   private handleAvatarClick(): void {
     void this.addEditAvatatarMenu();
   }
+  private resolveAvatarUrl(raw?: string | null): string {
+    if (!raw || raw === 'null') return this.defaultAvatar;
+
+    if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('blob:') || raw.startsWith('data:')) {
+      return raw;
+    }
+
+    const base = String(process.env.API_BASE_URL || '').replace(/\/+$/, '');
+
+    if (raw.startsWith('/uploads/')) return `${base}${raw}`;
+    if (raw.startsWith('uploads/')) return `${base}/${raw}`;
+    if (raw.startsWith('/')) return raw;
+
+    return `${base}/uploads/${raw}`;
+  }
 
   open(): void {
     document.body.style.overflow = 'hidden';
@@ -331,6 +346,7 @@ export class EditProfileForm {
       this.wrapper = null;
     }, 350);
   }
+  
 
   async saveData(): Promise<void> {
     try {

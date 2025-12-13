@@ -3,7 +3,6 @@ import { renderMenu } from '../components/molecules/Menu/Menu';
 import { NotificationManager } from '../components/organisms/NotificationsBlock/NotificationsManager';
 import { authService } from '../services/AuthService';
 import { SupportWidget } from '../components/organisms/SupportWidget/SupportWidget';
-
 import { navigateTo as defaultNavigateTo } from '../index';
 
 type NavigateTo = (path: string) => void;
@@ -45,10 +44,13 @@ export class LayoutManager {
   private avatarCache: { value: string | null; ts: number } | null = null;
   private readonly avatarTtlMs = 30_000;
 
+  private authPromise: Promise<boolean> | null = null;
+  private authCache: { value: boolean; ts: number } | null = null;
+  private readonly authTtlMs = 15_000;
+
   constructor(rootElement: HTMLElement, navigate: NavigateTo = defaultNavigateTo) {
     this.root = rootElement;
     this.navigateTo = navigate;
-
     window.addEventListener('resize', () => this.updateNavbarVisibility());
   }
 
@@ -68,7 +70,37 @@ export class LayoutManager {
     this.avatarPromise = null;
   }
 
+  public invalidateAuthCache(): void {
+    this.authCache = null;
+    this.authPromise = null;
+  }
+
+  private async ensureAuthCached(force = false): Promise<boolean> {
+    const now = Date.now();
+
+    if (!force && this.authCache && now - this.authCache.ts < this.authTtlMs) {
+      return this.authCache.value;
+    }
+
+    if (this.authPromise) return this.authPromise;
+
+    this.authPromise = (async () => {
+      try {
+        const ok = await authService.checkAuth(force);
+        this.authCache = { value: ok, ts: Date.now() };
+        return ok;
+      } finally {
+        this.authPromise = null;
+      }
+    })();
+
+    return this.authPromise;
+  }
+
   private async getAvatarCached(): Promise<string | null> {
+    const ok = await this.ensureAuthCached();
+    if (!ok) return null;
+
     const userId = authService.getUserId();
     if (!userId) return null;
 
@@ -103,21 +135,19 @@ export class LayoutManager {
 
   public async init(): Promise<void> {
     if (this.initialized) return;
-
     if (this.initPromise) return this.initPromise;
 
     this.initPromise = (async () => {
-      const avatar = await this.getAvatarCached();
+      await this.ensureAuthCached();
 
+      const avatar = await this.getAvatarCached();
       this.navbar = renderNavbar(avatar);
 
       const layoutWrapper = document.createElement('div');
       layoutWrapper.classList.add('layout-wrapper');
 
-      const menuItems = this.getMenuItems();
-
       this.menu = (await renderMenu({
-        items: menuItems,
+        items: this.getMenuItems(),
         onNavigate: (path: string) => this.navigateTo(path),
       })) as RenderMenuResult;
 
@@ -139,7 +169,6 @@ export class LayoutManager {
       }
 
       this.initialized = true;
-
       this.updateNavbarVisibility();
     })();
 
@@ -172,13 +201,13 @@ export class LayoutManager {
   public async rerenderLayout(): Promise<void> {
     if (!this.initialized) return;
 
-    const avatar = await this.getAvatarCached();
+    await this.ensureAuthCached();
 
+    const avatar = await this.getAvatarCached();
     const newNavbar = renderNavbar(avatar);
 
-    const menuItems = this.getMenuItems();
     const newMenu = (await renderMenu({
-      items: menuItems,
+      items: this.getMenuItems(),
       onNavigate: (path: string) => this.navigateTo(path),
     })) as RenderMenuResult;
 
@@ -205,11 +234,8 @@ export class LayoutManager {
     const isMobile = window.innerWidth <= 768;
     const path = location.pathname;
 
-    const isProfile = path.startsWith('/profile');
-    const isMessenger = path.startsWith('/messanger');
-    const isCommunitySubpage = /^\/community\/.+/.test(path);
-
-    const isHiddenPage = isProfile || isMessenger || isCommunitySubpage;
+    const isHiddenPage =
+      path.startsWith('/profile') || path.startsWith('/messanger') || /^\/community\/.+/.test(path);
 
     if (this.navbar) {
       this.navbar.style.display = isMobile && isHiddenPage ? 'none' : '';
@@ -223,4 +249,8 @@ export class LayoutManager {
   }
 }
 
-export const layout = new LayoutManager(document.body, defaultNavigateTo);
+const LAYOUT_SINGLETON_KEY = '__LAYOUT_MANAGER_SINGLETON__';
+
+export const layout: LayoutManager =
+  (globalThis as any)[LAYOUT_SINGLETON_KEY] ??
+  ((globalThis as any)[LAYOUT_SINGLETON_KEY] = new LayoutManager(document.body, defaultNavigateTo));
