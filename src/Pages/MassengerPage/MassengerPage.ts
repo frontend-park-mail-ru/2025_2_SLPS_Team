@@ -46,14 +46,13 @@ export class MessengerPage extends BasePage {
 
   private chatsSearch: SearchInput | null = null;
   private chatItems: ChatItem[] = [];
+  private wsService: any;
 
   constructor(rootElement: HTMLElement) {
-    console.log('aaa');
     super(rootElement);
   }
 
   async render(): Promise<void> {
-    console.log('ffff');
     this.chats = (await getChats(1)) as ChatItemData[];
 
     const uid = (await authService.getUserId()) as number | null | undefined;
@@ -104,6 +103,23 @@ export class MessengerPage extends BasePage {
 
     this.rootElement.appendChild(this.wrapper);
 
+    await this.loadSocet();
+    this.wsService.on('new_message', (packet: WsMessagePacket) => {
+      const raw = (packet?.Data ?? packet) as unknown;
+      const data = raw as WsChatUpdatePayload;
+
+      if (!data || typeof data.id !== 'number') return;
+
+      const openChatId = this.openChat?.getChatId();
+
+      // ⛔️ чат открыт — counter НЕ нужен
+      if (openChatId === data.id) return;
+
+      this.UpdateChat(data.id);
+    });
+
+
+
     EventBus.on('openChat', async ({ data }: OpenChatEventPayload) => {
       try {
         const responseData = (await getChatWithUser(data.id)) as ChatWithUserResponse;
@@ -130,6 +146,8 @@ export class MessengerPage extends BasePage {
     });
 
     EventBus.on('chatUpdated', ({ chatId }: ChatUpdatedEventPayload) => {
+      const openChatId = this.openChat?.getChatId();
+      if (openChatId === chatId) return;
       this.UpdateChat(chatId);
     });
 
@@ -231,10 +249,20 @@ export class MessengerPage extends BasePage {
       });
     }
 
-    const openChatId = (this.openChat as unknown as { chatInfo?: number } | null)?.chatInfo;
-    if (!this.openChat || chatItem.chatData.id !== openChatId) {
-      chatItem.showCounter();
+    const openChatId = this.openChat?.getChatId();
+
+    if (this.openChat && chatItem.chatData.id === openChatId) {
+      chatItem.hideCounter();
+      return;
     }
+
+    chatItem.showCounter();
+
+  }
+
+  async loadSocet() {
+      const module = await import('services/WebSocketService');
+      this.wsService = module.wsService;
   }
 
   private async fetchCurrentUserProfile(): Promise<ProfileData> {

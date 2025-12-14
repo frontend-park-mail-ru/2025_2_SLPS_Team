@@ -137,9 +137,6 @@ export class Chat {
 
 async render(): Promise<void> {
     
-    // ----------------------------------------------------------------------------------
-    // ИСПРАВЛЕНИЕ RАСЕ CONDITION: Подписка на WS происходит СИНХРОННО до любых await
-    // ----------------------------------------------------------------------------------
     this.wsHandler = (data: WsNewMessagePayload | null) => {
       if (!data) return;
 
@@ -215,7 +212,6 @@ async render(): Promise<void> {
     };
     await this.loadSocet();
     this.wsService.on('new_message', this.wsHandler);
-    // ----------------------------------------------------------------------------------
 
 
     const wrapper = document.createElement('div');
@@ -226,19 +222,15 @@ async render(): Promise<void> {
       throw new Error('Chat:.chat-container not found');
     }
 
-    // Асинхронная операция теперь выполняется ПОСЛЕ подписки
     const rawData = (await getChatMessages(
       this.chatInfo,
       1,
     )) as ChatMessagesResponse;
 
-    // ИСПРАВЛЕНО: Корректный тип (массив) и fallback
     const rawMessages = rawData.Messages??[]; 
     
-    // ИСПРАВЛЕНО: Корректный fallback для Authors
     const authors: Record<number, ChatMessagesResponseAuthor> = rawData.Authors?? {};
 
-    // ИСПРАВЛЕНО: Корректная логика получения автора по ID
     this.messages = rawMessages.map<ChatMessageView>((msg:any) => {
       const author = authors; 
       return {
@@ -484,5 +476,9 @@ async render(): Promise<void> {
   async loadSocet() {
       const module = await import('services/WebSocketService');
       this.wsService = module.wsService;
+  }
+
+  public getChatId(): number | undefined {
+    return this.chatInfo;
   }
 }
