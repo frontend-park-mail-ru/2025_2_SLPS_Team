@@ -5,7 +5,6 @@ import { Chat } from '../../components/organisms/Chat/Chat';
 import { SearchInput } from '../../components/molecules/SearchInput/SearchInput';
 import { EventBus } from '../../services/EventBus';
 import { authService } from '../../services/AuthService';
-import wsService from 'services/WebSocketService';
 import { gsap } from 'gsap';
 
 import { getProfile } from '../../shared/api/profileApi';
@@ -104,14 +103,6 @@ export class MessengerPage extends BasePage {
     });
 
     this.rootElement.appendChild(this.wrapper);
-
-    wsService.on('message', (packet: WsMessagePacket) => {
-      const raw = (packet?.Data ?? packet) as unknown;
-      const data = raw as WsChatUpdatePayload;
-
-      if (!data || typeof data.id !== 'number') return;
-      this.UpdateChat(data.id);
-    });
 
     EventBus.on('openChat', async ({ data }: OpenChatEventPayload) => {
       try {

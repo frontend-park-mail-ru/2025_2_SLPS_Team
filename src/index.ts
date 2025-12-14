@@ -13,14 +13,7 @@ app.render();
 export { navigateTo };
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker
-      .register('/service-worker.js')
-      .then((reg: ServiceWorkerRegistration) => {
-        console.log('[SW] registered:', reg.scope);
-      })
-      .catch((err: unknown) => {
-        console.error('[SW] registration failed:', err);
-      });
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(reg => reg.unregister());
   });
 }

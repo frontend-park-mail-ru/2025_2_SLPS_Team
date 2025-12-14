@@ -1,46 +1,36 @@
 class WebSocketService {
-  private url: string;
   private ws: WebSocket | null = null;
-  private listeners: Map<string, Set<(data: any) => void>> = new Map();
-  private onOpenCallbacks: (() => void)[] = [];
+  private listeners = new Map<string, Set<any>>();
+  private onOpenCallbacks: Array<() => void> = [];
+  private reconnectTimeout = 3000;
 
-  constructor(url: string) {
-    this.url = url;
-    this.connect();
-  }
+  private constructor(private url: string) {}
 
   private connect() {
-    if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
-      return;
-    }
+    if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) return;
 
     this.ws = new WebSocket(this.url);
 
     this.ws.onopen = () => {
-      console.log('[WS] Connected to server');
-      // вызываем все отложенные колбеки
+      console.log('[WS] Connected');
       this.onOpenCallbacks.forEach(cb => cb());
       this.onOpenCallbacks = [];
     };
 
     this.ws.onmessage = (event) => {
       try {
-        const raw = event.data;
-        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-        const type = parsed.type || parsed.Type || null;
-        const data = parsed.data ?? parsed.Data ?? null;
-
-        console.log('[WS RAW]', parsed);
-
+        const msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        const type = msg?.type;
+        const data = msg?.data;
         if (type) this.emit(type, data);
-      } catch (e) {
-        console.error('[WS] Invalid message format:', event.data, e);
+      } catch (err) {
+        console.error('[WS] Parse error:', err, event.data);
       }
     };
 
     this.ws.onclose = () => {
       console.warn('[WS] Connection closed. Reconnecting...');
-      setTimeout(() => this.connect(), 3000);
+      setTimeout(() => this.connect(), this.reconnectTimeout);
     };
 
     this.ws.onerror = (err) => {
@@ -49,39 +39,45 @@ class WebSocketService {
     };
   }
 
-  send(type: string, payload: any) {
-    const message = JSON.stringify({ type, data: payload });
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(message);
-    } else {
-      console.warn('[WS] Not ready, message dropped:', message);
+  static getInstance(): WebSocketService {
+    const GLOBAL = globalThis as any;
+    if (!GLOBAL.__WS_SERVICE__) {
+      GLOBAL.__WS_SERVICE__ = new WebSocketService(process.env.WS_URL || 'ws://185.86.146.77:8080/api/ws');
+      GLOBAL.__WS_SERVICE__.connect();
     }
+    return GLOBAL.__WS_SERVICE__;
   }
 
-  on(eventType: string, callback: (data: any) => void) {
-    if (!this.listeners.has(eventType)) {
-      this.listeners.set(eventType, new Set());
-    }
-    this.listeners.get(eventType)!.add(callback);
+  send(type: string, data: any) {
+    if (this.ws?.readyState === WebSocket.OPEN) this.ws.send(JSON.stringify({ type, data }));
   }
 
-  off(eventType: string, callback: (data: any) => void) {
-    this.listeners.get(eventType)?.delete(callback);
+  on(type: string, callback: any) {
+    if (!this.listeners.has(type)) this.listeners.set(type, new Set());
+    this.listeners.get(type)!.add(callback);
   }
 
-  emit(eventType: string, payload: any) {
-    this.listeners.get(eventType)?.forEach(cb => cb(payload));
+  off(type: string, callback: any) {
+    this.listeners.get(type)?.delete(callback);
   }
 
-  onOpen(cb: () => void) {
-    if (this.ws?.readyState === WebSocket.OPEN) {
-      cb();
-    } else {
-      this.onOpenCallbacks.push(cb);
-    }
+  private emit(type: string, data: any) {
+    this.listeners.get(type)?.forEach(cb => cb(data));
+  }
+
+  onOpen(callback: () => void) {
+    if (this.ws?.readyState === WebSocket.OPEN) callback();
+    else this.onOpenCallbacks.push(callback);
   }
 }
 
 
-const wsService = new WebSocketService('ws://185.86.146.77:8080/api/ws');
-export default wsService;
+export const wsService = WebSocketService.getInstance();
+
+
+if ((import.meta as any).hot) {
+  (import.meta as any).hot.dispose(() => {
+    (globalThis as any).__WS_SERVICE__?.ws?.close();
+    (globalThis as any).__WS_SERVICE__ = undefined;
+  });
+}

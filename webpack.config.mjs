@@ -96,8 +96,8 @@ export default {
     static: {
       directory: path.resolve(__dirname, 'dist'),
     },
-    hot: true,
+    hot: false,
     port: 3000,
-    historyApiFallback: true,
+    historyApiFallback: false,
   },
 };

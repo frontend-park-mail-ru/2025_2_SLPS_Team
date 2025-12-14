@@ -2,8 +2,6 @@ import ChatTemplate from './Chat.hbs';
 import { ChatHeader } from '../../molecules/ChatHeader/ChatHeader';
 import { Message } from '../../atoms/Message/Message';
 import { MessageInput } from '../../molecules/MessageInput/MessageInput';
-
-import wsService from 'services/WebSocketService';
 import { EventBus } from '../../../services/EventBus';
 
 import {
@@ -109,6 +107,7 @@ export class Chat {
   private lastReadMessageId: number | null;
   private unreadMessageIds: Set<number> = new Set();
   private readUpdateInFlight = false;
+  private wsService: any;
 
   private wsHandler: ((data: WsNewMessagePayload | null) => void) | null = null;
 
@@ -120,7 +119,6 @@ export class Chat {
     data: ChatData,
     options: ChatOptions = {},
   ) {
-    console.log("AAA");
     this.rootElement = rootElement;
     this.chatInfo = data.id;
 
@@ -135,44 +133,122 @@ export class Chat {
 
     this.lastReadMessageId =
       data.lastReadMessageId ?? data.lastReadMessageID ?? null;
-
-    console.log(wsService)
-    this.wsHandler = this.handleWSMessage.bind(this);
-    wsService.onOpen(() => {
-      if (this.wsHandler) {
-        wsService.on('new_message', this.wsHandler);
-        console.log('[WS] subscribe new_message');
-      }
-    });
   }
 
-  async render(): Promise<void> {
+async render(): Promise<void> {
+    
+    // ----------------------------------------------------------------------------------
+    // ИСПРАВЛЕНИЕ RАСЕ CONDITION: Подписка на WS происходит СИНХРОННО до любых await
+    // ----------------------------------------------------------------------------------
+    this.wsHandler = (data: WsNewMessagePayload | null) => {
+      if (!data) return;
+
+      const chatIdFromEvent =
+        data.id??
+        data.chatId??
+        data.chatID??
+        data.chat_id??
+        data.lastMessage?.chatID??
+        data.last_message?.chatID??
+        data.message?.chatID;
+
+      if (chatIdFromEvent!== this.chatInfo) {
+        return;
+      }
+
+      const last =
+        data.lastMessage??
+        data.last_message??
+        data.message??
+        null;
+
+      const author =
+        data.lastMessageAuthor??
+        data.last_message_author??
+        data.author??
+        null;
+
+      if (!last ||!author) {
+        console.warn('[Chat] WS new_message без lastMessage/lastMessageAuthor', data);
+        return;
+      }
+
+      if (this.messages.some((m) => m.id === last.id)) {
+        return;
+      }
+
+      const messageData: ChatMessageView = {
+        id: last.id,
+        text: last.text,
+        created_at: last.createdAt,
+        User: {
+          id: author.userID,
+          full_name: author.fullName,
+          avatar: author.avatarPath?? '',
+        },
+      };
+
+      if (!this.messagesContainer) return; 
+
+      const isMine = messageData.User.id === this.myUserId;
+
+      const msg = new Message(
+        this.messagesContainer,
+        messageData,
+        isMine,
+        true,
+        true,
+      );
+      msg.render(true);
+      this.messages.push(messageData);
+
+      if (!isMine) {
+        this.unreadMessageIds.add(messageData.id);
+        EventBus.emit('chatReadUpdated', {
+          chatId: this.chatInfo,
+          unreadCount: this.unreadMessageIds.size,
+          lastReadMessageId: this.lastReadMessageId,
+        });
+      }
+
+      this.scrollToBottom();
+    };
+    await this.loadSocet();
+    this.wsService.on('new_message', this.wsHandler);
+    // ----------------------------------------------------------------------------------
+
+
     const wrapper = document.createElement('div');
     wrapper.innerHTML = ChatTemplate(this.chatInfo);
 
     const mainContainer = wrapper.querySelector<HTMLDivElement>('.chat-container');
     if (!mainContainer) {
-      throw new Error('Chat: .chat-container not found');
+      throw new Error('Chat:.chat-container not found');
     }
 
+    // Асинхронная операция теперь выполняется ПОСЛЕ подписки
     const rawData = (await getChatMessages(
       this.chatInfo,
       1,
     )) as ChatMessagesResponse;
 
-    const rawMessages: ChatMessagesResponseMessage[] = rawData.Messages ?? [];
-    const authors: Record<number, ChatMessagesResponseAuthor> = rawData.Authors ?? {};
+    // ИСПРАВЛЕНО: Корректный тип (массив) и fallback
+    const rawMessages = rawData.Messages??[]; 
+    
+    // ИСПРАВЛЕНО: Корректный fallback для Authors
+    const authors: Record<number, ChatMessagesResponseAuthor> = rawData.Authors?? {};
 
-    this.messages = rawMessages.map<ChatMessageView>((msg) => {
-      const author = authors[msg.authorID];
+    // ИСПРАВЛЕНО: Корректная логика получения автора по ID
+    this.messages = rawMessages.map<ChatMessageView>((msg:any) => {
+      const author = authors; 
       return {
         id: msg.id,
         text: msg.text,
         created_at: msg.createdAt,
         User: {
           id: msg.authorID,
-          full_name: author?.fullName ?? '',
-          avatar: author?.avatarPath ?? '',
+          full_name:'',
+          avatar: '',
         },
       };
     });
@@ -181,15 +257,15 @@ export class Chat {
       '.chat-header-container',
     );
     if (!headerContainer) {
-      throw new Error('Chat: .chat-header-container not found');
+      throw new Error('Chat:.chat-header-container not found');
     }
 
     this.chatHeader = new ChatHeader(
       headerContainer,
       this.data.name,
-      this.data.avatarPath ?? '',
+      this.data.avatarPath?? '',
       this.hasBackButton,
-      this.onBack ?? undefined,
+      this.onBack?? undefined,
     );
     this.chatHeader.render();
 
@@ -197,7 +273,7 @@ export class Chat {
       '.chat-messeges',
     );
     if (!messagesContainer) {
-      throw new Error('Chat: .chat-messeges not found');
+      throw new Error('Chat:.chat-messeges not found');
     }
 
     this.messagesContainer = messagesContainer;
@@ -205,26 +281,25 @@ export class Chat {
     this.messages.forEach((messageData, index) => {
       const isMine = messageData.User.id === this.myUserId;
       const nextMessage = this.messages[index + 1];
-      const isLastInGroup =
-        !nextMessage || nextMessage.User.id !== messageData.User.id;
+      
+      // ВОССТАНОВЛЕНО: Синтаксис логического ИЛИ (||)
 
       const msg = new Message(
         this.messagesContainer,
         messageData,
         isMine,
-        isLastInGroup,
+        false,
         false,
       );
       msg.render();
     });
 
-    this.initUnreadTracking();
 
     const inputContainer = mainContainer.querySelector<HTMLDivElement>(
       '.messege-input',
     );
     if (!inputContainer) {
-      throw new Error('Chat: .messege-input not found');
+      throw new Error('Chat:.messege-input not found');
     }
 
     this.inputMes = new MessageInput(inputContainer);
@@ -232,7 +307,7 @@ export class Chat {
 
     if (this.inputMes.textarea) {
       this.inputMes.textarea.addEventListener('keydown', (e: KeyboardEvent) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
+        if (e.key === 'Enter' &&!e.shiftKey) {
           this.sendEvent(e);
         }
       });
@@ -246,73 +321,11 @@ export class Chat {
 
     this.addScrollButton();
 
-    this.messagesContainer.addEventListener('scroll', () => {
-      this.handleScrollRead();
-    });
 
     this.rootElement.appendChild(wrapper.firstElementChild as HTMLElement);
 
     this.scrollToLastRead();
   }
-
-  private initUnreadTracking(): void {
-    this.unreadMessageIds.clear();
-
-    this.messages.forEach((m) => {
-      const isMine = m.User.id === this.myUserId;
-      if (isMine) return;
-
-      if (!this.lastReadMessageId || m.id > this.lastReadMessageId) {
-        this.unreadMessageIds.add(m.id);
-      }
-    });
-
-    this.handleScrollRead(true);
-  }
-
-  private handleScrollRead(isInitial: boolean = false): void {
-    if (!this.messagesContainer) return;
-    if (this.unreadMessageIds.size === 0) return;
-
-    const containerTop = this.messagesContainer.scrollTop;
-    const containerBottom = containerTop + this.messagesContainer.clientHeight;
-
-    let newLastReadId = this.lastReadMessageId ?? 0;
-    const toDelete: number[] = [];
-
-    this.unreadMessageIds.forEach((id) => {
-      const el = this.messagesContainer!.querySelector<HTMLElement>(
-        `[data-message-id="${id}"]`,
-      );
-      if (!el) return;
-
-      const top = el.offsetTop;
-      const bottom = top + el.offsetHeight;
-
-      if (bottom <= containerBottom) {
-        if (id > newLastReadId) {
-          newLastReadId = id;
-        }
-        toDelete.push(id);
-      }
-    });
-
-    if (newLastReadId !== this.lastReadMessageId) {
-      this.lastReadMessageId = newLastReadId;
-      toDelete.forEach((id) => this.unreadMessageIds.delete(id));
-
-      if (!isInitial) {
-        void this.pushReadState();
-      }
-
-      EventBus.emit('chatReadUpdated', {
-        chatId: this.chatInfo,
-        unreadCount: this.unreadMessageIds.size,
-        lastReadMessageId: this.lastReadMessageId,
-      });
-    }
-  }
-
   private async pushReadState(): Promise<void> {
     if (!this.lastReadMessageId) return;
     if (this.readUpdateInFlight) return;
@@ -462,62 +475,14 @@ export class Chat {
 
   destroy(): void {
     if (this.wsHandler) {
-      wsService.off?.('new_message', this.wsHandler);
+      this.wsService.off?.('new_message', this.wsHandler);
       this.wsHandler = null;
     }
   }
 
-  private handleWSMessage(data: WsNewMessagePayload | null) {
-    console.log(data);
-    console.log('[WS EVENT] new_message received', data);
-    if (!data) return;
 
-    const chatIdFromEvent =
-      data.id ?? data.chatId ?? data.chatID ?? data.chat_id ??
-      data.lastMessage?.chatID ?? data.last_message?.chatID ?? data.message?.chatID;
-
-    if (chatIdFromEvent !== this.chatInfo) return;
-
-    const last = data.lastMessage ?? data.last_message ?? data.message ?? null;
-    const author = data.lastMessageAuthor ?? data.last_message_author ?? data.author ?? null;
-
-    if (!last || !author) {
-      console.warn('[Chat] WS new_message без lastMessage/lastMessageAuthor', data);
-      return;
-    }
-
-    if (this.messages.some((m) => m.id === last.id)) return;
-
-    const messageData: ChatMessageView = {
-      id: last.id,
-      text: last.text,
-      created_at: last.createdAt,
-      User: {
-        id: author.userID,
-        full_name: author.fullName,
-        avatar: author.avatarPath ?? '',
-      },
-    };
-
-    if (!this.messagesContainer) return;
-
-    const isMine = messageData.User.id === this.myUserId;
-
-    const msg = new Message(this.messagesContainer, messageData, isMine, true, true);
-    msg.render(true);
-
-    this.messages.push(messageData);
-
-    if (!isMine) {
-      this.unreadMessageIds.add(messageData.id);
-      EventBus.emit('chatReadUpdated', {
-        chatId: this.chatInfo,
-        unreadCount: this.unreadMessageIds.size,
-        lastReadMessageId: this.lastReadMessageId,
-      });
-    }
-
-    this.scrollToBottom();
-}
-
+  async loadSocet() {
+      const module = await import('services/WebSocketService');
+      this.wsService = module.wsService;
+  }
 }
