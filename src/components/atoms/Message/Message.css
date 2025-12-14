@@ -24,6 +24,35 @@
     animation: messageRight 0.25s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
+.message.emoji {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: no-repeat;
+}
+
+.message.emoji .message-text {
+    font-size: 80px;
+    padding: 0;
+    height: 94px;
+    margin-right: 8px;
+}
+
+.message.emoji .messege-info-container {
+    display: flex;
+    gap: 4px;
+    align-items: flex-end;
+    background: rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(6px);
+    padding: 1px 4px;
+    border-radius: 10px;
+}
+
+
+.messege-info-container {
+    display: flex;
+}
+
 @keyframes messageLeft {
     from {
         opacity: 0;

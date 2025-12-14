@@ -1,0 +1,109 @@
+.video-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: black;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.custom-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.fullscreen-icon {
+    width: 24px !important;
+    height: 24px !important;
+    cursor: pointer;
+}
+
+.video-controls {
+    position: absolute;
+    bottom: 10px;
+    left: 2%;
+    right: 2%;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 5px 10px;
+    border-radius: 8px;
+    width: 96%;
+    gap: 4px;
+}
+
+.video-controls input[type="range"] {
+    flex: 1;
+    margin: 0 10px;
+}
+
+.progress {
+    --progress: 0%;
+    --height: 6px;
+    --thumb-size: 10px;
+
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: var(--height);
+    background: var(--dark-gray);
+    border-radius: 3px;
+    outline: none;
+    position: relative;
+    cursor: pointer;
+}
+
+.progress::before {
+    content: "";
+    position: absolute;
+    height: var(--height);
+    width: var(--progress);
+    background: var(--base-purple);
+    border-radius: 3px;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.progress::after {
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 0;
+    background: var(--base-purple);
+    border-radius: 50%;
+    top: 50%;
+    left: var(--progress);
+    transform: translate(-50%, -50%);
+    transition: width 0.15s ease, height 0.15s ease;
+}
+
+.progress:hover::after {
+    width: var(--thumb-size);
+    height: var(--thumb-size);
+}
+
+.progress::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 0;
+    height: 0;
+}
+
+
+.video-controls .time {
+    color: white;
+    font-size: 12px;
+    min-width: 60px;
+    text-align: center;
+}
+
+.video-play-icon {
+    width: 24px !important;
+    height: 24px !important;
+    cursor: pointer;
+    transition: 0.5s;
+}

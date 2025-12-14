@@ -2,7 +2,7 @@
   "name": "src",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
     "dev": "webpack serve --config webpack.config.mjs --mode development",
     "build": "webpack --mode production",
@@ -17,6 +17,7 @@
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
+    "emoji-regex": "^10.6.0",
     "express": "^5.1.0",
     "express-handlebars": "^8.0.3",
     "gsap": "^3.13.0",
@@ -28,6 +29,7 @@
     "@babel/core": "^7.28.4",
     "@babel/preset-env": "^7.28.3",
     "@eslint/js": "^9.36.0",
+    "@types/node": "^24.10.1",
     "babel-loader": "^10.0.0",
     "copy-webpack-plugin": "^13.0.1",
     "css-loader": "^7.1.2",
@@ -42,6 +44,9 @@
     "mini-css-extract-plugin": "^2.9.4",
     "style-loader": "^4.0.0",
     "taffydb": "^2.7.3",
+    "ts-loader": "^9.5.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
     "webpack": "^5.102.1",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.2"

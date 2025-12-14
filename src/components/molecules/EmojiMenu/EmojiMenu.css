@@ -1,0 +1,55 @@
+.emoji-picker {
+    width: 300px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    right: 50px;
+    bottom: 32px;
+    background-color: var(--base-white);
+    padding: 14px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    border-radius: 14px;
+    gap: 8px;
+}
+
+.emoji-picker-grid {
+    overflow-y: scroll;
+    height: 196px;
+}
+
+.emoji-picker-grid::-webkit-scrollbar {
+    display: none;
+}
+
+.hidden {
+    display: none;
+}
+
+.emoji-item {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 22px;
+}
+
+.emoji-btn {
+    position: absolute;
+    right: 40px;
+    bottom: 18px;
+    transform: translateY(50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.no-result-text {
+    font-family: 'Nunito Sans';
+    font-size: 16px;
+    color: var(--dark-gray);
+    justify-self: center;
+    padding: 14px;
+}
