@@ -167,14 +167,7 @@ export class EditCommunityModal {
     this.avatarMenuContainer = menu instanceof HTMLElement ? menu : null;
 
     if (this.avatarPreview) {
-      const apiBaseUrl =
-        typeof process !== 'undefined' && process.env ? process.env.API_BASE_URL : undefined;
-
-      this.avatarPreview.src = resolveAvatarPreviewSrc({
-        formData: this.formData,
-        defaultAvatar: this.defaultAvatar,
-        ...(apiBaseUrl ? { apiBaseUrl } : {}),
-      });
+      this.avatarPreview.src = this.resolveCommunityAvatarUrl(this.formData.avatarPath ?? null);
     }
 
     if (this.avatarInput) {
@@ -368,7 +361,22 @@ export class EditCommunityModal {
 
     document.addEventListener('click', this.outsideClickHandler);
   }
+  private resolveCommunityAvatarUrl(raw?: string | null): string {
+    if (!raw || raw === 'null') return this.defaultAvatar;
 
+    if (
+      raw.startsWith('http://') ||
+      raw.startsWith('https://') ||
+      raw.startsWith('blob:') ||
+      raw.startsWith('data:')
+    ) {
+      return raw;
+    }
+
+    const base = String(process.env.API_BASE_URL || '').replace(/\/+$/, '');
+
+    return `${base}/uploads/${raw}`;
+  }
   private deleteAvatar(): void {
     if (this.avatarPreview) this.avatarPreview.src = this.defaultAvatar;
     if (this.avatarInput) this.avatarInput.value = '';

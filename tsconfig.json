@@ -1,34 +1,23 @@
 {
-  // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
-    // File Layout
-    // "rootDir": "./src",
-    // "outDir": "./dist",
-
-    // Environment Settings
-    // See also https://aka.ms/tsconfig/module
     "module": "esnext",
-    "moduleResolution": "node", 
+    "moduleResolution": "node",
     "target": "esnext",
+
+    "lib": ["ESNext", "DOM", "DOM.Iterable", "WebWorker"],
     "types": ["node"],
+
     "allowJs": true,
     "checkJs": false,
-    // For nodejs:
-    // "lib": ["esnext"],
-    // "types": ["node"],
-    // and npm install -D @types/node
-
-    // Other Outputs
     "sourceMap": true,
 
-    // Stricter Typechecking Options
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
 
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    
+
     "strict": true,
     "jsx": "react-jsx",
     "verbatimModuleSyntax": false,
@@ -39,7 +28,8 @@
 
     "baseUrl": "./src",
     "paths": {
-      "@shared/*": ["shared/*"]
+      "@shared/*": ["shared/*"],
+      "services/*": ["services/*"]
     }
   }
 }

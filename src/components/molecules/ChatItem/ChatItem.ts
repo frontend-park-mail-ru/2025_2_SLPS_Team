@@ -3,72 +3,76 @@ import { UserPhotoItem } from '../../atoms/UserPhotoItem/UserPhotoItem';
 import type { ChatItemData } from '@shared/types/components';
 
 export class ChatItem {
-    rootElement: HTMLElement;
-    wrapper: HTMLElement | null = null;
+  rootElement: HTMLElement;
+  wrapper: HTMLElement | null = null;
 
-    chatData: ChatItemData;
+  chatData: ChatItemData;
 
-    photoWrapper: HTMLElement | null = null;
-    photoElement: UserPhotoItem | null = null;
+  photoWrapper: HTMLElement | null = null;
+  photoElement: UserPhotoItem | null = null;
 
-    mesCounter: HTMLElement | null = null;
+  mesCounter: HTMLElement | null = null;
 
-    counter: number = 0;
+  counter = 0;
 
-    constructor(rootElement: HTMLElement, chatData: ChatItemData) {
-        this.rootElement = rootElement;
-        this.chatData = chatData;
+  constructor(rootElement: HTMLElement, chatData: ChatItemData) {
+    this.rootElement = rootElement;
+    this.chatData = chatData;
+  }
+
+  render(): void {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = ChatItemTemplate(this.chatData);
+
+    const root =
+      (tempDiv.querySelector('.chat-item') as HTMLElement | null) ??
+      (tempDiv.firstElementChild instanceof HTMLElement ? tempDiv.firstElementChild : null);
+
+    if (!root) return;
+
+    this.wrapper = root;
+
+    this.photoWrapper = this.wrapper.querySelector('.user-avatar-container') as HTMLElement | null;
+    if (this.photoWrapper) {
+      this.photoElement = new UserPhotoItem(this.photoWrapper, this.chatData.avatarPath);
+      this.photoElement.render();
     }
 
-    render(): void {
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = ChatItemTemplate(this.chatData);
+    this.mesCounter = this.wrapper.querySelector('.new-mess-counter') as HTMLElement | null;
 
-        this.wrapper = tempDiv.querySelector('.chat-item') as HTMLElement;
+    this.setUnreadCount(this.chatData.unreadCount ?? 0);
 
-        this.photoWrapper = this.wrapper.querySelector('.user-avatar-container') as HTMLElement;
+    this.rootElement.appendChild(this.wrapper);
+  }
 
-        this.photoElement = new UserPhotoItem(
-            this.photoWrapper,
-            this.chatData.avatarPath
-        );
-        this.photoElement.render();
+  makeActive(): void {
+    this.wrapper?.classList.add('active');
+    this.setUnreadCount(0);
+  }
 
-        this.mesCounter = this.wrapper.querySelector('.new-mess-counter') as HTMLElement;
+  rmActive(): void {
+    this.wrapper?.classList.remove('active');
+  }
 
-        this.setUnreadCount(this.chatData.unreadCount || 0);
+  setUnreadCount(count: number): void {
+    this.chatData.unreadCount = count;
 
-        this.rootElement.appendChild(this.wrapper);
+    if (!this.mesCounter) return;
+
+    if (count > 0) {
+      this.mesCounter.textContent = String(count);
+      this.mesCounter.classList.remove('hide');
+    } else {
+      this.mesCounter.textContent = '';
+      this.mesCounter.classList.add('hide');
     }
+  }
 
-    makeActive(): void {
-        this.wrapper?.classList.add('active');
-        this.setUnreadCount(0);
-    }
+  showCounter(): void {
+    this.setUnreadCount((this.chatData.unreadCount ?? 0) + 1);
+  }
 
-    rmActive(): void {
-        this.wrapper?.classList.remove('active');
-    }
-
-    setUnreadCount(count: number): void {
-        this.chatData.unreadCount = count;
-
-        if (!this.mesCounter) return;
-
-        if (count > 0) {
-            this.mesCounter.textContent = String(count);
-            this.mesCounter.classList.remove('hide');
-        } else {
-            this.mesCounter.textContent = '';
-            this.mesCounter.classList.add('hide');
-        }
-    }
-
-    showCounter(): void {
-        this.setUnreadCount((this.chatData.unreadCount || 0) + 1);
-    }
-
-    hideCounter(): void {
-        this.setUnreadCount(0);
-    }
+  hideCounter(): void {
+    this.setUnreadCount(0);
+  }
 }

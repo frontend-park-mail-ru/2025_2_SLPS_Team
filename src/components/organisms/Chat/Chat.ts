@@ -2,15 +2,13 @@ import ChatTemplate from './Chat.hbs';
 import { ChatHeader } from '../../molecules/ChatHeader/ChatHeader';
 import { Message } from '../../atoms/Message/Message';
 import { MessageInput } from '../../molecules/MessageInput/MessageInput';
-
-import { wsService } from '../../../services/WebSocketService.js';
-import { EventBus } from '../../../services/EventBus.js';
+import { EventBus } from '../../../services/EventBus';
 
 import {
   getChatMessages,
   sendChatMessage,
   updateChatReadState,
-} from '../../../shared/api/chatsApi.js';
+} from '../../../shared/api/chatsApi';
 
 interface ChatUserView {
   id: number;
@@ -109,6 +107,7 @@ export class Chat {
   private lastReadMessageId: number | null;
   private unreadMessageIds: Set<number> = new Set();
   private readUpdateInFlight = false;
+  private wsService: any;
 
   private wsHandler: ((data: WsNewMessagePayload | null) => void) | null = null;
 
@@ -136,144 +135,37 @@ export class Chat {
       data.lastReadMessageId ?? data.lastReadMessageID ?? null;
   }
 
-  async render(): Promise<void> {
-    const wrapper = document.createElement('div');
-    wrapper.innerHTML = ChatTemplate(this.chatInfo);
-
-    const mainContainer = wrapper.querySelector<HTMLDivElement>('.chat-container');
-    if (!mainContainer) {
-      throw new Error('Chat: .chat-container not found');
-    }
-
-    const rawData = (await getChatMessages(
-      this.chatInfo,
-      1,
-    )) as ChatMessagesResponse;
-
-    const rawMessages: ChatMessagesResponseMessage[] = rawData.Messages ?? [];
-    const authors: Record<number, ChatMessagesResponseAuthor> = rawData.Authors ?? {};
-
-    this.messages = rawMessages.map<ChatMessageView>((msg) => {
-      const author = authors[msg.authorID];
-      return {
-        id: msg.id,
-        text: msg.text,
-        created_at: msg.createdAt,
-        User: {
-          id: msg.authorID,
-          full_name: author?.fullName ?? '',
-          avatar: author?.avatarPath ?? '',
-        },
-      };
-    });
-
-    const headerContainer = mainContainer.querySelector<HTMLDivElement>(
-      '.chat-header-container',
-    );
-    if (!headerContainer) {
-      throw new Error('Chat: .chat-header-container not found');
-    }
-
-    this.chatHeader = new ChatHeader(
-      headerContainer,
-      this.data.name,
-      this.data.avatarPath ?? '',
-      this.hasBackButton,
-      this.onBack ?? undefined,
-    );
-    this.chatHeader.render();
-
-    const messagesContainer = mainContainer.querySelector<HTMLDivElement>(
-      '.chat-messeges',
-    );
-    if (!messagesContainer) {
-      throw new Error('Chat: .chat-messeges not found');
-    }
-
-    this.messagesContainer = messagesContainer;
-
-    this.messages.forEach((messageData, index) => {
-      const isMine = messageData.User.id === this.myUserId;
-      const nextMessage = this.messages[index + 1];
-      const isLastInGroup =
-        !nextMessage || nextMessage.User.id !== messageData.User.id;
-
-      const msg = new Message(
-        this.messagesContainer,
-        messageData,
-        isMine,
-        isLastInGroup,
-        false,
-      );
-      msg.render();
-    });
-
-    this.initUnreadTracking();
-
-    const inputContainer = mainContainer.querySelector<HTMLDivElement>(
-      '.messege-input',
-    );
-    if (!inputContainer) {
-      throw new Error('Chat: .messege-input not found');
-    }
-
-    this.inputMes = new MessageInput(inputContainer);
-    this.inputMes.render();
-
-    if (this.inputMes.textarea) {
-      this.inputMes.textarea.addEventListener('keydown', (e: KeyboardEvent) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          this.sendEvent(e);
-        }
-      });
-    }
-
-    if (this.inputMes.sendButton) {
-      this.inputMes.sendButton.addEventListener('click', (e: MouseEvent) => {
-        this.sendEvent(e);
-      });
-    }
-
-    this.addScrollButton();
-
-    this.messagesContainer.addEventListener('scroll', () => {
-      this.handleScrollRead();
-    });
-
-    this.rootElement.appendChild(wrapper.firstElementChild as HTMLElement);
-
-    this.scrollToLastRead();
-
-    // Подписка на WS
+async render(): Promise<void> {
+    
     this.wsHandler = (data: WsNewMessagePayload | null) => {
       if (!data) return;
 
       const chatIdFromEvent =
-        data.id ??
-        data.chatId ??
-        data.chatID ??
-        data.chat_id ??
-        data.lastMessage?.chatID ??
-        data.last_message?.chatID ??
+        data.id??
+        data.chatId??
+        data.chatID??
+        data.chat_id??
+        data.lastMessage?.chatID??
+        data.last_message?.chatID??
         data.message?.chatID;
 
-      if (chatIdFromEvent !== this.chatInfo) {
+      if (chatIdFromEvent!== this.chatInfo) {
         return;
       }
 
       const last =
-        data.lastMessage ??
-        data.last_message ??
-        data.message ??
+        data.lastMessage??
+        data.last_message??
+        data.message??
         null;
 
       const author =
-        data.lastMessageAuthor ??
-        data.last_message_author ??
-        data.author ??
+        data.lastMessageAuthor??
+        data.last_message_author??
+        data.author??
         null;
 
-      if (!last || !author) {
+      if (!last ||!author) {
         console.warn('[Chat] WS new_message без lastMessage/lastMessageAuthor', data);
         return;
       }
@@ -289,11 +181,11 @@ export class Chat {
         User: {
           id: author.userID,
           full_name: author.fullName,
-          avatar: author.avatarPath ?? '',
+          avatar: author.avatarPath?? '',
         },
       };
 
-      if (!this.messagesContainer) return;
+      if (!this.messagesContainer) return; 
 
       const isMine = messageData.User.id === this.myUserId;
 
@@ -305,7 +197,6 @@ export class Chat {
         true,
       );
       msg.render(true);
-
       this.messages.push(messageData);
 
       if (!isMine) {
@@ -319,68 +210,114 @@ export class Chat {
 
       this.scrollToBottom();
     };
+    await this.loadSocet();
+    this.wsService.on('new_message', this.wsHandler);
 
-    wsService.on('new_message', this.wsHandler);
-  }
 
-  private initUnreadTracking(): void {
-    this.unreadMessageIds.clear();
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = ChatTemplate(this.chatInfo);
 
-    this.messages.forEach((m) => {
-      const isMine = m.User.id === this.myUserId;
-      if (isMine) return;
+    const mainContainer = wrapper.querySelector<HTMLDivElement>('.chat-container');
+    if (!mainContainer) {
+      throw new Error('Chat:.chat-container not found');
+    }
 
-      if (!this.lastReadMessageId || m.id > this.lastReadMessageId) {
-        this.unreadMessageIds.add(m.id);
-      }
+    const rawData = (await getChatMessages(
+      this.chatInfo,
+      1,
+    )) as ChatMessagesResponse;
+
+    const rawMessages = rawData.Messages??[]; 
+    
+    const authors: Record<number, ChatMessagesResponseAuthor> = rawData.Authors?? {};
+
+    this.messages = rawMessages.map<ChatMessageView>((msg:any) => {
+      const author = authors; 
+      return {
+        id: msg.id,
+        text: msg.text,
+        created_at: msg.createdAt,
+        User: {
+          id: msg.authorID,
+          full_name:'',
+          avatar: '',
+        },
+      };
     });
 
-    this.handleScrollRead(true);
-  }
+    const headerContainer = mainContainer.querySelector<HTMLDivElement>(
+      '.chat-header-container',
+    );
+    if (!headerContainer) {
+      throw new Error('Chat:.chat-header-container not found');
+    }
 
-  private handleScrollRead(isInitial: boolean = false): void {
-    if (!this.messagesContainer) return;
-    if (this.unreadMessageIds.size === 0) return;
+    this.chatHeader = new ChatHeader(
+      headerContainer,
+      this.data.name,
+      this.data.avatarPath?? '',
+      this.hasBackButton,
+      this.onBack?? undefined,
+    );
+    this.chatHeader.render();
 
-    const containerTop = this.messagesContainer.scrollTop;
-    const containerBottom = containerTop + this.messagesContainer.clientHeight;
+    const messagesContainer = mainContainer.querySelector<HTMLDivElement>(
+      '.chat-messeges',
+    );
+    if (!messagesContainer) {
+      throw new Error('Chat:.chat-messeges not found');
+    }
 
-    let newLastReadId = this.lastReadMessageId ?? 0;
-    const toDelete: number[] = [];
+    this.messagesContainer = messagesContainer;
 
-    this.unreadMessageIds.forEach((id) => {
-      const el = this.messagesContainer!.querySelector<HTMLElement>(
-        `[data-message-id="${id}"]`,
+    this.messages.forEach((messageData, index) => {
+      const isMine = messageData.User.id === this.myUserId;
+      const nextMessage = this.messages[index + 1];
+      
+      // ВОССТАНОВЛЕНО: Синтаксис логического ИЛИ (||)
+
+      const msg = new Message(
+        this.messagesContainer,
+        messageData,
+        isMine,
+        false,
+        false,
       );
-      if (!el) return;
-
-      const top = el.offsetTop;
-      const bottom = top + el.offsetHeight;
-
-      if (bottom <= containerBottom) {
-        if (id > newLastReadId) {
-          newLastReadId = id;
-        }
-        toDelete.push(id);
-      }
+      msg.render();
     });
 
-    if (newLastReadId !== this.lastReadMessageId) {
-      this.lastReadMessageId = newLastReadId;
-      toDelete.forEach((id) => this.unreadMessageIds.delete(id));
 
-      if (!isInitial) {
-        void this.pushReadState();
-      }
+    const inputContainer = mainContainer.querySelector<HTMLDivElement>(
+      '.messege-input',
+    );
+    if (!inputContainer) {
+      throw new Error('Chat:.messege-input not found');
+    }
 
-      EventBus.emit('chatReadUpdated', {
-        chatId: this.chatInfo,
-        unreadCount: this.unreadMessageIds.size,
-        lastReadMessageId: this.lastReadMessageId,
+    this.inputMes = new MessageInput(inputContainer);
+    this.inputMes.render();
+
+    if (this.inputMes.textarea) {
+      this.inputMes.textarea.addEventListener('keydown', (e: KeyboardEvent) => {
+        if (e.key === 'Enter' &&!e.shiftKey) {
+          this.sendEvent(e);
+        }
       });
     }
-  }
 
+    if (this.inputMes.sendButton) {
+      this.inputMes.sendButton.addEventListener('click', (e: MouseEvent) => {
+        this.sendEvent(e);
+      });
+    }
+
+    this.addScrollButton();
+
+
+    this.rootElement.appendChild(wrapper.firstElementChild as HTMLElement);
+
+    this.scrollToLastRead();
+  }
   private async pushReadState(): Promise<void> {
     if (!this.lastReadMessageId) return;
     if (this.readUpdateInFlight) return;
@@ -530,8 +467,18 @@ export class Chat {
 
   destroy(): void {
     if (this.wsHandler) {
-      wsService.off?.('new_message', this.wsHandler);
+      this.wsService.off?.('new_message', this.wsHandler);
       this.wsHandler = null;
     }
+  }
+
+
+  async loadSocet() {
+      const module = await import('services/WebSocketService');
+      this.wsService = module.wsService;
+  }
+
+  public getChatId(): number | undefined {
+    return this.chatInfo;
   }
 }

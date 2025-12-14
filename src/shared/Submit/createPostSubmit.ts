@@ -1,4 +1,4 @@
-import { createPost, updatePost } from '../api/postsApi.js';
+import { createPost, updatePost } from '../api/postsApi';
 
 export type ExistingFileDescriptor = {
   url: string;

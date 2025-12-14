@@ -3,9 +3,8 @@ import DropDown from '../../atoms/dropDown/dropDown';
 import BaseButton from '../../atoms/BaseButton/BaseButton';
 import { ModalConfirm } from '../ModalConfirm/ModalConfirm';
 import { NotificationManager } from '../../organisms/NotificationsBlock/NotificationsManager';
-import { authService } from '../../../services/AuthService.js';
-import { navigateTo } from '../../../app/router/navigateTo.js';
-import { deleteFriend, acceptFriend, sendFriendRequest} from '../../../shared/api/friendsApi.js';
+import { navigateTo } from '../../../app/router/navigateTo';
+import { deleteFriend, acceptFriend, sendFriendRequest} from '../../../shared/api/friendsApi';
 
 import './FriendCard.css';
 
@@ -72,7 +71,7 @@ export function renderFriendCard(context: FriendCardContext = {}): HTMLElement |
               'Подтвердите действие',
               `Вы уверены что хотите удалить пользователя ${name} из друзей?`,
               async () => {
-                const res = await deleteFriend(userID, authService.getCsrfToken());
+                const res = await deleteFriend(userID!);
                 if (res.ok) {
                   notifier.show(
                     'Пользователь удален',
@@ -130,7 +129,7 @@ export function renderFriendCard(context: FriendCardContext = {}): HTMLElement |
         const btn = e.target as HTMLButtonElement;
         btn.disabled = true;
 
-        const res = await acceptFriend(userID, authService.getCsrfToken());
+        const res = await acceptFriend(userID!);
         if (res.ok) {
           notifier.show('Друг добавлен', `Вы добавили пользователя ${name} в друзья`, 'success');
           const textElement = document.createElement('span');
@@ -151,19 +150,26 @@ export function renderFriendCard(context: FriendCardContext = {}): HTMLElement |
     const addBtn = new BaseButton(buttonContainer, {
       text: 'Добавить в друзья',
       style: 'normal',
-      onClick: async (e) => {
+      onClick: async (e: MouseEvent) => {
         e.stopPropagation();
-        const res = await sendFriendRequest(userID, authService.getCsrfToken());
+        if (!userID) return;
+
+        const btn = e.currentTarget as HTMLButtonElement;
+        btn.disabled = true;
+
+        const res = await sendFriendRequest(userID);
+
         if (res.ok) {
           notifier.show(
             'Заявка отправлена',
             `Вы отправили заявку пользователю ${name}`,
-            'success'
+            'success',
           );
 
-          const btn = e.target as HTMLButtonElement;
-          btn.disabled = true;
+          btn.textContent = 'Заявка отправлена';
+
         } else {
+          btn.disabled = false;
           notifier.show('Ошибка', 'Не удалось отправить заявку', 'error');
         }
       },

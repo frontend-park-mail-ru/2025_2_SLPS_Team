@@ -114,7 +114,13 @@ export interface Community {
 export type NotificationIconStyle = 'success' | 'error' | 'info' | 'warning';
 
 export interface ProfileData {
-  avatar?: string | null;
+  userID?: number;
+  firstName?: string;
+  lastName?: string;
+
+  avatarPath?: string | null;
+  headerPath?: string | null;
+
   fullName: string;
   aboutMyself: string;
   dob: string;

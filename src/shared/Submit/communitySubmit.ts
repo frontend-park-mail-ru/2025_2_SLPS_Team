@@ -48,3 +48,12 @@ export function buildUpdateCommunityFormData({
 
   return formData;
 }
+export function processCommunityFormData(data: {
+  name: string;
+  about: string;
+}): { name: string; about: string } {
+  return {
+    name: data.name.trim(),
+    about: data.about.trim(),
+  };
+}

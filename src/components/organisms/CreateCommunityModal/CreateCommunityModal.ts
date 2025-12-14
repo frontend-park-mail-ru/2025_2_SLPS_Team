@@ -189,7 +189,7 @@ export class CreateCommunityModal {
     const nameValue = nameInput ? nameInput.value : '';
     const aboutValue = this.aboutInput?.getValue() ?? '';
 
-    const processed = processCommunityFormData(nameValue, aboutValue);
+    const processed = processCommunityFormData({ name: nameValue, about: aboutValue });
 
     if (!processed) {
       if (nameInput) {

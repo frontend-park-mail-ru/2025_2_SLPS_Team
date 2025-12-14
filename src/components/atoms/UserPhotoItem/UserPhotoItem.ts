@@ -1,4 +1,4 @@
-import { navigateTo } from '../../../index.js';
+import { navigateTo } from '../../../index';
 import UserPhotoItemTemplate from './UserPhotoItem.hbs';
 
 export class UserPhotoItem {

@@ -2,8 +2,8 @@ import CommunitiesListTemplate from './CommunitiesList.hbs';
 import {
   getUserCommunities,
   UPLOADS_BASE,
-} from '../../../shared/api/communityApi.js';
-import { navigateTo } from '../../../app/router/navigateTo.js';
+} from '../../../shared/api/communityApi';
+import { navigateTo } from '../../../app/router/navigateTo';
 import type { Community } from '@shared/types/components';
 
 const DEFAULT_AVATAR = '/public/globalImages/DefaultAvatar.svg';
