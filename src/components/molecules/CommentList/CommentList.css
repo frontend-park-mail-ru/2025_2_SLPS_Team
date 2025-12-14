@@ -1,0 +1,31 @@
+.comments-list {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.comment-list-root {
+    background: var(--base-white);
+    width: 100%;
+    padding: 13px 22px;
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.no-comments-text {
+    display: none;
+    width: 100%;
+    height: 100%;
+    font-size: 16px;
+    color: var(--dark-gray);
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+}
+
+.show-no-comms {
+    display: flex;
+}

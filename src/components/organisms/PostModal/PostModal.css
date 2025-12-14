@@ -1,0 +1,44 @@
+.post-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+.post-modal-wrapper {
+  position: relative;
+  padding: 0;
+}
+
+.post-modal {
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.post-modal-close {
+    position: fixed;
+    top: 24px;
+    left: calc(50% + 320px);
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+.post-modal-close img {
+  width: 28px;
+  height: 28px;
+}
+
+.post-modal-content {
+    padding: 16px;
+    width: fit-content;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.post-modal-post {
+  margin-bottom: 16px;
+}
