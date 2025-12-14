@@ -25,14 +25,15 @@ jobs:
         run: npm run build
 
       - name: Copy dist to server
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: 22
-          source: "dist"
+          source: "dist/*"
           target: "/home/ubuntu/myapp"
+
 
       - name: Restart Nginx container
         uses: appleboy/ssh-action@v1.0.0
