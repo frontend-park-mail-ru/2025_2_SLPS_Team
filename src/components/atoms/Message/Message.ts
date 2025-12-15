@@ -101,19 +101,14 @@ export class Message {
     const clean = this.stripQuery(url);
     const slash = clean.lastIndexOf('/');
     const tail = slash === -1 ? clean : clean.slice(slash + 1);
-
-    const hash = tail.lastIndexOf('#');
-    const namePart = hash !== -1 ? tail.slice(hash + 1) : tail;
-
-    const safe = namePart.length ? namePart : 'file';
-
+    const safe = tail.length ? tail : 'file';
     try {
-        const decoded = decodeURIComponent(safe);
-        return decoded.length ? decoded : 'file';
+      const decoded = decodeURIComponent(safe);
+      return decoded.length ? decoded : 'file';
     } catch {
-        return safe;
+      return safe;
     }
-    }
+  }
 
   private formatTime(value: unknown): string {
     if (!value) return '';
