@@ -1,6 +1,6 @@
 import { FeedPage } from '../../Pages/FeedPage/FeedPage';
 import { ProfilePage } from '../../Pages/ProfilePage/ProfilePage';
-import { MessengerPage } from '../../Pages/MassengerPage/MassengerPage';
+import { MassengerPage } from '../../Pages/MassengerPage/MassengerPage';
 import { CommunityPage } from '../../Pages/CommunityPage/CommunityPage';
 import { renderRegPage } from '../../Pages/RegPage/RegPage';
 import { renderLoginPage } from '../../Pages/LoginPage/LoginPage';
@@ -51,7 +51,7 @@ export const routes: RoutesMap = {
   },
 
   '/messanger': {
-    renderFunc: async () => layout.renderPage(MessengerPage),
+    renderFunc: async () => layout.renderPage(MassengerPage),
     access: 'auth-only',
     title: 'Мессенджер',
   },

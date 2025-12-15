@@ -5,15 +5,17 @@ import { Chat } from '../../components/organisms/Chat/Chat';
 import { SearchInput } from '../../components/molecules/SearchInput/SearchInput';
 import { EventBus } from '../../services/EventBus';
 import { authService } from '../../services/AuthService';
+import { wsService } from '../../services/WebSocketService';
 import { gsap } from 'gsap';
 
 import { getProfile } from '../../shared/api/profileApi';
 import { getChats, getChatWithUser } from '../../shared/api/chatsApi';
-import { layout } from '../LayoutManager';
 
 import type { ChatItemData, ProfileData } from '../../shared/types/components';
 
-console.log('MessengerPage module loaded');
+type ChatWithUserResponse = {
+  chatID: number;
+};
 
 type ChatOpenData = {
   id: number;
@@ -30,95 +32,68 @@ type OpenChatEventPayload = {
 };
 
 type ChatUpdatedEventPayload = { chatId: number };
-type ChatReadUpdatedEventPayload = { chatId: number; unreadCount: number; lastReadMessageId: number };
 
-type ChatWithUserResponse = { chatID: number };
+type ChatReadUpdatedEventPayload = {
+  chatId: number;
+  unreadCount: number;
+  lastReadMessageId: number | null;
+};
 
-export class MessengerPage extends BasePage {
-  private chats: ChatItemData[] = [];
+export class MassengerPage extends BasePage {
+  wrapper: HTMLElement | null = null;
+
+  private myUserId: number;
+  private profile: ProfileData | null = null;
+
+  private chatWrapper: HTMLElement | null = null;
   private openChat: Chat | null = null;
 
-  private wrapper: HTMLElement | null = null;
-  private chatWrapper: HTMLElement | null = null;
+  private chatItems: any[] = [];
+  private searchInput: SearchInput | null = null;
 
-  private activeChatItem: ChatItem | null = null;
-  private myUserId: number = -1;
-
-  private chatsSearch: SearchInput | null = null;
-  private chatItems: ChatItem[] = [];
-  private wsService: any;
-
-  constructor(rootElement: HTMLElement) {
+  constructor(rootElement: HTMLElement = document.createElement('div')) {
     super(rootElement);
+    this.myUserId = authService.getUserId() ?? 0;
   }
 
   async render(): Promise<void> {
-    this.chats = (await getChats(1)) as ChatItemData[];
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = MessengerPageTemplate({});
+    const root = tempDiv.firstElementChild as HTMLElement | null;
+    if (!root) throw new Error('[MassengerPage] template root not found');
+    this.wrapper = root;
 
-    const uid = (await authService.getUserId()) as number | null | undefined;
-    if (uid == null) return;
-    this.myUserId = uid;
+    this.chatWrapper = this.wrapper.querySelector('.chat-block') as HTMLElement | null;
 
-    this.wrapper = document.createElement('div');
-    this.wrapper.innerHTML = MessengerPageTemplate({});
+    const profile = await this.fetchCurrentUserProfile();
+    this.profile = profile;
 
-    const chatsContainer = this.wrapper.querySelector('.chats-container') as HTMLElement | null;
-    if (!chatsContainer) return;
+    const fullName = `${(profile as any).firstName ?? ''} ${(profile as any).lastName ?? ''}`.trim();
+    const avatar =
+      (profile as any).photo ??
+      (profile as any).avatarPath ??
+      (profile as any).avatar ??
+      '';
 
-    const searchHost = chatsContainer.querySelector('.chats-sreach-container') as HTMLElement | null;
-    if (!searchHost) return;
+    const searchContainer = this.wrapper.querySelector('.search-chat-block') as HTMLElement | null;
+    if (searchContainer) {
+      this.searchInput = new SearchInput(searchContainer);
+      this.searchInput.render();
 
-    this.chatsSearch = new SearchInput(searchHost);
-    this.chatsSearch.render();
-
-    const chatItemsBlock = chatsContainer.querySelector('.chat-items-block') as HTMLElement | null;
-    if (!chatItemsBlock) return;
-
-    this.chats.forEach((chatData: ChatItemData) => {
-      const chatItem = new ChatItem(chatItemsBlock, chatData);
-      chatItem.render();
-
-      if (!chatItem.wrapper) return;
-
-      this.chatItems.push(chatItem);
-
-      chatItem.wrapper.addEventListener('click', async () => {
-        if (this.activeChatItem && this.activeChatItem !== chatItem) {
-          this.activeChatItem.rmActive();
-        }
-        this.activeChatItem = chatItem;
-        chatItem.makeActive();
-
-        await this.OpenChat(chatData as unknown as ChatOpenData);
-
-        if (window.innerWidth <= 768 && this.wrapper) {
-          layout.toggleMenu();
-          const chatsContainerEl = this.wrapper.querySelector('.chats-container') as HTMLElement | null;
-          const chatBlockEl = this.wrapper.querySelector('.chat-block') as HTMLElement | null;
-          chatsContainerEl?.classList.add('hide');
-          chatBlockEl?.classList.add('open');
-        }
+      this.searchInput.onInput((value) => {
+        this.filterChats(value);
       });
-    });
+    }
 
-    this.rootElement.appendChild(this.wrapper);
+    await this.renderChatsList();
 
-    await this.loadSocet();
-    this.wsService.on('new_message', (packet: WsMessagePacket) => {
+    wsService.on('chat_updated', (packet: WsMessagePacket) => {
       const raw = (packet?.Data ?? packet) as unknown;
       const data = raw as WsChatUpdatePayload;
 
       if (!data || typeof data.id !== 'number') return;
-
-      const openChatId = this.openChat?.getChatId();
-
-      // ⛔️ чат открыт — counter НЕ нужен
-      if (openChatId === data.id) return;
-
       this.UpdateChat(data.id);
     });
-
-
 
     EventBus.on('openChat', async ({ data }: OpenChatEventPayload) => {
       try {
@@ -131,13 +106,17 @@ export class MessengerPage extends BasePage {
           chatId: responseData.chatID,
         };
 
-        await this.OpenChat(chatData);
+        if (this.chatWrapper) {
+          this.chatWrapper.innerHTML = '';
+          this.openChat?.destroy?.();
 
-        if (window.innerWidth <= 768 && this.wrapper) {
-          layout.toggleMenu();
-          const chatsContainerEl = this.wrapper.querySelector('.chats-container') as HTMLElement | null;
-          const chatBlockEl = this.wrapper.querySelector('.chat-block') as HTMLElement | null;
-          chatsContainerEl?.classList.add('hide');
+          this.openChat = new Chat(this.chatWrapper, this.myUserId, fullName, avatar, chatData, {
+            initialLastReadMessageId: null,
+          });
+
+          await this.openChat.render();
+
+          const chatBlockEl = this.wrapper?.querySelector('.chat-block');
           chatBlockEl?.classList.add('open');
         }
       } catch (err) {
@@ -146,84 +125,67 @@ export class MessengerPage extends BasePage {
     });
 
     EventBus.on('chatUpdated', ({ chatId }: ChatUpdatedEventPayload) => {
-      const openChatId = this.openChat?.getChatId();
-      if (openChatId === chatId) return;
       this.UpdateChat(chatId);
     });
 
     EventBus.on(
       'chatReadUpdated',
       ({ chatId, unreadCount, lastReadMessageId }: ChatReadUpdatedEventPayload) => {
-        const item = this.chatItems.find((i) => i.chatData.id === chatId);
+        const item = this.chatItems.find((x) => x.chatData?.id === chatId);
         if (!item) return;
 
-        item.setUnreadCount(unreadCount);
-        (item.chatData as ChatItemData).lastReadMessageId = lastReadMessageId;
+        item.setUnreadCount?.(unreadCount);
+        item.setLastReadMessageId?.(lastReadMessageId);
+
+        const openChatId = (this.openChat as any)?.chatInfo;
+        if (this.openChat && chatId === openChatId) {
+          item.hideCounter?.();
+        }
+
+        const openedChatId = (this.openChat as any)?.chatInfo;
+        const openedChatItem = this.chatItems.find((i) => i.chatData?.id === openedChatId);
+        openedChatItem?.hideCounter?.();
       },
     );
+
+    return;
   }
 
-  private async OpenChat(data: ChatOpenData): Promise<void> {
+  private async renderChatsList(): Promise<void> {
     if (!this.wrapper) return;
 
-    this.chatWrapper = this.wrapper.querySelector('.chat-block') as HTMLElement | null;
-    if (!this.chatWrapper) return;
+    const container = this.wrapper.querySelector('.chat-items-block') as HTMLElement | null;
+    if (!container) return;
 
-    this.chatWrapper.innerHTML = '';
+    container.innerHTML = '';
 
-    const profile = await this.fetchCurrentUserProfile();
-    const fullName = `${profile.firstName ?? ''} ${profile.lastName ?? ''}`.trim();
-    const avatar = profile.avatarPath ?? '';
+    const chats = (await getChats()) as ChatItemData[];
 
-    if (window.innerWidth <= 768) {
-      this.openChat = new Chat(this.chatWrapper, this.myUserId, fullName, avatar, data, {
-        hasBackButton: true,
-        onBack: () => {
-          if (!this.wrapper || !this.chatWrapper) return;
+    this.chatItems = [];
 
-          const chatsContainer = this.wrapper.querySelector('.chats-container') as HTMLElement | null;
-
-          this.chatWrapper.style.transform = 'translateX(0)';
-          this.chatWrapper.style.opacity = '1';
-
-          gsap.to(this.chatWrapper, {
-            x: '100%',
-            opacity: 0,
-            duration: 0.25,
-            ease: 'power1.inOut',
-            onComplete: () => {
-              if (!this.chatWrapper) return;
-
-              this.chatWrapper.classList.remove('open');
-
-              this.chatWrapper.style.transform = '';
-              this.chatWrapper.style.opacity = '';
-
-              chatsContainer?.classList.remove('hide');
-              this.activeChatItem?.rmActive();
-              layout.toggleMenu();
-            },
-          });
-        },
-      });
-
-      this.openChat.render();
-    } else {
-      this.openChat = new Chat(this.chatWrapper, this.myUserId, fullName, avatar, data);
-      this.openChat.render();
+    for (const chat of chats) {
+      const item = new (ChatItem as any)(container, chat);
+      item.render();
+      this.chatItems.push(item);
     }
+  }
 
-    const openedChatId = data.chatId ?? data.id;
-    const openedChatItem = this.chatItems.find((item) => item.chatData.id === openedChatId);
+  private filterChats(value: string): void {
+    const query = value.trim().toLowerCase();
 
-    const hc = openedChatItem as unknown as { hideCounter?: () => void };
-    if (hc?.hideCounter) hc.hideCounter();
+    for (const item of this.chatItems) {
+      const name = String(item.chatData?.name ?? '').toLowerCase();
+      const visible = name.includes(query);
+      if (item.wrapper) {
+        item.wrapper.style.display = visible ? '' : 'none';
+      }
+    }
   }
 
   private UpdateChat(chatId: number): void {
     if (!this.wrapper) return;
 
-    const chatItem = this.chatItems.find((item) => item.chatData.id === chatId);
+    const chatItem = this.chatItems.find((item) => item.chatData?.id === chatId);
     if (!chatItem || !chatItem.wrapper) return;
 
     const container = this.wrapper.querySelector('.chat-items-block') as HTMLElement | null;
@@ -232,37 +194,29 @@ export class MessengerPage extends BasePage {
     const el = chatItem.wrapper;
 
     if (container.firstChild !== el) {
-      el.style.opacity = '0';
-      el.style.transform = 'translateY(10px)';
+      container.removeChild(el);
+      container.insertBefore(el, container.firstChild);
 
-      container.prepend(el);
-
-      gsap.to(el, {
-        opacity: 1,
-        y: 0,
-        duration: 0.05,
-        ease: 'power1.out',
-        onComplete: () => {
-          el.style.opacity = '';
-          el.style.transform = '';
+      gsap.fromTo(
+        el,
+        { opacity: 0.6, y: -10 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.25,
+          ease: 'power1.out',
+          onComplete: () => {
+            el.style.opacity = '';
+            el.style.transform = '';
+          },
         },
-      });
+      );
     }
 
-    const openChatId = this.openChat?.getChatId();
-
-    if (this.openChat && chatItem.chatData.id === openChatId) {
-      chatItem.hideCounter();
-      return;
+    const openChatId = (this.openChat as any)?.chatInfo;
+    if (!this.openChat || chatItem.chatData.id !== openChatId) {
+      chatItem.showCounter?.();
     }
-
-    chatItem.showCounter();
-
-  }
-
-  async loadSocet() {
-      const module = await import('services/WebSocketService');
-      this.wsService = module.wsService;
   }
 
   private async fetchCurrentUserProfile(): Promise<ProfileData> {
