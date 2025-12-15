@@ -61,15 +61,15 @@ export class EmojiMenu {
   render(): void {
     this.picker = this.rootElement.querySelector('.emoji-picker')!;
 
-    this.tabs = this.rootElement.querySelectorAll('.emoji-tab');
-    this.emojiPanel = this.rootElement.querySelector('.emoji-tab-content--emoji')!;
-    this.stickersPanel = this.rootElement.querySelector('.emoji-tab-content--stickers')!;
+    this.tabs = this.picker.querySelectorAll('.emoji-tab');
+    this.emojiPanel = this.picker.querySelector('.emoji-tab-content--emoji')!;
+    this.stickersPanel = this.picker.querySelector('.emoji-tab-content--stickers')!;
 
-    this.grid = this.rootElement.querySelector('.emoji-picker-grid')!;
-    this.searchEleentContainer = this.rootElement.querySelector('.emoji-search-container')!;
+    this.grid = this.picker.querySelector('.emoji-picker-grid')!;
+    this.searchEleentContainer = this.picker.querySelector('.emoji-search-container')!;
 
-    this.stickerPacksEl = this.rootElement.querySelector('.sticker-packs')!;
-    this.stickerGridEl = this.rootElement.querySelector('.sticker-grid')!;
+    this.stickerPacksEl = this.picker.querySelector('.sticker-packs')!;
+    this.stickerGridEl = this.picker.querySelector('.sticker-grid')!;;
 
     this.searchElement = new SearchInput(this.searchEleentContainer);
     this.searchElement.render();
@@ -90,7 +90,7 @@ export class EmojiMenu {
 
   private switchTab(tab: 'emoji' | 'stickers') {
     this.tabs.forEach((t) => t.classList.remove('active'));
-    const current = this.rootElement.querySelector(`.emoji-tab[data-tab="${tab}"]`);
+    const current = this.picker.querySelector(`.emoji-tab[data-tab="${tab}"]`);
     if (current) current.classList.add('active');
 
     this.emojiPanel.classList.toggle('hidden', tab !== 'emoji');
