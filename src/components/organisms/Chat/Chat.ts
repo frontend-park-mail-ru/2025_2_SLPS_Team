@@ -21,7 +21,7 @@ interface ChatMessageView {
   id: number;
   text: string;
   created_at: string;
-  attachments?: string[];
+  attachments?: string[]; // важно: Message.ts ожидает string[]
   User: ChatUserView;
 }
 
@@ -69,8 +69,13 @@ function isRecord(v: unknown): v is Record<string, any> {
   return typeof v === 'object' && v !== null;
 }
 
+/**
+ * Приводим любые форматы с сервера к string[] url.
+ * Поддерживает: string[], [{url:...}], {url:...}
+ */
 function normalizeAttachments(raw: unknown): string[] {
   if (!raw) return [];
+
   if (Array.isArray(raw)) {
     const out: string[] = [];
     for (const item of raw) {
@@ -85,11 +90,13 @@ function normalizeAttachments(raw: unknown): string[] {
           item.download_url ??
           item.src ??
           item.href;
+
         if (typeof url === 'string' && url.length) out.push(url);
       }
     }
     return out;
   }
+
   if (isRecord(raw)) {
     const url =
       raw.url ??
@@ -100,18 +107,33 @@ function normalizeAttachments(raw: unknown): string[] {
       raw.download_url ??
       raw.src ??
       raw.href;
+
     return typeof url === 'string' && url.length ? [url] : [];
   }
+
   return [];
 }
 
+/**
+ * Для локальных файлов делаем objectURL.
+ * ВАЖНО: для картинок добавляем "#filename.ext", чтобы Message.ts распознал расширение как image
+ * (там isImageUrl проверяет по ".png/.jpg..." и НЕ понимает blob: без расширения).
+ */
 function buildLocalAttachmentUrls(files: File[]): { urls: string[]; revoke: () => void } {
   const created: string[] = [];
+
   const urls = files.map((f) => {
-    const u = URL.createObjectURL(f);
-    created.push(u);
-    return u;
+    const base = URL.createObjectURL(f);
+    created.push(base);
+
+    if (f.type && f.type.startsWith('image/') && f.name) {
+      // hash не мешает загрузке blob, но помогает regex-у увидеть ".png/.jpg"
+      return `${base}#${encodeURIComponent(f.name)}`;
+    }
+
+    return base;
   });
+
   return {
     urls,
     revoke: () => created.forEach((u) => URL.revokeObjectURL(u)),
@@ -174,6 +196,7 @@ export class Chat {
   async render(): Promise<void> {
     await this.loadSocet();
 
+    // WS обработчик
     this.wsHandler = (data: WsNewMessagePayload | null) => {
       if (!data) return;
 
@@ -201,13 +224,17 @@ export class Chat {
         last.id ?? last.messageId ?? last.messageID ?? last.message_id ?? null;
 
       if (!msgId) return;
+
+      const authorId: number | null =
+        last.authorID ?? last.authorId ?? last.userId ?? last.userID ?? last.user_id ?? null;
+
+      // ✅ ВАЖНО: свои сообщения по WS не рисуем (мы уже показали optimistic)
+      if (authorId === this.myUserId) return;
+
       if (this.messages.some((m) => m.id === msgId)) return;
 
       const createdAt: string =
         last.createdAt ?? last.created_at ?? last.time ?? new Date().toISOString();
-
-      const authorId: number | null =
-        last.authorID ?? last.authorId ?? last.userId ?? last.userID ?? last.user_id ?? null;
 
       const view: ChatMessageView = {
         id: msgId,
@@ -230,17 +257,16 @@ export class Chat {
         if (el) this.messagesContainer.appendChild(el);
       }
 
-      if (view.User.id !== this.myUserId) {
-        this.unreadMessageIds.add(view.id);
-        this.lastReadMessageId = view.id;
-        void this.pushReadState();
+      // read-state для входящих
+      this.unreadMessageIds.add(view.id);
+      this.lastReadMessageId = view.id;
+      void this.pushReadState();
 
-        EventBus.emit('chatReadUpdated', {
-          chatId: this.chatInfo,
-          unreadCount: this.unreadMessageIds.size,
-          lastReadMessageId: this.lastReadMessageId,
-        });
-      }
+      EventBus.emit('chatReadUpdated', {
+        chatId: this.chatInfo,
+        unreadCount: this.unreadMessageIds.size,
+        lastReadMessageId: this.lastReadMessageId,
+      });
 
       this.scrollToBottom();
     };
@@ -262,10 +288,19 @@ export class Chat {
     const inputContainer = mainContainer.querySelector<HTMLDivElement>('.messege-input');
     if (!inputContainer) throw new Error('Chat:.messege-input not found');
 
+    // ✅ header контейнер (ChatHeader ожидает root именно header'а)
+    const headerContainer =
+      mainContainer.querySelector<HTMLDivElement>('.chat-header-container');
+    if (!headerContainer) throw new Error('Chat:.chat-header-container not found');
+
+    // загрузка сообщений
     const rawData = (await getChatMessages(this.chatInfo, 1)) as ChatMessagesResponse;
 
     this.lastReadMessageId =
-      rawData.lastReadMessageId ?? (rawData as any).lastReadMessageID ?? this.lastReadMessageId ?? null;
+      rawData.lastReadMessageId ??
+      (rawData as any).lastReadMessageID ??
+      this.lastReadMessageId ??
+      null;
 
     const rawMessages = (rawData.Messages ?? [])
       .slice()
@@ -295,15 +330,18 @@ export class Chat {
     this.messages.forEach((m, idx) => {
       const isMine = m.User.id === this.myUserId;
       const isLastInGroup = idx === this.messages.length - 1;
-      const msg = new Message(this.messagesContainer as HTMLElement, m as any, isMine, isLastInGroup, true);
+      const msg = new Message(
+        this.messagesContainer as HTMLElement,
+        m as any,
+        isMine,
+        isLastInGroup,
+        true,
+      );
       const el = msg.render();
       if (el) this.messagesContainer!.appendChild(el);
     });
 
-    const headerContainer =
-    mainContainer.querySelector<HTMLDivElement>('.chat-header-container');
-    if (!headerContainer) throw new Error('Chat:.chat-header-container not found');
-
+    // ✅ ChatHeader сигнатура: (root, name: string, avatar: string, hasBackButton: boolean, onBack?)
     this.chatHeader = new ChatHeader(
       headerContainer,
       this.data.name ?? '',
@@ -311,7 +349,6 @@ export class Chat {
       this.hasBackButton,
       this.onBack ?? undefined,
     );
-
     this.chatHeader.render();
 
     this.inputMes = new MessageInput(inputContainer);
@@ -401,7 +438,7 @@ export class Chat {
         id: optimisticId,
         text,
         created_at: new Date().toISOString(),
-        attachments: local.urls,
+        attachments: local.urls, // ✅ string[] (то, что ждёт Message.ts)
         User: {
           id: this.myUserId,
           full_name: this.myUserName,
@@ -414,6 +451,7 @@ export class Chat {
       if (optimisticEl) container.appendChild(optimisticEl);
       this.messages.push(optimistic);
 
+      // очистка инпута
       input.textarea.value = '';
       input.textarea.style.height = '37px';
       if ((input as any).fileInput) (input as any).fileInput.value = '';
@@ -427,11 +465,18 @@ export class Chat {
         const fromSend = normalizeAttachments((data as any)?.attachments);
 
         const hydrated = await this.fetchMessageById(serverId);
+
+        // ✅ если сервер сразу не вернул attachments — НЕ теряем локальные (иначе будет "пустой пузырь")
+        const bestAttachments =
+          (hydrated?.attachments && hydrated.attachments.length > 0)
+            ? hydrated.attachments
+            : (fromSend.length > 0 ? fromSend : local.urls);
+
         const final: ChatMessageView = {
           id: serverId,
           text,
           created_at: hydrated?.created_at ?? new Date().toISOString(),
-          attachments: (hydrated?.attachments?.length ? hydrated.attachments : fromSend) ?? [],
+          attachments: bestAttachments,
           User: optimistic.User,
         };
 
@@ -440,7 +485,10 @@ export class Chat {
         const idx = this.messages.findIndex((m) => m.id === optimisticId);
         if (idx !== -1) this.messages[idx] = final;
 
-        local.revoke();
+        // ✅ revoke только если мы реально перестали использовать local.urls
+        if (bestAttachments !== local.urls) {
+          local.revoke();
+        }
 
         EventBus.emit('chatUpdated', { chatId: this.chatInfo });
 
@@ -456,6 +504,7 @@ export class Chat {
 
         this.scrollToBottom();
       } catch {
+        // если отправка упала — чистим blob-ресурсы
         local.revoke();
       }
     };
