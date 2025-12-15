@@ -105,13 +105,19 @@ function normalizeAttachments(raw: unknown): string[] {
   return [];
 }
 
-function buildLocalAttachmentUrls(files: File[]): { urls: string[]; revoke: () => void } {
+function buildLocalAttachmentUrls(
+  files: File[],
+): { urls: string[]; revoke: () => void } {
   const created: string[] = [];
   const urls = files.map((f) => {
     const base = URL.createObjectURL(f);
     created.push(base);
 
+    // добавляем имя, чтобы Message.isImageUrl мог распознать blob как картинку
     if (f.type?.startsWith('image/') && f.name) {
+      return `${base}#${encodeURIComponent(f.name)}`;
+    }
+    if (f.name) {
       return `${base}#${encodeURIComponent(f.name)}`;
     }
     return base;
@@ -176,6 +182,13 @@ export class Chat {
       data.lastReadMessageId ?? (data as any).lastReadMessageID ?? null;
   }
 
+  // ✅ ВАЖНО: вставляем элемент сразу, чтобы не было гонки с Promise.resolve в Message.ts
+  private appendNow(container: HTMLElement, msg: Message): HTMLElement | null {
+    const el = msg.render();
+    if (el && !el.isConnected) container.appendChild(el);
+    return el;
+  }
+
   async render(): Promise<void> {
     await this.loadSocet();
 
@@ -216,7 +229,6 @@ export class Chat {
         null;
 
       if (authorId === this.myUserId) return;
-
       if (this.messages.some((m) => m.id === msgId)) return;
 
       const createdAt: string =
@@ -239,7 +251,7 @@ export class Chat {
       if (this.messagesContainer) {
         const isMine = view.User.id === this.myUserId;
         const msg = new Message(this.messagesContainer, view as any, isMine, true, true);
-        msg.render();
+        this.appendNow(this.messagesContainer, msg);
       }
 
       this.unreadMessageIds.add(view.id);
@@ -286,7 +298,10 @@ export class Chat {
 
     const rawMessages = (rawData.Messages ?? [])
       .slice()
-      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      .sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      );
 
     const authors: Record<number, ChatMessagesResponseAuthor> = rawData.Authors ?? {};
 
@@ -310,7 +325,7 @@ export class Chat {
       const isMine = m.User.id === this.myUserId;
       const isLastInGroup = idx === this.messages.length - 1;
       const msg = new Message(this.messagesContainer as HTMLElement, m as any, isMine, isLastInGroup, true);
-      msg.render();
+      this.appendNow(this.messagesContainer as HTMLElement, msg);
     });
 
     this.chatHeader = new ChatHeader(
@@ -356,7 +371,7 @@ export class Chat {
         id: found.id,
         text: found.text ?? '',
         created_at: found.createdAt ?? new Date().toISOString(),
-        attachments: normalizeAttachments(found.attachments),
+        attachments: normalizeAttachments((found as any).attachments),
         User: {
           id: found.authorID ?? -1,
           full_name: author?.fullName ?? 'User',
@@ -382,6 +397,11 @@ export class Chat {
       oldEl.replaceWith(newEl);
       return;
     }
+
+    // ✅ если optimistic ещё не успел вставиться — просто добавим финальное сообщение
+    if (newEl && !newEl.isConnected) {
+      this.messagesContainer.appendChild(newEl);
+    }
   }
 
   private async sendEvent(e: Event): Promise<void> {
@@ -392,8 +412,7 @@ export class Chat {
     if (!input || !container) return;
 
     const text = input.getValue().trim();
-    const files =
-      (input as unknown as { getFiles?: () => File[] }).getFiles?.() ?? [];
+    const files = (input as unknown as { getFiles?: () => File[] }).getFiles?.() ?? [];
 
     if (!text && files.length === 0) return;
 
@@ -416,11 +435,10 @@ export class Chat {
       };
 
       const optimisticMsg = new Message(container, optimistic as any, true, true, true);
-      optimisticMsg.render();
+      this.appendNow(container, optimisticMsg);
       this.messages.push(optimistic);
 
       input.clear();
-
       this.scrollToBottom();
 
       try {
@@ -448,9 +466,7 @@ export class Chat {
         const idx = this.messages.findIndex((m) => m.id === optimisticId);
         if (idx !== -1) this.messages[idx] = final;
 
-        if (bestAttachments !== local.urls) {
-          local.revoke();
-        }
+        if (bestAttachments !== local.urls) local.revoke();
 
         EventBus.emit('chatUpdated', { chatId: this.chatInfo });
 
