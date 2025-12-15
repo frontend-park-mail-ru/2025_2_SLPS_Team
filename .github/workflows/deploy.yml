@@ -33,15 +33,3 @@ jobs:
           port: 22
           source: "dist/*"
           target: "/home/ubuntu/myapp"
-
-
-      - name: Restart Nginx container
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            cd /home/ubuntu/myapp
-            docker-compose up -d nginx
- 
