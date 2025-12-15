@@ -231,7 +231,14 @@ async render(): Promise<void> {
       1,
     )) as ChatMessagesResponse;
 
-    const rawMessages = rawData.Messages??[]; 
+    const rawMessages = (rawData.Messages ?? [])
+    .slice()
+    .sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() -
+        new Date(b.createdAt).getTime()
+    );
+
     
     const authors: Record<number, ChatMessagesResponseAuthor> = rawData.Authors?? {};
 
