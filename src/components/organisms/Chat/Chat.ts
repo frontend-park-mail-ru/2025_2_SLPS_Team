@@ -43,52 +43,82 @@ type WsNewMessagePayload = any;
 function isRecord(v: unknown): v is Record<string, any> {
   return typeof v === 'object' && v !== null;
 }
+const API_BASE_URL = (process.env.API_BASE_URL ?? '').replace(/\/+$/, '');
+const UPLOADS_BASE = API_BASE_URL ? `${API_BASE_URL}/uploads/` : '/uploads/';
+
+function resolveAttachmentUrl(raw: string): string {
+  if (!raw) return '';
+  if (/^(https?:|blob:|data:)/i.test(raw)) return raw;
+
+  if (raw.startsWith('/')) return raw;
+
+  if (raw.startsWith('uploads/')) return UPLOADS_BASE + raw.slice('uploads/'.length);
+  if (raw.startsWith('api/')) return `${API_BASE_URL}/${raw}`;
+
+  return UPLOADS_BASE + raw;
+}
+
+function withNameHint(url: string, name?: string): string {
+  if (!url) return url;
+  if (!name) return url;
+
+   const clean = (url.split('?')[0] ?? '').toLowerCase();
+  if (/\.(png|jpe?g|gif|webp|bmp|svg)$/.test(clean)) return url;
+
+  return `${url}#${encodeURIComponent(name)}`;
+}
 
 function normalizeAttachments(raw: unknown): string[] {
   if (!raw) return [];
 
+  const out: string[] = [];
+
+  const pushOne = (urlAny: unknown, nameAny?: unknown) => {
+    if (typeof urlAny !== 'string' || !urlAny.length) return;
+
+    const url = resolveAttachmentUrl(urlAny);
+
+    const name =
+      typeof nameAny === 'string'
+        ? nameAny
+        : undefined;
+
+    out.push(withNameHint(url, name));
+  };
+
   if (Array.isArray(raw)) {
-    const out: string[] = [];
     for (const item of raw) {
-      if (typeof item === 'string' && item.length) out.push(item);
-      else if (isRecord(item)) {
-        const url =
-          item.url ??
-          item.path ??
-          item.fileUrl ??
-          item.file_url ??
-          item.downloadUrl ??
-          item.download_url ??
-          item.src ??
-          item.href;
-        if (typeof url === 'string' && url.length) out.push(url);
+      if (typeof item === 'string') {
+        pushOne(item);
+      } else if (item && typeof item === 'object') {
+        const r = item as any;
+        pushOne(
+          r.url ?? r.path ?? r.fileUrl ?? r.file_url ?? r.downloadUrl ?? r.download_url ?? r.src ?? r.href,
+          r.name ?? r.fileName ?? r.filename ?? r.originalName ?? r.original_name ?? r.file_name,
+        );
       }
     }
-    return out;
+    return out.filter(Boolean);
   }
 
-  if (isRecord(raw)) {
-    const url =
-      raw.url ??
-      raw.path ??
-      raw.fileUrl ??
-      raw.file_url ??
-      raw.downloadUrl ??
-      raw.download_url ??
-      raw.src ??
-      raw.href;
-    return typeof url === 'string' && url.length ? [url] : [];
+  if (raw && typeof raw === 'object') {
+    const r = raw as any;
+    pushOne(
+      r.url ?? r.path ?? r.fileUrl ?? r.file_url ?? r.downloadUrl ?? r.download_url ?? r.src ?? r.href,
+      r.name ?? r.fileName ?? r.filename ?? r.originalName ?? r.original_name ?? r.file_name,
+    );
+    return out.filter(Boolean);
   }
 
   return [];
 }
+
 
 function buildLocalAttachmentUrls(files: File[]): { urls: string[]; revoke: () => void } {
   const created: string[] = [];
   const urls = files.map((f) => {
     const base = URL.createObjectURL(f);
     created.push(base);
-    // чтобы Message.ts смог распознать картинку по расширению
     return f.name ? `${base}#${encodeURIComponent(f.name)}` : base;
   });
   return {
@@ -131,7 +161,7 @@ export class Chat {
   private unreadMessageIds: Set<number> = new Set();
   private readUpdateInFlight = false;
 
-  private wsService: any;
+  private wsService: { on?: (event: string, cb: any) => void; off?: (event: string, cb: any) => void } | null = null;
   private wsHandler: ((data: WsNewMessagePayload | null) => void) | null = null;
 
   constructor(
@@ -224,7 +254,7 @@ export class Chat {
       this.scrollToBottom();
     };
 
-    this.wsService.on?.('new_message', this.wsHandler);
+  this.wsService?.on?.('new_message', this.wsHandler);
 
     const wrapper = document.createElement('div');
     wrapper.innerHTML = ChatTemplate(this.chatInfo);
@@ -413,14 +443,14 @@ export class Chat {
 
   destroy(): void {
     if (this.wsHandler) {
-      this.wsService.off?.('new_message', this.wsHandler);
+      this.wsService?.off?.('new_message', this.wsHandler);
       this.wsHandler = null;
     }
   }
 
   async loadSocet(): Promise<void> {
     const module = await import('services/WebSocketService');
-    this.wsService = (module as any).wsService;
+    this.wsService = ((module as any)?.wsService ?? null);
   }
 
   public getChatId(): number | undefined {
