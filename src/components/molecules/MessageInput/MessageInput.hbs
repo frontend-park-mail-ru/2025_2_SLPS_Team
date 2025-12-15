@@ -1,17 +1,19 @@
 <div class="message-input-container">
-  <textarea
-    class="input-message"
-    placeholder="Введите сообщение..."
-    rows="1"
-  ></textarea>
-  <button class="emoji-btn">
-    <img class="emoji-icon" src="/public/ChatIcons/EmojiIcon.svg">
+  <button type="button" class="message-attach-btn" aria-label="Attach file">
+    <img src="/public/ChatIcons/Attach.svg" alt="Attach">
   </button>
-  <div class="emoji-picker">
-    <div class="emoji-search-container"></div>
-    <div class="emoji-picker-grid"></div>
-  </div>
-  <button class="message-send-btn">
-    <img src="public/ChatIcons/SendIcon.svg"/>
+
+  <input class="message-file-input" type="file" multiple accept="image/*,.pdf,.doc,.docx,.zip,.rar" />
+
+  <button type="button" class="emoji-btn" aria-label="Emoji">
+    <img src="/public/ChatIcons/Emoji.svg" alt="Emoji">
   </button>
+
+  <textarea class="input-message" placeholder="Сообщение..."></textarea>
+
+  <button type="button" class="message-send-btn" aria-label="Send">
+    <img src="/public/ChatIcons/Send.svg" alt="Send">
+  </button>
+
+  <div class="emoji-picker"></div>
 </div>

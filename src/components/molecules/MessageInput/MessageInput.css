@@ -64,3 +64,26 @@
 .message-send-btn img:hover{
     filter: brightness(0.9);
 }
+
+.message-attach-btn {
+  position: absolute;
+  left: 10px;
+  bottom: 18px;
+  transform: translateY(50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.message-attach-btn img {
+  width: 24px;
+  height: 24px;
+}
+
+.message-file-input {
+  display: none;
+}

@@ -1,11 +1,28 @@
 <div class="message-container">
-    <div class="message {{#if isMine}}my-message{{/if}}">
-        <div class="message-text selectable">{{text}}</div>
-        <div class="messege-info-container">
-            <div class="messege-time">{{time}}</div>
-            {{#if isMine}}
-                <img class="is-read-icon" src="/public/ChatIcons/IsReadIcon.svg">
-            {{/if}}
-        </div>
+  <div class="message {{#if isMine}}my-message{{/if}}">
+    <div class="message-text selectable">{{text}}</div>
+
+    {{#if hasAttachments}}
+      <div class="message-attachments">
+        {{#if images.length}}
+          <div class="message-attachments-images">
+            {{#each images}}
+              <img class="message-attachment-img" src="{{this}}" />
+            {{/each}}
+          </div>
+        {{/if}}
+
+        {{#if files.length}}
+          <div class="message-attachments-files"></div>
+        {{/if}}
+      </div>
+    {{/if}}
+
+    <div class="messege-info-container">
+      <div class="messege-time">{{time}}</div>
+      {{#if isMine}}
+        <img class="is-read-icon" src="/public/ChatIcons/IsReadIcon.svg">
+      {{/if}}
     </div>
+  </div>
 </div>

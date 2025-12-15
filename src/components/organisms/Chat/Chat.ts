@@ -1,5 +1,6 @@
 import ChatTemplate from './Chat.hbs';
 import { ChatHeader } from '../../molecules/ChatHeader/ChatHeader';
+import { MessageAttachmentsModal } from '../MessageAttachmentsModal/MessageAttachmentsModal';
 import { Message } from '../../atoms/Message/Message';
 import { MessageInput } from '../../molecules/MessageInput/MessageInput';
 import { EventBus } from '../../../services/EventBus';
@@ -20,6 +21,7 @@ export interface ChatMessageView {
   id: number;
   text: string;
   created_at: string;
+  attachments?: string[];
   User: ChatUserView;
 }
 
@@ -42,6 +44,7 @@ interface ChatMessagesResponse {
 
 interface SentMessageResponse {
   id: number;
+  attachments?: string[];
 }
 
 export interface ChatData {
@@ -178,10 +181,11 @@ async render(): Promise<void> {
         id: last.id,
         text: last.text,
         created_at: last.createdAt,
+        attachments: (last as any).attachments ?? [],
         User: {
           id: author.userID,
           full_name: author.fullName,
-          avatar: author.avatarPath?? '',
+          avatar: author.avatarPath ?? '',
         },
       };
 
@@ -237,9 +241,10 @@ async render(): Promise<void> {
         id: msg.id,
         text: msg.text,
         created_at: msg.createdAt,
+        attachments: msg.attachments ?? [],
         User: {
           id: msg.authorID,
-          full_name:'',
+          full_name: '',
           avatar: '',
         },
       };
@@ -409,61 +414,79 @@ async render(): Promise<void> {
     });
   }
 
+  private attachmentsModal: MessageAttachmentsModal | null = null;
+
   private async sendEvent(e: Event): Promise<void> {
-    e.preventDefault();
-    if (!this.inputMes || !this.messagesContainer) return;
+  e.preventDefault();
 
-    const text = this.inputMes.getValue();
-    if (!text) return;
+  const input = this.inputMes;
+  const container = this.messagesContainer;
 
-    const chatID = this.chatInfo;
+  if (!input || !container) return;
 
-    try {
-      const data = (await sendChatMessage(
-        chatID,
-        text,
-      )) as SentMessageResponse;
+  const text = input.getValue().trim();
+  const files = input.getFiles?.() ?? [];
 
-      const message: ChatMessageView = {
-        id: data.id,
-        text,
-        created_at: new Date().toISOString(),
-        User: {
-          id: this.myUserId,
-          full_name: this.myUserName,
-          avatar: this.myUserAvatar,
-        },
-      };
+  if (!text && files.length === 0) return;
 
-      const msg = new Message(
-        this.messagesContainer,
-        message,
-        true,
-        true,
-        true,
-      );
-      msg.render(true);
+  const chatID = this.chatInfo;
 
-      this.messages.push(message);
+  const doSend = async (confirmedFiles: File[]) => {
+    const data = (await sendChatMessage(
+      chatID,
+      text,
+      confirmedFiles,
+    )) as SentMessageResponse;
 
-      this.inputMes.clear();
+    const message: ChatMessageView = {
+      id: data.id,
+      text,
+      created_at: new Date().toISOString(),
+      attachments: data.attachments ?? [],
+      User: {
+        id: this.myUserId,
+        full_name: this.myUserName,
+        avatar: this.myUserAvatar,
+      },
+    };
 
-      EventBus.emit('chatUpdated', { chatId: this.chatInfo });
+    const msg = new Message(container, message, true, true, true);
+    msg.render(true);
 
-      this.lastReadMessageId = message.id;
-      this.unreadMessageIds.clear();
-      void this.pushReadState();
-      EventBus.emit('chatReadUpdated', {
-        chatId: this.chatInfo,
-        unreadCount: 0,
-        lastReadMessageId: this.lastReadMessageId,
-      });
+    this.messages.push(message);
 
-      this.scrollToBottom();
-    } catch (err) {
-      console.error('Ошибка при отправке сообщения:', err);
+    input.clear();
+
+    EventBus.emit('chatUpdated', { chatId: this.chatInfo });
+
+    this.lastReadMessageId = message.id;
+    this.unreadMessageIds.clear();
+    void this.pushReadState();
+
+    EventBus.emit('chatReadUpdated', {
+      chatId: this.chatInfo,
+      unreadCount: 0,
+      lastReadMessageId: this.lastReadMessageId,
+    });
+
+    this.scrollToBottom();
+  };
+
+  if (files.length > 0) {
+    if (!this.attachmentsModal) {
+      this.attachmentsModal = new MessageAttachmentsModal();
     }
+
+    this.attachmentsModal.open(files, async (confirmedFiles) => {
+      await doSend(confirmedFiles);
+    });
+
+    return;
   }
+
+  await doSend([]);
+}
+
 
   destroy(): void {
     if (this.wsHandler) {

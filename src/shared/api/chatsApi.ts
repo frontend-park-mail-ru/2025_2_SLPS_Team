@@ -10,6 +10,7 @@ export interface ChatMessage {
   chatID: number;
   text: string;
   createdAt: string;
+  attachments?: string[];
 }
 
 export interface GetChatMessagesResponse {
@@ -24,6 +25,7 @@ export interface SendMessageResponse {
   chatID: number;
   text: string;
   createdAt: string;
+  attachments?: string[];
 }
 
 export function getChats(page: number = 1): Promise<unknown> {
@@ -41,10 +43,19 @@ export function getChatMessages(
   return api(`/api/chats/${chatId}/messages?page=${page}`, { method: 'GET' });
 }
 
-export function sendChatMessage(chatId: number, text: string): Promise<SendMessageResponse> {
+export function sendChatMessage(
+  chatId: number,
+  text: string,
+  attachments: File[] = [],
+): Promise<SendMessageResponse> {
+  const form = new FormData();
+  form.append('text', text);
+
+  attachments.forEach((f) => form.append('attachments', f));
+
   return api(`/api/chats/${chatId}/message`, {
     method: 'POST',
-    body: { text },
+    body: form,
   });
 }
 
