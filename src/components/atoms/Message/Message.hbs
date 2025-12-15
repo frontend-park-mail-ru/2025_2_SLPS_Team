@@ -1,5 +1,5 @@
-<div class="message-container">
-  <div class="message {{#if isMine}}my-message{{/if}}">
+<div class="message-container" data-message-id="{{id}}">
+  <div class="message {{#if isMine}}my-message{{/if}} {{#if isEmoji}}emoji{{/if}}">
     <div class="message-text selectable">{{text}}</div>
 
     {{#if hasAttachments}}

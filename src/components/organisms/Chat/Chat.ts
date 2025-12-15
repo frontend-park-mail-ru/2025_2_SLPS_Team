@@ -200,7 +200,7 @@ async render(): Promise<void> {
         true,
         true,
       );
-      msg.render(true);
+      msg.render();
       this.messages.push(messageData);
 
       if (!isMine) {
@@ -452,7 +452,7 @@ async render(): Promise<void> {
     };
 
     const msg = new Message(container, message, true, true, true);
-    msg.render(true);
+    msg.render();
 
     this.messages.push(message);
 
