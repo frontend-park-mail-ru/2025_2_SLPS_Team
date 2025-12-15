@@ -5,14 +5,9 @@ import { FileItem } from '../FileItem/FileItem';
 
 const regex = emojiRegex();
 
-type NormalizedFile = {
-  name: string;
-  url: string;
-};
+type NormalizedFile = { name: string; url: string };
 
 export class Message {
-  private wrapper: HTMLElement | null = null;
-
   constructor(
     private rootElement: HTMLElement,
     private messageData: MessageData,
@@ -24,14 +19,13 @@ export class Message {
   render(): HTMLElement | null {
     const data = this.messageData as any;
 
+    const id: number | string | undefined = data?.id;
     const text: string = typeof data?.text === 'string' ? data.text : '';
     const createdAt: unknown = data?.createdAt ?? data?.created_at ?? data?.time;
 
     const attachmentsRaw: unknown = data?.attachments;
     const attachments: string[] = Array.isArray(attachmentsRaw)
-      ? attachmentsRaw.filter(
-          (x: unknown): x is string => typeof x === 'string' && x.length > 0,
-        )
+      ? attachmentsRaw.filter((x: unknown): x is string => typeof x === 'string' && x.length > 0)
       : [];
 
     const images: string[] = attachments.filter((u) => this.isImageUrl(u));
@@ -39,42 +33,58 @@ export class Message {
       .filter((u) => !this.isImageUrl(u))
       .map((u) => ({ name: this.extractName(u), url: u }));
 
-    const hasAttachments = images.length > 0 || files.length > 0;
-
     const html = MessageTemplate({
       ...data,
       text,
       time: this.formatTime(createdAt),
       isMine: this.isMine,
-      hasAttachments,
+      hasAttachments: images.length > 0 || files.length > 0,
       images,
       files,
       isEmoji: this.isSingleEmoji(text),
     });
 
-    this.wrapper = document.createElement('div');
-    this.wrapper.innerHTML = html.trim();
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = html.trim();
 
-    const container = this.wrapper.firstElementChild as HTMLElement | null;
-    if (!container) return null;
+    const el = wrapper.firstElementChild as HTMLElement | null;
+    if (!el) return null;
 
-    if (this.isLastInGroup) container.classList.add('last-in-group');
-    if (!this.isMine) container.classList.add('last-not-mine');
-    if (!this.withAnimation) container.classList.add('no-anim');
+    if (this.isLastInGroup) el.classList.add('last-in-group');
+    if (!this.isMine) el.classList.add('last-not-mine');
+    if (!this.withAnimation) el.classList.add('no-anim');
 
     if (files.length > 0) {
-      const filesRoot = container.querySelector('.message-attachments-files') as HTMLElement | null;
+      const filesRoot = el.querySelector('.message-attachments-files') as HTMLElement | null;
       if (filesRoot) {
         filesRoot.innerHTML = '';
-        files.forEach((file) => {
-          const item = new FileItem(filesRoot, { fileUrl: file.url, canDelete: false });
+        files.forEach((f) => {
+          const item = new FileItem(filesRoot, { fileUrl: f.url, canDelete: false });
           void item.render();
         });
       }
     }
 
-    // ✅ НЕ аппендим здесь — это делает Chat.ts
-    return container;
+    const insertOrReplace = () => {
+      if (el.isConnected) return;
+
+      if (id !== undefined && id !== null) {
+        const existing = this.rootElement.querySelector<HTMLElement>(
+          `[data-message-id="${String(id)}"]`,
+        );
+        if (existing) {
+          existing.replaceWith(el);
+          return;
+        }
+      }
+
+      this.rootElement.appendChild(el);
+    };
+
+
+    Promise.resolve().then(insertOrReplace);
+
+    return el;
   }
 
   private stripQuery(url: string): string {
@@ -110,11 +120,9 @@ export class Message {
   private isSingleEmoji(text: string): boolean {
     const t = text.trim();
     if (!t) return false;
-
     const matches = Array.from(t.matchAll(regex))
       .map((m) => m[0])
       .filter((x): x is string => typeof x === 'string');
-
     return matches.length === 1 && matches[0] === t;
   }
 }
