@@ -36,7 +36,19 @@ export class MessageInput {
 
     this.emojiBtn = this.wrapper.querySelector('.emoji-btn') as HTMLButtonElement;
     this.emojiRoot = this.wrapper.querySelector('.emoji-picker') as HTMLElement;
+    if (this.emojiBtn && this.emojiRoot) {
+    this.emojiPicker = new EmojiMenu(this.wrapper, (emoji) => this.insertEmoji(emoji));
+    this.emojiPicker.render();
 
+    this.emojiBtn.addEventListener('click', () => this.emojiPicker.toggle());
+
+    document.addEventListener('click', (event) => {
+        const target = event.target as HTMLElement;
+        const clickedInsidePicker = this.wrapper.contains(target);
+        const clickedEmojiBtn = this.emojiBtn!.contains(target);
+        if (!clickedInsidePicker && !clickedEmojiBtn) this.emojiPicker.hide();
+    });
+    }
     this.emojiPicker = new EmojiMenu(this.wrapper, (emoji) => this.insertEmoji(emoji));
     this.emojiPicker.render();
 

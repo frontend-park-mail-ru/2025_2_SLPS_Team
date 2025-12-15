@@ -3,8 +3,7 @@
     <img src="/public/globalImages/AttachIcon.svg" alt="attach" />
   </button>
 
-  <input class="message-file-input" type="file" multiple hidden />
-
+  <input class="message-file-input" type="file" multiple />
 
   <textarea class="input-message" placeholder="Сообщение..."></textarea>
 
@@ -12,7 +11,10 @@
     <img src="/public/globalImages/EmojiIcon.svg" alt="emoji" />
   </button>
 
-  <div class="emoji-picker"></div>
+  <div class="emoji-picker">
+    <div class="emoji-search-container"></div>
+    <div class="emoji-picker-grid"></div>
+  </div>
 
   <button type="button" class="message-send-btn">
     <img src="/public/globalImages/SendIcon.svg" alt="send" />
