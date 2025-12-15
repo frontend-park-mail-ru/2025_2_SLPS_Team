@@ -43,21 +43,18 @@ export function getChatMessages(
   return api(`/api/chats/${chatId}/messages?page=${page}`, { method: 'GET' });
 }
 
-export function sendChatMessage(
-  chatId: number,
-  text: string,
-  attachments: File[] = [],
-): Promise<SendMessageResponse> {
+export function sendChatMessage(chatId: number, text: string, attachments: File[] = []) {
   const form = new FormData();
-  form.append('text', text);
+
+  const safeText = text && text.trim().length ? text : ' ';
+  form.append('text', safeText);
 
   attachments.forEach((f) => form.append('attachments', f));
 
-  return api(`/api/chats/${chatId}/message`, {
-    method: 'POST',
-    body: form,
-  });
+  return api(`/api/chats/${chatId}/message`, { method: 'POST', body: form });
 }
+
+
 
 export function updateChatReadState(chatId: number, lastReadMessageId: number): Promise<void> {
   return api(`/api/chats/${chatId}/last-read`, {
