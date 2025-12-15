@@ -11,6 +11,8 @@ type NormalizedFile = {
 };
 
 export class Message {
+  private wrapper: HTMLElement | null = null;
+
   constructor(
     private rootElement: HTMLElement,
     private messageData: MessageData,
@@ -22,7 +24,6 @@ export class Message {
   render(): HTMLElement | null {
     const data = this.messageData as any;
 
-    const id: number | string | undefined = data?.id;
     const text: string = typeof data?.text === 'string' ? data.text : '';
     const createdAt: unknown = data?.createdAt ?? data?.created_at ?? data?.time;
 
@@ -51,41 +52,30 @@ export class Message {
       isEmoji: this.isSingleEmoji(text),
     });
 
-    const wrapper = document.createElement('div');
-    wrapper.innerHTML = html.trim();
+    this.wrapper = document.createElement('div');
+    this.wrapper.innerHTML = html.trim();
 
-    const el = wrapper.firstElementChild as HTMLElement | null;
-    if (!el) return null;
+    const container = this.wrapper.firstElementChild as HTMLElement | null;
+    if (!container) return null;
 
-    if (this.isLastInGroup) el.classList.add('last-in-group');
-    if (!this.isMine) el.classList.add('last-not-mine');
-    if (!this.withAnimation) el.classList.add('no-anim');
+    if (this.isLastInGroup) container.classList.add('last-in-group');
+    if (!this.isMine) container.classList.add('last-not-mine');
+    if (!this.withAnimation) container.classList.add('no-anim');
 
     if (files.length > 0) {
-      const filesRoot = el.querySelector('.message-attachments-files') as HTMLElement | null;
+      const filesRoot = container.querySelector('.message-attachments-files') as HTMLElement | null;
       if (filesRoot) {
         filesRoot.innerHTML = '';
-        files.forEach((f) => {
-          const item = new FileItem(filesRoot, { fileUrl: f.url, canDelete: false });
+        files.forEach((file) => {
+          const item = new FileItem(filesRoot, { fileUrl: file.url, canDelete: false });
           void item.render();
         });
       }
     }
 
-    if (id !== undefined && id !== null) {
-      const existing = this.rootElement.querySelector<HTMLElement>(
-        `[data-message-id="${String(id)}"]`,
-      );
-      if (existing) {
-        existing.replaceWith(el);
-        return el;
-      }
-    }
-
-    this.rootElement.appendChild(el);
-    return el;
+    // ✅ НЕ аппендим здесь — это делает Chat.ts
+    return container;
   }
-
 
   private stripQuery(url: string): string {
     const q = url.indexOf('?');
@@ -102,7 +92,6 @@ export class Message {
     const slash = clean.lastIndexOf('/');
     const tail = slash === -1 ? clean : clean.slice(slash + 1);
     const safe = tail.length ? tail : 'file';
-
     try {
       const decoded = decodeURIComponent(safe);
       return decoded.length ? decoded : 'file';

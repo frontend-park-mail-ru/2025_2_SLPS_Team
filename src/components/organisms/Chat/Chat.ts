@@ -287,7 +287,8 @@ async render(): Promise<void> {
         false,
         false,
       );
-      msg.render();
+      const el = msg.render();
+      if (el) this.messagesContainer.appendChild(el);
     });
 
 
@@ -451,8 +452,8 @@ async render(): Promise<void> {
     };
 
     const msg = new Message(container, message, true, true, true);
-    msg.render();
-
+    const el = msg.render();
+    if (el) container.appendChild(el);
     this.messages.push(message);
 
     input.textarea.value = '';
