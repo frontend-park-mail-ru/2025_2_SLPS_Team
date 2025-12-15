@@ -38,31 +38,6 @@ interface ChatOptions {
   onBack?: () => void;
 }
 
-interface ChatMessagesResponseAuthor {
-  fullName: string;
-  avatarPath?: string | null;
-}
-
-interface ChatMessagesResponseMessage {
-  id: number;
-  text: string;
-  createdAt: string;
-  attachments?: unknown;
-  authorID: number;
-}
-
-interface ChatMessagesResponse {
-  Messages?: ChatMessagesResponseMessage[];
-  Authors?: Record<number, ChatMessagesResponseAuthor>;
-  lastReadMessageId?: number | null;
-  lastReadMessageID?: number | null;
-}
-
-interface SentMessageResponse {
-  id: number;
-  attachments?: unknown;
-}
-
 type WsNewMessagePayload = any;
 
 function isRecord(v: unknown): v is Record<string, any> {
@@ -71,6 +46,7 @@ function isRecord(v: unknown): v is Record<string, any> {
 
 function normalizeAttachments(raw: unknown): string[] {
   if (!raw) return [];
+
   if (Array.isArray(raw)) {
     const out: string[] = [];
     for (const item of raw) {
@@ -90,6 +66,7 @@ function normalizeAttachments(raw: unknown): string[] {
     }
     return out;
   }
+
   if (isRecord(raw)) {
     const url =
       raw.url ??
@@ -102,31 +79,31 @@ function normalizeAttachments(raw: unknown): string[] {
       raw.href;
     return typeof url === 'string' && url.length ? [url] : [];
   }
+
   return [];
 }
 
-function buildLocalAttachmentUrls(
-  files: File[],
-): { urls: string[]; revoke: () => void } {
+function buildLocalAttachmentUrls(files: File[]): { urls: string[]; revoke: () => void } {
   const created: string[] = [];
   const urls = files.map((f) => {
     const base = URL.createObjectURL(f);
     created.push(base);
-
-    // добавляем имя, чтобы Message.isImageUrl мог распознать blob как картинку
-    if (f.type?.startsWith('image/') && f.name) {
-      return `${base}#${encodeURIComponent(f.name)}`;
-    }
-    if (f.name) {
-      return `${base}#${encodeURIComponent(f.name)}`;
-    }
-    return base;
+    // чтобы Message.ts смог распознать картинку по расширению
+    return f.name ? `${base}#${encodeURIComponent(f.name)}` : base;
   });
-
   return {
     urls,
     revoke: () => created.forEach((u) => URL.revokeObjectURL(u)),
   };
+}
+
+// вытаскиваем payload из любого формата api-клиента
+function unwrapApiPayload<T = any>(resp: any): T {
+  if (!resp) return resp;
+  if (resp.message) return resp.message;
+  if (resp.data) return resp.data;
+  if (resp.result) return resp.result;
+  return resp;
 }
 
 export class Chat {
@@ -147,7 +124,6 @@ export class Chat {
   private inputMes: MessageInput | null = null;
 
   private messagesContainer: HTMLElement | null = null;
-  private scrollButton: HTMLButtonElement | null = null;
 
   private attachmentsModal: MessageAttachmentsModal | null = null;
 
@@ -182,11 +158,9 @@ export class Chat {
       data.lastReadMessageId ?? (data as any).lastReadMessageID ?? null;
   }
 
-  // ✅ ВАЖНО: вставляем элемент сразу, чтобы не было гонки с Promise.resolve в Message.ts
-  private appendNow(container: HTMLElement, msg: Message): HTMLElement | null {
+  private appendNow(container: HTMLElement, msg: Message): void {
     const el = msg.render();
     if (el && !el.isConnected) container.appendChild(el);
-    return el;
   }
 
   async render(): Promise<void> {
@@ -219,17 +193,10 @@ export class Chat {
         last.id ?? last.messageId ?? last.messageID ?? last.message_id ?? null;
 
       if (!msgId) return;
+      if (this.messages.some((m) => m.id === msgId)) return;
 
       const authorId: number | null =
-        last.authorID ??
-        last.authorId ??
-        last.userId ??
-        last.userID ??
-        last.user_id ??
-        null;
-
-      if (authorId === this.myUserId) return;
-      if (this.messages.some((m) => m.id === msgId)) return;
+        last.authorID ?? last.authorId ?? last.userId ?? last.userID ?? last.user_id ?? null;
 
       const createdAt: string =
         last.createdAt ?? last.created_at ?? last.time ?? new Date().toISOString();
@@ -253,16 +220,6 @@ export class Chat {
         const msg = new Message(this.messagesContainer, view as any, isMine, true, true);
         this.appendNow(this.messagesContainer, msg);
       }
-
-      this.unreadMessageIds.add(view.id);
-      this.lastReadMessageId = view.id;
-      void this.pushReadState();
-
-      EventBus.emit('chatReadUpdated', {
-        chatId: this.chatInfo,
-        unreadCount: this.unreadMessageIds.size,
-        lastReadMessageId: this.lastReadMessageId,
-      });
 
       this.scrollToBottom();
     };
@@ -288,37 +245,23 @@ export class Chat {
       mainContainer.querySelector<HTMLDivElement>('.chat-header-container');
     if (!headerContainer) throw new Error('Chat:.chat-header-container not found');
 
-    const rawData = (await getChatMessages(this.chatInfo, 1)) as ChatMessagesResponse;
+    const raw = unwrapApiPayload<any>(await getChatMessages(this.chatInfo, 1));
 
-    this.lastReadMessageId =
-      rawData.lastReadMessageId ??
-      (rawData as any).lastReadMessageID ??
-      this.lastReadMessageId ??
-      null;
+    // поддерживаем оба формата: {Messages: []} и {messages: []}
+    const rawMessages: any[] = (raw?.Messages ?? raw?.messages ?? []).slice();
+    rawMessages.sort((a, b) => new Date(a.createdAt ?? a.created_at).getTime() - new Date(b.createdAt ?? b.created_at).getTime());
 
-    const rawMessages = (rawData.Messages ?? [])
-      .slice()
-      .sort(
-        (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-      );
-
-    const authors: Record<number, ChatMessagesResponseAuthor> = rawData.Authors ?? {};
-
-    this.messages = rawMessages.map<ChatMessageView>((msg: any) => {
-      const author = authors?.[msg.authorID] ?? null;
-      return {
-        id: msg.id,
-        text: msg.text ?? '',
-        created_at: msg.createdAt ?? msg.created_at ?? new Date().toISOString(),
-        attachments: normalizeAttachments(msg.attachments),
-        User: {
-          id: msg.authorID ?? -1,
-          full_name: author?.fullName ?? 'User',
-          avatar: author?.avatarPath ?? '',
-        },
-      };
-    });
+    this.messages = rawMessages.map((m: any) => ({
+      id: m.id,
+      text: m.text ?? '',
+      created_at: m.createdAt ?? m.created_at ?? new Date().toISOString(),
+      attachments: normalizeAttachments(m.attachments),
+      User: {
+        id: m.authorID ?? m.authorId ?? -1,
+        full_name: m.authorName ?? m.fullName ?? 'User',
+        avatar: m.avatarPath ?? '',
+      },
+    }));
 
     this.messagesContainer.innerHTML = '';
     this.messages.forEach((m, idx) => {
@@ -340,47 +283,15 @@ export class Chat {
     this.inputMes = new MessageInput(inputContainer);
     this.inputMes.render();
 
-    if (this.inputMes.textarea) {
-      this.inputMes.textarea.addEventListener('keydown', (e: KeyboardEvent) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          void this.sendEvent(e);
-        }
-      });
-    }
+    this.inputMes.textarea?.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && !e.shiftKey) void this.sendEvent(e);
+    });
 
-    if (this.inputMes.sendButton) {
-      this.inputMes.sendButton.addEventListener('click', (e: MouseEvent) => {
-        void this.sendEvent(e);
-      });
-    }
+    this.inputMes.sendButton?.addEventListener('click', (e: MouseEvent) => {
+      void this.sendEvent(e);
+    });
 
-    this.addScrollButton();
-    this.restoreScrollPosition();
-  }
-
-  private async fetchMessageById(messageId: number): Promise<ChatMessageView | null> {
-    if (!messageId) return null;
-    try {
-      const rawData = (await getChatMessages(this.chatInfo, 1)) as ChatMessagesResponse;
-      const authors: Record<number, ChatMessagesResponseAuthor> = rawData.Authors ?? {};
-      const found = (rawData.Messages ?? []).find((m) => m.id === messageId);
-      if (!found) return null;
-
-      const author = authors?.[found.authorID] ?? null;
-      return {
-        id: found.id,
-        text: found.text ?? '',
-        created_at: found.createdAt ?? new Date().toISOString(),
-        attachments: normalizeAttachments((found as any).attachments),
-        User: {
-          id: found.authorID ?? -1,
-          full_name: author?.fullName ?? 'User',
-          avatar: author?.avatarPath ?? '',
-        },
-      };
-    } catch {
-      return null;
-    }
+    this.scrollToBottom();
   }
 
   private replaceMessageInDom(oldId: number, next: ChatMessageView): void {
@@ -398,10 +309,8 @@ export class Chat {
       return;
     }
 
-    // ✅ если optimistic ещё не успел вставиться — просто добавим финальное сообщение
-    if (newEl && !newEl.isConnected) {
-      this.messagesContainer.appendChild(newEl);
-    }
+    // если не нашли optimistic — просто добавим финальный
+    if (newEl && !newEl.isConnected) this.messagesContainer.appendChild(newEl);
   }
 
   private async sendEvent(e: Event): Promise<void> {
@@ -412,11 +321,9 @@ export class Chat {
     if (!input || !container) return;
 
     const text = input.getValue().trim();
-    const files = (input as unknown as { getFiles?: () => File[] }).getFiles?.() ?? [];
+    const files = input.getFiles?.() ?? [];
 
     if (!text && files.length === 0) return;
-
-    const chatID = this.chatInfo;
 
     const doSend = async (confirmedFiles: File[]) => {
       const optimisticId = -Date.now();
@@ -434,51 +341,41 @@ export class Chat {
         },
       };
 
-      const optimisticMsg = new Message(container, optimistic as any, true, true, true);
-      this.appendNow(container, optimisticMsg);
+      // ✅ показываем вложения сразу
+      this.appendNow(container, new Message(container, optimistic as any, true, true, true));
       this.messages.push(optimistic);
 
       input.clear();
       this.scrollToBottom();
 
       try {
-        const data = (await sendChatMessage(chatID, text, confirmedFiles)) as SentMessageResponse;
+        const resp = unwrapApiPayload<any>(await sendChatMessage(this.chatInfo, text, confirmedFiles));
 
-        const serverId = data?.id;
-        const fromSend = normalizeAttachments((data as any)?.attachments);
-        const hydrated = await this.fetchMessageById(serverId);
-
-        const bestAttachments =
-          (hydrated?.attachments && hydrated.attachments.length > 0)
-            ? hydrated.attachments
-            : (fromSend.length > 0 ? fromSend : local.urls);
+        const serverId: number = resp?.id ?? resp?.messageId ?? resp?.messageID;
+        const serverAttachments = normalizeAttachments(resp?.attachments);
 
         const final: ChatMessageView = {
-          id: serverId,
+          id: serverId || optimisticId, // на всякий
           text,
-          created_at: hydrated?.created_at ?? new Date().toISOString(),
-          attachments: bestAttachments,
+          created_at: resp?.createdAt ?? resp?.created_at ?? new Date().toISOString(),
+          attachments: serverAttachments.length ? serverAttachments : local.urls,
           User: optimistic.User,
         };
 
-        this.replaceMessageInDom(optimisticId, final);
+        if (serverId) {
+          this.replaceMessageInDom(optimisticId, final);
+          const idx = this.messages.findIndex((m) => m.id === optimisticId);
+          if (idx !== -1) this.messages[idx] = final;
+        }
 
-        const idx = this.messages.findIndex((m) => m.id === optimisticId);
-        if (idx !== -1) this.messages[idx] = final;
-
-        if (bestAttachments !== local.urls) local.revoke();
+        // если сервер дал нормальные урлы — можно освобождать blob
+        if (serverAttachments.length) local.revoke();
 
         EventBus.emit('chatUpdated', { chatId: this.chatInfo });
 
         this.lastReadMessageId = final.id;
         this.unreadMessageIds.clear();
         void this.pushReadState();
-
-        EventBus.emit('chatReadUpdated', {
-          chatId: this.chatInfo,
-          unreadCount: 0,
-          lastReadMessageId: this.lastReadMessageId,
-        });
 
         this.scrollToBottom();
       } catch {
@@ -488,11 +385,9 @@ export class Chat {
 
     if (files.length > 0) {
       if (!this.attachmentsModal) this.attachmentsModal = new MessageAttachmentsModal();
-
       this.attachmentsModal.open(files, async (confirmedFiles) => {
         await doSend(confirmedFiles);
       });
-
       return;
     }
 
@@ -514,49 +409,6 @@ export class Chat {
   private scrollToBottom(): void {
     if (!this.messagesContainer) return;
     this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
-  }
-
-  private restoreScrollPosition(): void {
-    if (!this.messagesContainer) return;
-
-    if (!this.lastReadMessageId) {
-      this.scrollToBottom();
-      return;
-    }
-
-    const el = this.messagesContainer.querySelector<HTMLElement>(
-      `[data-message-id="${this.lastReadMessageId}"]`,
-    );
-
-    if (!el) {
-      this.scrollToBottom();
-      return;
-    }
-
-    const targetTop = el.offsetTop - this.messagesContainer.clientHeight * 0.3;
-    this.messagesContainer.scrollTop = Math.max(targetTop, 0);
-  }
-
-  private addScrollButton(): void {
-    if (!this.messagesContainer) return;
-
-    this.scrollButton = this.messagesContainer.querySelector<HTMLButtonElement>(
-      '.scroll-to-bottom-btn',
-    );
-    if (!this.scrollButton) return;
-
-    this.messagesContainer.addEventListener('scroll', () => {
-      if (!this.messagesContainer || !this.scrollButton) return;
-
-      const diff =
-        this.messagesContainer.scrollHeight -
-        (this.messagesContainer.scrollTop + this.messagesContainer.clientHeight);
-
-      if (diff > 250) this.scrollButton.classList.add('visible');
-      else this.scrollButton.classList.remove('visible');
-    });
-
-    this.scrollButton.addEventListener('click', () => this.scrollToBottom());
   }
 
   destroy(): void {
