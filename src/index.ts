@@ -11,9 +11,3 @@ const app = new App(root);
 app.render();
 
 export { navigateTo };
-
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(regs => {
-    regs.forEach(reg => reg.unregister());
-  });
-}
