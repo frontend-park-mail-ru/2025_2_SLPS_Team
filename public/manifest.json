@@ -7,7 +7,7 @@
   "theme_color": "#6A42AB",
   "icons": [
     {
-      "src": "/public/testData/CommunityAvatar.png",
+      "src": "/public/PwaImages/UniteBig.png",
       "sizes": "192x192",
       "type": "image/png"
     },
