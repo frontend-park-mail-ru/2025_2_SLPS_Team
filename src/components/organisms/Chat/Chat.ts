@@ -425,7 +425,8 @@ async render(): Promise<void> {
   if (!input || !container) return;
 
   const text = input.getValue().trim();
-  const files = input.getFiles?.() ?? [];
+  const files =
+  (input as unknown as { getFiles?: () => File[] }).getFiles?.() ?? [];
 
   if (!text && files.length === 0) return;
 
@@ -455,7 +456,12 @@ async render(): Promise<void> {
 
     this.messages.push(message);
 
-    input.clear();
+    input.textarea.value = '';
+    input.textarea.style.height = '37px';
+
+    if ((input as any).fileInput) {
+      (input as any).fileInput.value = '';
+    }
 
     EventBus.emit('chatUpdated', { chatId: this.chatInfo });
 
