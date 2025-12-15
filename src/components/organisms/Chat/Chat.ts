@@ -45,7 +45,7 @@ function isRecord(v: unknown): v is Record<string, any> {
 }
 const API_BASE_URL = (process.env.API_BASE_URL ?? '').replace(/\/+$/, '');
 
-const API_ORIGIN = (() => {
+const ORIGIN = (() => {
   try {
     return API_BASE_URL ? new URL(API_BASE_URL).origin : window.location.origin;
   } catch {
@@ -53,19 +53,25 @@ const API_ORIGIN = (() => {
   }
 })();
 
-const UPLOADS_BASE = `${API_ORIGIN}/uploads/`;
+const UPLOADS_BASE = `${ORIGIN}/api/uploads/`;
+
 function resolveAttachmentUrl(raw: string): string {
   if (!raw) return '';
   if (/^(https?:|blob:|data:)/i.test(raw)) return raw;
 
   const normalized = raw.replace(/^\.?\//, '');
 
+  if (normalized.startsWith('api/uploads/')) {
+    return `${ORIGIN}/${normalized}`;
+  }
+
   if (normalized.startsWith('uploads/')) {
-    return UPLOADS_BASE + normalized.slice('uploads/'.length);
+    return `${ORIGIN}/api/${normalized}`;
   }
 
   return UPLOADS_BASE + normalized;
 }
+
 
 
 function withNameHint(url: string, name?: string): string {
