@@ -438,6 +438,17 @@ async render(): Promise<void> {
   if (!text && files.length === 0) return;
 
   const chatID = this.chatInfo;
+  
+  const normalizeSentAttachments = (raw: unknown, files: File[]): string[] => {
+    const fromApi = Array.isArray(raw)
+      ? raw.filter((x): x is string => typeof x === 'string' && x.length > 0)
+      : [];
+
+    if (fromApi.length) return fromApi;
+
+    return files.map((f) => `${URL.createObjectURL(f)}#${encodeURIComponent(f.name)}`);
+  };
+
 
   const doSend = async (confirmedFiles: File[]) => {
     const data = (await sendChatMessage(
@@ -450,7 +461,7 @@ async render(): Promise<void> {
       id: data.id,
       text,
       created_at: new Date().toISOString(),
-      attachments: data.attachments ?? [],
+      attachments: normalizeSentAttachments((data as any).attachments, confirmedFiles),
       User: {
         id: this.myUserId,
         full_name: this.myUserName,
