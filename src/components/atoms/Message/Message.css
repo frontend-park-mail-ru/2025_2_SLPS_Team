@@ -15,6 +15,7 @@
     opacity: 0;
     animation: messageLeft 0.25s cubic-bezier(0.25, 1, 0.5, 1) forwards;
     will-change: transform, opacity;
+    flex-wrap: wrap; 
 }
 
 .message.my-message {
