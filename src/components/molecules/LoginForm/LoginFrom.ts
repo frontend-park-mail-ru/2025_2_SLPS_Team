@@ -92,19 +92,19 @@ export default class LoginForm {
 
         let isValid = true;
 
-        this.clearInputError(emailInput);
-        this.clearInputError(passwordInput);
+        this.inputs.email.hideError();
+        this.inputs.password.hideError();
 
         if (!email) {
-            this.setInputError(emailInput, 'Введите email');
+            this.inputs.email.showError('Введите email');
             isValid = false;
         }
 
         if (!password) {
-            this.setInputError(passwordInput, 'Введите пароль');
+            this.inputs.password.showError('Введите пароль')
             isValid = false;
         } else if (!isValidPassword(password)) {
-            this.setInputError(passwordInput, 'Минимум 6 символов');
+            this.inputs.password.showError('Минимум 6 символов')
             isValid = false;
         }
 

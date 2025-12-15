@@ -26,7 +26,7 @@ export interface Post {
   likeCount?: number;
   like_count?: number;
   comments?: number;
-  commentCount?: number;
+  commentsCount?: number;
   comment_count?: number;
   reposts?: number;
   repostCount?: number;

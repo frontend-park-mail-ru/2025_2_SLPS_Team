@@ -1,5 +1,6 @@
 import FormInputTemplate from "./FormInput.hbs"
 import type { FormInputConfig } from "@shared/types/components.js"
+import './FormInput.css'
 
 /**
  * @module FormInput
