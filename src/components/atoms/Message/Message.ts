@@ -7,6 +7,69 @@ const regex = emojiRegex();
 
 type NormalizedFile = { name: string; url: string };
 
+const UPLOADS_BASE = 'https://unitesm.ru/api/uploads/';
+
+function isRecord(v: unknown): v is Record<string, any> {
+  return typeof v === 'object' && v !== null;
+}
+
+function toAbsoluteAttachmentUrl(u: string): string {
+  const s = u.trim();
+  if (!s) return s;
+
+  if (s.startsWith('blob:')) return s;
+  if (s.startsWith('http://') || s.startsWith('https://')) return s;
+
+  if (s.startsWith('/')) return `${location.origin}${s}`;
+
+  return `${UPLOADS_BASE}${s}`;
+}
+
+function normalizeAttachments(raw: unknown): string[] {
+  if (!raw) return [];
+
+  const out: string[] = [];
+
+  if (Array.isArray(raw)) {
+    for (const item of raw) {
+      if (typeof item === 'string' && item.length) {
+        out.push(toAbsoluteAttachmentUrl(item));
+        continue;
+      }
+      if (isRecord(item)) {
+        const url =
+          item.url ??
+          item.path ??
+          item.fileUrl ??
+          item.file_url ??
+          item.downloadUrl ??
+          item.download_url ??
+          item.src ??
+          item.href;
+        if (typeof url === 'string' && url.length) out.push(toAbsoluteAttachmentUrl(url));
+      }
+    }
+    return out;
+  }
+
+  if (typeof raw === 'string') return [toAbsoluteAttachmentUrl(raw)];
+
+  if (isRecord(raw)) {
+    const url =
+      raw.url ??
+      raw.path ??
+      raw.fileUrl ??
+      raw.file_url ??
+      raw.downloadUrl ??
+      raw.download_url ??
+      raw.src ??
+      raw.href;
+    if (typeof url === 'string' && url.length) out.push(toAbsoluteAttachmentUrl(url));
+  }
+
+  return out;
+}
+
 export class Message {
   constructor(
     private rootElement: HTMLElement,
@@ -24,9 +87,7 @@ export class Message {
     const createdAt: unknown = data?.createdAt ?? data?.created_at ?? data?.time;
 
     const attachmentsRaw: unknown = data?.attachments;
-    const attachments: string[] = Array.isArray(attachmentsRaw)
-      ? attachmentsRaw.filter((x: unknown): x is string => typeof x === 'string' && x.length > 0)
-      : [];
+    const attachments: string[] = normalizeAttachments(attachmentsRaw);
 
     const images: string[] = attachments.filter((u) => this.isImageUrl(u));
     const files: NormalizedFile[] = attachments
@@ -65,25 +126,18 @@ export class Message {
       }
     }
 
-    const insertOrReplace = () => {
-      if (el.isConnected) return;
-
-      if (id !== undefined && id !== null) {
-        const existing = this.rootElement.querySelector<HTMLElement>(
-          `[data-message-id="${String(id)}"]`,
-        );
-        if (existing) {
-          existing.replaceWith(el);
-          return;
-        }
+    // ✅ ВСТАВЛЯЕМ СРАЗУ (без Promise.resolve), чтобы не было гонок
+    if (id !== undefined && id !== null) {
+      const existing = this.rootElement.querySelector<HTMLElement>(
+        `[data-message-id="${String(id)}"]`,
+      );
+      if (existing) {
+        existing.replaceWith(el);
+        return el;
       }
+    }
 
-      this.rootElement.appendChild(el);
-    };
-
-
-    Promise.resolve().then(insertOrReplace);
-
+    this.rootElement.appendChild(el);
     return el;
   }
 
