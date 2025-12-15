@@ -80,6 +80,8 @@ export class Message {
   ) {}
 
   render(): HTMLElement | null {
+    console.log('MESSAGE_TS_VERSION = 999');
+
     const data = this.messageData as any;
 
     const id: number | string | undefined = data?.id;
@@ -126,7 +128,6 @@ export class Message {
       }
     }
 
-    // ✅ ВСТАВЛЯЕМ СРАЗУ (без Promise.resolve), чтобы не было гонок
     if (id !== undefined && id !== null) {
       const existing = this.rootElement.querySelector<HTMLElement>(
         `[data-message-id="${String(id)}"]`,
