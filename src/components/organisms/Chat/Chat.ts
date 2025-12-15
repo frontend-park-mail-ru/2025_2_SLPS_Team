@@ -279,7 +279,6 @@ async render(): Promise<void> {
       const isMine = messageData.User.id === this.myUserId;
       const nextMessage = this.messages[index + 1];
       
-      // ВОССТАНОВЛЕНО: Синтаксис логического ИЛИ (||)
 
       const msg = new Message(
         this.messagesContainer,

@@ -24,12 +24,15 @@ export class Message {
   render(): HTMLElement | null {
     const data = this.messageData as any;
 
-    const text: string = typeof data.text === 'string' ? data.text : '';
-    const createdAt: unknown = data.createdAt ?? data.created_at ?? data.time;
+    const id = data?.id;
+    const text: string = typeof data?.text === 'string' ? data.text : '';
+    const createdAt: unknown = data?.createdAt ?? data?.created_at ?? data?.time;
 
-    const attachmentsRaw: unknown = data.attachments;
+    const attachmentsRaw: unknown = data?.attachments;
     const attachments: string[] = Array.isArray(attachmentsRaw)
-      ? attachmentsRaw.filter((x: unknown): x is string => typeof x === 'string' && x.length > 0)
+      ? attachmentsRaw.filter(
+          (x: unknown): x is string => typeof x === 'string' && x.length > 0,
+        )
       : [];
 
     const images: string[] = attachments.filter((url) => this.isImageUrl(url));
@@ -53,15 +56,15 @@ export class Message {
     this.wrapper = document.createElement('div');
     this.wrapper.innerHTML = html.trim();
 
-    const container = this.wrapper.firstElementChild as HTMLElement | null;
-    if (!container) return null;
+    const nextEl = this.wrapper.firstElementChild as HTMLElement | null;
+    if (!nextEl) return null;
 
-    if (this.isLastInGroup) container.classList.add('last-in-group');
-    if (!this.isMine) container.classList.add('last-not-mine');
-    if (!this.withAnimation) container.classList.add('no-anim');
+    if (this.isLastInGroup) nextEl.classList.add('last-in-group');
+    if (!this.isMine) nextEl.classList.add('last-not-mine');
+    if (!this.withAnimation) nextEl.classList.add('no-anim');
 
     if (files.length > 0) {
-      const filesRoot = container.querySelector('.message-attachments-files') as HTMLElement | null;
+      const filesRoot = nextEl.querySelector('.message-attachments-files') as HTMLElement | null;
       if (filesRoot) {
         filesRoot.innerHTML = '';
         files.forEach((file) => {
@@ -70,8 +73,26 @@ export class Message {
         });
       }
     }
-    this.rootElement.appendChild(container);
-    return container;
+
+    const doInsert = () => {
+      if (!this.rootElement.isConnected) return;
+
+      if (typeof id === 'number' || typeof id === 'string') {
+        const existing = this.rootElement.querySelector<HTMLElement>(
+          `[data-message-id="${String(id)}"]`,
+        );
+        if (existing) {
+          existing.replaceWith(nextEl);
+          return;
+        }
+      }
+
+      this.rootElement.appendChild(nextEl);
+    };
+
+    queueMicrotask(doInsert);
+
+    return nextEl;
   }
 
   private stripQuery(url: string): string {
@@ -90,7 +111,6 @@ export class Message {
     const tail = idx >= 0 ? clean.slice(idx + 1) : clean;
 
     const safeTail = tail.length ? tail : 'file';
-
     try {
       const decoded = decodeURIComponent(safeTail);
       return decoded.length ? decoded : 'file';
