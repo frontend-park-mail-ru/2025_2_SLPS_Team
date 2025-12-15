@@ -21,7 +21,7 @@ interface ChatMessageView {
   id: number;
   text: string;
   created_at: string;
-  attachments?: string[]; // важно: Message.ts ожидает string[]
+  attachments?: string[];
   User: ChatUserView;
 }
 
@@ -69,13 +69,8 @@ function isRecord(v: unknown): v is Record<string, any> {
   return typeof v === 'object' && v !== null;
 }
 
-/**
- * Приводим любые форматы с сервера к string[] url.
- * Поддерживает: string[], [{url:...}], {url:...}
- */
 function normalizeAttachments(raw: unknown): string[] {
   if (!raw) return [];
-
   if (Array.isArray(raw)) {
     const out: string[] = [];
     for (const item of raw) {
@@ -90,13 +85,11 @@ function normalizeAttachments(raw: unknown): string[] {
           item.download_url ??
           item.src ??
           item.href;
-
         if (typeof url === 'string' && url.length) out.push(url);
       }
     }
     return out;
   }
-
   if (isRecord(raw)) {
     const url =
       raw.url ??
@@ -107,30 +100,20 @@ function normalizeAttachments(raw: unknown): string[] {
       raw.download_url ??
       raw.src ??
       raw.href;
-
     return typeof url === 'string' && url.length ? [url] : [];
   }
-
   return [];
 }
 
-/**
- * Для локальных файлов делаем objectURL.
- * ВАЖНО: для картинок добавляем "#filename.ext", чтобы Message.ts распознал расширение как image
- * (там isImageUrl проверяет по ".png/.jpg..." и НЕ понимает blob: без расширения).
- */
 function buildLocalAttachmentUrls(files: File[]): { urls: string[]; revoke: () => void } {
   const created: string[] = [];
-
   const urls = files.map((f) => {
     const base = URL.createObjectURL(f);
     created.push(base);
 
-    if (f.type && f.type.startsWith('image/') && f.name) {
-      // hash не мешает загрузке blob, но помогает regex-у увидеть ".png/.jpg"
+    if (f.type?.startsWith('image/') && f.name) {
       return `${base}#${encodeURIComponent(f.name)}`;
     }
-
     return base;
   });
 
@@ -196,7 +179,6 @@ export class Chat {
   async render(): Promise<void> {
     await this.loadSocet();
 
-    // WS обработчик
     this.wsHandler = (data: WsNewMessagePayload | null) => {
       if (!data) return;
 
@@ -226,9 +208,13 @@ export class Chat {
       if (!msgId) return;
 
       const authorId: number | null =
-        last.authorID ?? last.authorId ?? last.userId ?? last.userID ?? last.user_id ?? null;
+        last.authorID ??
+        last.authorId ??
+        last.userId ??
+        last.userID ??
+        last.user_id ??
+        null;
 
-      // ✅ ВАЖНО: свои сообщения по WS не рисуем (мы уже показали optimistic)
       if (authorId === this.myUserId) return;
 
       if (this.messages.some((m) => m.id === msgId)) return;
@@ -253,11 +239,9 @@ export class Chat {
       if (this.messagesContainer) {
         const isMine = view.User.id === this.myUserId;
         const msg = new Message(this.messagesContainer, view as any, isMine, true, true);
-        const el = msg.render();
-        if (el) this.messagesContainer.appendChild(el);
+        msg.render();
       }
 
-      // read-state для входящих
       this.unreadMessageIds.add(view.id);
       this.lastReadMessageId = view.id;
       void this.pushReadState();
@@ -288,12 +272,10 @@ export class Chat {
     const inputContainer = mainContainer.querySelector<HTMLDivElement>('.messege-input');
     if (!inputContainer) throw new Error('Chat:.messege-input not found');
 
-    // ✅ header контейнер (ChatHeader ожидает root именно header'а)
     const headerContainer =
       mainContainer.querySelector<HTMLDivElement>('.chat-header-container');
     if (!headerContainer) throw new Error('Chat:.chat-header-container not found');
 
-    // загрузка сообщений
     const rawData = (await getChatMessages(this.chatInfo, 1)) as ChatMessagesResponse;
 
     this.lastReadMessageId =
@@ -304,10 +286,7 @@ export class Chat {
 
     const rawMessages = (rawData.Messages ?? [])
       .slice()
-      .sort(
-        (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-      );
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
     const authors: Record<number, ChatMessagesResponseAuthor> = rawData.Authors ?? {};
 
@@ -330,18 +309,10 @@ export class Chat {
     this.messages.forEach((m, idx) => {
       const isMine = m.User.id === this.myUserId;
       const isLastInGroup = idx === this.messages.length - 1;
-      const msg = new Message(
-        this.messagesContainer as HTMLElement,
-        m as any,
-        isMine,
-        isLastInGroup,
-        true,
-      );
-      const el = msg.render();
-      if (el) this.messagesContainer!.appendChild(el);
+      const msg = new Message(this.messagesContainer as HTMLElement, m as any, isMine, isLastInGroup, true);
+      msg.render();
     });
 
-    // ✅ ChatHeader сигнатура: (root, name: string, avatar: string, hasBackButton: boolean, onBack?)
     this.chatHeader = new ChatHeader(
       headerContainer,
       this.data.name ?? '',
@@ -379,6 +350,7 @@ export class Chat {
       const authors: Record<number, ChatMessagesResponseAuthor> = rawData.Authors ?? {};
       const found = (rawData.Messages ?? []).find((m) => m.id === messageId);
       if (!found) return null;
+
       const author = authors?.[found.authorID] ?? null;
       return {
         id: found.id,
@@ -410,8 +382,6 @@ export class Chat {
       oldEl.replaceWith(newEl);
       return;
     }
-
-    if (newEl) this.messagesContainer.appendChild(newEl);
   }
 
   private async sendEvent(e: Event): Promise<void> {
@@ -419,7 +389,6 @@ export class Chat {
 
     const input = this.inputMes;
     const container = this.messagesContainer;
-
     if (!input || !container) return;
 
     const text = input.getValue().trim();
@@ -438,7 +407,7 @@ export class Chat {
         id: optimisticId,
         text,
         created_at: new Date().toISOString(),
-        attachments: local.urls, // ✅ string[] (то, что ждёт Message.ts)
+        attachments: local.urls,
         User: {
           id: this.myUserId,
           full_name: this.myUserName,
@@ -447,14 +416,10 @@ export class Chat {
       };
 
       const optimisticMsg = new Message(container, optimistic as any, true, true, true);
-      const optimisticEl = optimisticMsg.render();
-      if (optimisticEl) container.appendChild(optimisticEl);
+      optimisticMsg.render();
       this.messages.push(optimistic);
 
-      // очистка инпута
-      input.textarea.value = '';
-      input.textarea.style.height = '37px';
-      if ((input as any).fileInput) (input as any).fileInput.value = '';
+      input.clear();
 
       this.scrollToBottom();
 
@@ -463,10 +428,8 @@ export class Chat {
 
         const serverId = data?.id;
         const fromSend = normalizeAttachments((data as any)?.attachments);
-
         const hydrated = await this.fetchMessageById(serverId);
 
-        // ✅ если сервер сразу не вернул attachments — НЕ теряем локальные (иначе будет "пустой пузырь")
         const bestAttachments =
           (hydrated?.attachments && hydrated.attachments.length > 0)
             ? hydrated.attachments
@@ -485,7 +448,6 @@ export class Chat {
         const idx = this.messages.findIndex((m) => m.id === optimisticId);
         if (idx !== -1) this.messages[idx] = final;
 
-        // ✅ revoke только если мы реально перестали использовать local.urls
         if (bestAttachments !== local.urls) {
           local.revoke();
         }
@@ -504,15 +466,12 @@ export class Chat {
 
         this.scrollToBottom();
       } catch {
-        // если отправка упала — чистим blob-ресурсы
         local.revoke();
       }
     };
 
     if (files.length > 0) {
-      if (!this.attachmentsModal) {
-        this.attachmentsModal = new MessageAttachmentsModal();
-      }
+      if (!this.attachmentsModal) this.attachmentsModal = new MessageAttachmentsModal();
 
       this.attachmentsModal.open(files, async (confirmedFiles) => {
         await doSend(confirmedFiles);
