@@ -28,7 +28,10 @@ export class Message {
       ? attachmentsRaw.filter((x: unknown): x is string => typeof x === 'string' && x.length > 0)
       : [];
 
-    const images: string[] = attachments.filter((u) => this.isImageUrl(u));
+    const images: string[] = attachments
+      .filter((u) => this.isImageUrl(u))
+      .map((u) => this.toUploadsFileName(u));
+
     const files: NormalizedFile[] = attachments
       .filter((u) => !this.isImageUrl(u))
       .map((u) => ({ name: this.extractName(u), url: u }));
@@ -81,7 +84,6 @@ export class Message {
       this.rootElement.appendChild(el);
     };
 
-
     Promise.resolve().then(insertOrReplace);
 
     return el;
@@ -89,12 +91,36 @@ export class Message {
 
   private stripQuery(url: string): string {
     const q = url.indexOf('?');
-    return q === -1 ? url : url.slice(0, q);
+    const h = url.indexOf('#');
+
+    if (q === -1 && h === -1) return url;
+
+    const cut =
+      q === -1 ? h :
+      h === -1 ? q :
+      Math.min(q, h);
+
+    return url.slice(0, cut);
   }
 
   private isImageUrl(url: string): boolean {
     const clean = this.stripQuery(url).toLowerCase();
     return /\.(png|jpe?g|gif|webp|bmp|svg)$/.test(clean);
+  }
+
+  private toUploadsFileName(url: string): string {
+    const noQueryNoHash = this.stripQuery(url).trim();
+    if (!noQueryNoHash) return noQueryNoHash;
+
+    const slash = noQueryNoHash.lastIndexOf('/');
+    const tail = slash === -1 ? noQueryNoHash : noQueryNoHash.slice(slash + 1);
+
+    try {
+      const decoded = decodeURIComponent(tail);
+      return decoded.length ? decoded : tail;
+    } catch {
+      return tail;
+    }
   }
 
   private extractName(url: string): string {
