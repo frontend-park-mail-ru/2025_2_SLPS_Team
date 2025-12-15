@@ -112,7 +112,6 @@ export class MessengerPage extends BasePage {
 
       const openChatId = this.openChat?.getChatId();
 
-      // ⛔️ чат открыт — counter НЕ нужен
       if (openChatId === data.id) return;
 
       this.UpdateChat(data.id);
