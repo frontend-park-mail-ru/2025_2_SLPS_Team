@@ -15,6 +15,7 @@ export class MessageInput {
   fileInput!: HTMLInputElement;
 
   private files: File[] = [];
+  public onStickerSelect: ((stickerId: number) => void) | null = null;
 
   constructor(rootElement: HTMLElement) {
     this.rootElement = rootElement;
@@ -50,7 +51,12 @@ export class MessageInput {
         this.textarea.style.height = Math.min(this.textarea.scrollHeight, 120) + 'px';
     });
 
-    this.emojiPicker = new EmojiMenu(this.wrapper, (emoji) => this.insertEmoji(emoji));
+    this.emojiPicker = new EmojiMenu(
+        this.wrapper,
+        (emoji) => this.insertEmoji(emoji),
+        (stickerId) => this.onStickerSelect?.(stickerId),
+        );
+
     this.emojiPicker.render();
 
     this.emojiBtn.addEventListener('click', () => this.emojiPicker.toggle());

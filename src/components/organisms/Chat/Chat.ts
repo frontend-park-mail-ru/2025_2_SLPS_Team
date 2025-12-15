@@ -185,10 +185,11 @@ export class Chat {
     );
     this.chatHeader.render();
 
-    /* INPUT */
     this.input = new MessageInput(inputContainer);
     this.input.render();
-
+    this.input.onStickerSelect = (stickerId) => {
+      void this.sendSticker(stickerId);
+    };
     this.input.textarea.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) this.sendEvent(e);
     });
@@ -197,7 +198,6 @@ export class Chat {
       this.sendEvent(e);
     });
 
-    /* LOAD HISTORY */
     const raw = await getChatMessages(this.chatId, 1);
     const list = (raw as any).messages ?? (raw as any).Messages ?? [];
 
@@ -229,6 +229,38 @@ export class Chat {
   }
 
   /* ---------- SEND ---------- */
+  private async sendSticker(stickerId: number): Promise<void> {
+    const fd = new FormData();
+    fd.append('sticker_id', String(stickerId));
+
+    const res = await fetch(`${process.env.API_BASE_URL}/chats/${this.chatId}/message`, {
+      method: 'POST',
+      credentials: 'include',
+      body: fd,
+    });
+
+    const msg: any = await res.json();
+
+    const view: ChatMessageView = {
+      id: msg.id,
+      text: msg.text ?? '',
+      created_at: msg.createdAt ?? new Date().toISOString(),
+      attachments: normalizeAttachments(msg.attachments),
+      User: {
+        id: this.myUserId,
+        full_name: this.myUserName,
+        avatar: this.myUserAvatar,
+      },
+    };
+
+    this.messages.push(view);
+    new Message(this.messagesContainer, view as any, true, true, true).render();
+    this.scrollToBottom();
+
+    this.lastReadMessageId = view.id;
+    await updateChatReadState(this.chatId, view.id);
+    EventBus.emit('chatUpdated', { chatId: this.chatId });
+  }
 
   private async sendEvent(e: Event): Promise<void> {
     e.preventDefault();
