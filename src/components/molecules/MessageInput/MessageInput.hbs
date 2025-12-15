@@ -1,22 +1,22 @@
 <div class="message-input-container">
-  <button type="button" class="message-attach-btn">
+  <button type="button" class="message-attach-btn" aria-label="attach">
     <img src="/public/globalImages/AttachIcon.svg" alt="attach" />
   </button>
 
   <input class="message-file-input" type="file" multiple />
 
-  <textarea class="input-message" placeholder="Сообщение..."></textarea>
+  <textarea class="input-message" placeholder="Введите сообщение..." rows="1"></textarea>
 
-  <button type="button" class="emoji-btn">
+  <button type="button" class="emoji-btn" aria-label="emoji">
     <img src="/public/globalImages/EmojiIcon.svg" alt="emoji" />
   </button>
 
-  <div class="emoji-picker">
+  <button type="button" class="message-send-btn" aria-label="send">
+    <img src="/public/globalImages/SendIcon.svg" alt="send" />
+  </button>
+
+  <div class="emoji-picker hidden">
     <div class="emoji-search-container"></div>
     <div class="emoji-picker-grid"></div>
   </div>
-
-  <button type="button" class="message-send-btn">
-    <img src="/public/globalImages/SendIcon.svg" alt="send" />
-  </button>
 </div>
