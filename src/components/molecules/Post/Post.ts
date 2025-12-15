@@ -42,10 +42,10 @@ export async function renderPost(rawPostData: Post | Record<string, any>): Promi
     const comments =
       (postData.comments as number | undefined) ??
       (post.comments as number | undefined) ??
-      (post.commentCount as number | undefined) ??
+      (post.commentsCount as number | undefined) ??
       (post.comment_count as number | undefined) ??
       0;
-
+      console.log(post);
     const reposts =
       (postData.reposts as number | undefined) ??
       (post.reposts as number | undefined) ??
