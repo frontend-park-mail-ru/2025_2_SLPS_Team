@@ -83,33 +83,10 @@ export class EmojiMenu {
     });
 
     this.renderEmojis();
-    this.ensureStickerDom();
     void this.initStickers();
 
     this.hide();
   }
-  private ensureStickerDom() {
-    if (!this.stickersPanel) {
-        const p = this.picker.querySelector('.emoji-tab-content--stickers') as HTMLElement | null;
-        if (p) this.stickersPanel = p;
-    }
-
-    let packs = this.picker.querySelector('.sticker-packs') as HTMLElement | null;
-    if (!packs) {
-        packs = document.createElement('div');
-        packs.className = 'sticker-packs';
-        this.stickersPanel.appendChild(packs);
-    }
-    this.stickerPacksEl = packs;
-
-    let grid = this.picker.querySelector('.sticker-grid') as HTMLElement | null;
-    if (!grid) {
-        grid = document.createElement('div');
-        grid.className = 'sticker-grid';
-        this.stickersPanel.appendChild(grid);
-    }
-    this.stickerGridEl = grid;
-    }
 
   private switchTab(tab: 'emoji' | 'stickers') {
     this.tabs.forEach((t) => t.classList.remove('active'));
@@ -157,7 +134,6 @@ export class EmojiMenu {
   }
 
   private renderStickerPacks() {
-    if (!this.stickerPacksEl) return;
     this.stickerPacksEl.innerHTML = '';
 
     if (!this.stickerPacks.length) {
