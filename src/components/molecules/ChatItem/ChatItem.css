@@ -29,7 +29,7 @@
 .user-name{
     font-family: 'Nunito Sans';
     font-size: 16px;
-    color: var(--base-black);
+    color: var(--text-black);
     font-weight: 400;
 }
 

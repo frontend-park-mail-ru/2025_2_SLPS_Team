@@ -103,6 +103,7 @@
 .messege-time {
     font-family: inherit;
     font-size: 10px;
+    color: var(--text-black);
 }
 
 .is-read-icon {
