@@ -28,9 +28,7 @@ export class Message {
       ? attachmentsRaw.filter((x: unknown): x is string => typeof x === 'string' && x.length > 0)
       : [];
 
-    const images: string[] = attachments
-      .filter((u) => this.isImageUrl(u))
-      .map((u) => this.toUploadsFileName(u));
+    const images: string[] = attachments.filter((u) => this.isImageUrl(u));
 
     const files: NormalizedFile[] = attachments
       .filter((u) => !this.isImageUrl(u))
@@ -102,39 +100,34 @@ export class Message {
 
     return url.slice(0, cut);
   }
+  
+  private getHashName(url: string): string {
+    const i = url.indexOf('#');
+    if (i === -1) return '';
+    try {
+      return decodeURIComponent(url.slice(i + 1));
+    } catch {
+      return url.slice(i + 1);
+    }
+  }
 
   private isImageUrl(url: string): boolean {
+    const hashName = this.getHashName(url).toLowerCase();
+    if (hashName) return /\.(png|jpe?g|gif|webp|bmp|svg)$/.test(hashName);
+
     const clean = this.stripQuery(url).toLowerCase();
     return /\.(png|jpe?g|gif|webp|bmp|svg)$/.test(clean);
   }
 
-  private toUploadsFileName(url: string): string {
-    const noQueryNoHash = this.stripQuery(url).trim();
-    if (!noQueryNoHash) return noQueryNoHash;
-
-    const slash = noQueryNoHash.lastIndexOf('/');
-    const tail = slash === -1 ? noQueryNoHash : noQueryNoHash.slice(slash + 1);
-
-    try {
-      const decoded = decodeURIComponent(tail);
-      return decoded.length ? decoded : tail;
-    } catch {
-      return tail;
-    }
-  }
-
   private extractName(url: string): string {
+    const hashName = this.getHashName(url);
+    if (hashName) return hashName;
+
     const clean = this.stripQuery(url);
-    const slash = clean.lastIndexOf('/');
-    const tail = slash === -1 ? clean : clean.slice(slash + 1);
-    const safe = tail.length ? tail : 'file';
-    try {
-      const decoded = decodeURIComponent(safe);
-      return decoded.length ? decoded : 'file';
-    } catch {
-      return safe;
-    }
+    const last = clean.split('/').pop() || 'file';
+    return last;
   }
+
 
   private formatTime(value: unknown): string {
     if (!value) return '';
