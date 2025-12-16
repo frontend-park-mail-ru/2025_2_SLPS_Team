@@ -34,6 +34,7 @@ export class MessageInput {
     const root = tempDiv.firstElementChild as HTMLElement | null;
     if (!root) throw new Error('[MessageInput] template root not found');
     this.wrapper = root;
+    this.mountPreview();
 
     const textarea = this.wrapper.querySelector('.input-message') as HTMLTextAreaElement | null;
     const sendBtn = this.wrapper.querySelector('.message-send-btn') as HTMLButtonElement | null;
@@ -42,15 +43,9 @@ export class MessageInput {
     const attachBtn = this.wrapper.querySelector('.message-attach-btn') as HTMLButtonElement | null;
     const fileInput = this.wrapper.querySelector('.message-file-input') as HTMLInputElement | null;
 
-    const previewRoot = this.wrapper.querySelector('.attachments-preview') as HTMLElement | null;
-    const previewGrid = this.wrapper.querySelector('.attachments-preview-grid') as HTMLElement | null;
-    const previewFiles = this.wrapper.querySelector('.attachments-preview-files') as HTMLElement | null;
 
     if (!textarea || !sendBtn || !emojiBtn || !pickerRoot || !attachBtn || !fileInput) {
       throw new Error('[MessageInput] some elements not found in template');
-    }
-    if (!previewRoot || !previewGrid || !previewFiles) {
-      throw new Error('[MessageInput] attachments preview elements not found in template');
     }
 
     this.textarea = textarea;
@@ -60,9 +55,6 @@ export class MessageInput {
     this.attachBtn = attachBtn;
     this.fileInput = fileInput;
 
-    this.previewRoot = previewRoot;
-    this.previewGrid = previewGrid;
-    this.previewFiles = previewFiles;
 
     this.textarea.addEventListener('input', () => {
       this.textarea.style.height = 'auto';
@@ -123,6 +115,26 @@ export class MessageInput {
   private isImage(file: File) {
     return file.type.startsWith('image/');
   }
+  private mountPreview() {
+  const previewRoot = document.createElement('div');
+  previewRoot.className = 'attachments-preview';
+
+  const grid = document.createElement('div');
+  grid.className = 'attachments-preview-grid';
+
+  const files = document.createElement('div');
+  files.className = 'attachments-preview-files';
+
+  previewRoot.appendChild(grid);
+  previewRoot.appendChild(files);
+
+  this.wrapper.prepend(previewRoot);
+
+  this.previewRoot = previewRoot;
+  this.previewGrid = grid;
+  this.previewFiles = files;
+}
+
 
   private renderPreview() {
     this.revokeUrls();
