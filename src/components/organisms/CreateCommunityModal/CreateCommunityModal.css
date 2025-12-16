@@ -91,6 +91,7 @@
   padding: 4px 12px;
   font-size: 14px;
   outline: none;
+  color: var(--text-black);
 }
 
 .create-community-modal__input:focus {

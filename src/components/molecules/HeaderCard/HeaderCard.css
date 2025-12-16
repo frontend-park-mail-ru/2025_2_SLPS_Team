@@ -43,7 +43,8 @@
 
 .user-infromation {
     font-size: 20px;
-    font-weight: 600;   
+    font-weight: 600;
+    color: var(--text-black);   
 }
 
 @media (max-width: 768px) {

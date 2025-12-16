@@ -361,6 +361,7 @@
 
   font-size: 15px;
   outline: none;
+  color: var(--text-black);
 }
 
 .community-search-input::placeholder {

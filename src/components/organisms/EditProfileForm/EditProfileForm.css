@@ -153,6 +153,10 @@
     transition: transform 0.35s ease;
 }
 
+.edit-header__user-name {
+    color: var(--text-black);
+}
+
 @media (max-width: 768px) {
     .modal-container {
         transform: translateY(100%);

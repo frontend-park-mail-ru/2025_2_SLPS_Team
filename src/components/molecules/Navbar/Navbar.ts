@@ -3,6 +3,7 @@ import DropDown from '../../atoms/dropDown/dropDown';
 import { navigateTo } from '../../../index';
 import { authService } from '../../../services/AuthService';
 import { NavbarSearchModal } from '../../molecules/NavbarSearchModal/NavbarSearchModal';
+import { ToggleButton } from '../../atoms/ToggleButton/ToggleButton';
 
 export function renderNavbar(photo?: string | null): HTMLElement {
   const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
@@ -59,6 +60,13 @@ export function renderNavbar(photo?: string | null): HTMLElement {
   });
 
   profileActions.render();
+
+  const DropDownContainer = profileActionsConatiner.querySelector('.dropdown-menu') as HTMLElement;
+  const toggleWrapper = document.createElement('div');
+  toggleWrapper.className = 'dropdown-mode-devider';
+
+  DropDownContainer.appendChild(toggleWrapper);
+  new ToggleButton(DropDownContainer).render();
 
   button.addEventListener('click', (e) => {
     e.stopPropagation();

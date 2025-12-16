@@ -1,3 +1,4 @@
+import './helpers/svgHelper'
 import { App } from './app/App';
 import { navigateTo } from './app/router/navigateTo';
 

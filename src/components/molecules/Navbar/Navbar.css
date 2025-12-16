@@ -23,6 +23,7 @@
     border-radius: 8px;
     display: flex;
     align-items: center;
+    color: var(--text-black);
 }
 
 .navbar-input-container {
@@ -135,13 +136,8 @@
 }
 
 @media (max-width: 1400px) and (min-width: 769px) {
-    .navbar {
-        padding: 0 5%; /* уменьшаем отступы */
-        gap: 12px;
-    }
-
     .navbar-left {
-        width: 150px; /* уменьшаем блок с логотипом */
+        width: 150px;
     }
 
     .navbar-logo {
@@ -150,7 +146,7 @@
     }
 
     .navbar-center {
-        width: 400px; /* уменьшаем ширину поиска */
+        width: 400px;
     }
 
     .navbar-input {
