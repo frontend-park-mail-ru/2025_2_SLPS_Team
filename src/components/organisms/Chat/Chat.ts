@@ -11,7 +11,6 @@ import {
   updateChatReadState,
 } from '../../../shared/api/chatsApi';
 
-
 interface ChatUserView {
   id: number;
   full_name: string;
@@ -41,7 +40,6 @@ interface ChatOptions {
 
 type WsNewMessagePayload = any;
 
-
 const UPLOADS_BASE = `${process.env.API_BASE_URL}/uploads/`;
 
 function isRecord(v: unknown): v is Record<string, any> {
@@ -49,7 +47,7 @@ function isRecord(v: unknown): v is Record<string, any> {
 }
 
 function toAbsoluteAttachmentUrl(u: string): string {
-  const s = u.trim();
+  const s = (u ?? '').trim();
   if (!s) return s;
 
   if (s.startsWith('blob:')) return s;
@@ -111,8 +109,6 @@ function buildLocalAttachmentUrls(files: File[]) {
   };
 }
 
-/* ================== CHAT ================== */
-
 export class Chat {
   private rootElement: HTMLElement;
   private chatId: number;
@@ -131,7 +127,7 @@ export class Chat {
   private chatHeader!: ChatHeader;
 
   private attachmentsModal: MessageAttachmentsModal | null = null;
-  
+
   private lastReadMessageId: number | null = null;
   private wsService: any;
   private wsHandler: ((data: WsNewMessagePayload) => void) | null = null;
@@ -159,8 +155,6 @@ export class Chat {
       data.lastReadMessageId ?? (data as any).lastReadMessageID ?? null;
   }
 
-  /* ---------- RENDER ---------- */
-
   async render(): Promise<void> {
     await this.loadSocket();
 
@@ -173,9 +167,10 @@ export class Chat {
 
     this.messagesContainer = main.querySelector('.chat-messeges') as HTMLElement;
     const inputContainer = main.querySelector('.messege-input') as HTMLElement;
-    const headerContainer = main.querySelector('.chat-header-container') as HTMLElement;
+    const headerContainer = main.querySelector(
+      '.chat-header-container',
+    ) as HTMLElement;
 
-    /* HEADER */
     this.chatHeader = new ChatHeader(
       headerContainer,
       this.data.name ?? '',
@@ -185,7 +180,6 @@ export class Chat {
     );
     this.chatHeader.render();
 
-    /* INPUT */
     this.input = new MessageInput(inputContainer);
     this.input.render();
 
@@ -197,14 +191,13 @@ export class Chat {
       this.sendEvent(e);
     });
 
-    /* LOAD HISTORY */
     const raw = await getChatMessages(this.chatId, 1);
     const list = (raw as any).messages ?? (raw as any).Messages ?? [];
 
     this.messages = list.map((m: any) => ({
       id: m.id,
       text: m.text ?? '',
-      created_at: m.createdAt ?? new Date().toISOString(),
+      created_at: m.createdAt ?? m.created_at ?? new Date().toISOString(),
       attachments: normalizeAttachments(m.attachments),
       User: {
         id: m.authorID,
@@ -213,6 +206,11 @@ export class Chat {
       },
     }));
 
+    this.messages.sort(
+      (a, b) =>
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+    );
+
     this.messagesContainer.innerHTML = '';
     this.messages.forEach((m, i) => {
       new Message(
@@ -220,15 +218,13 @@ export class Chat {
         m as any,
         m.User.id === this.myUserId,
         i === this.messages.length - 1,
-        true,
+        false,
       ).render();
     });
 
-    this.scrollToBottom();
+    this.scrollToBottomSoon();
     this.initWS();
   }
-
-  /* ---------- SEND ---------- */
 
   private async sendEvent(e: Event): Promise<void> {
     e.preventDefault();
@@ -257,7 +253,7 @@ export class Chat {
     this.messages.push(optimistic);
 
     this.input.clear();
-    this.scrollToBottom();
+    this.scrollToBottomSoon();
 
     try {
       const resp: any = await sendChatMessage(this.chatId, text, files);
@@ -266,12 +262,13 @@ export class Chat {
       const final: ChatMessageView = {
         id: resp.id,
         text,
-        created_at: resp.createdAt ?? new Date().toISOString(),
+        created_at: resp.createdAt ?? resp.created_at ?? new Date().toISOString(),
         attachments: serverAttachments.length ? serverAttachments : local.urls,
         User: optimistic.User,
       };
 
       this.replaceMessage(optimisticId, final);
+      this.replaceMessageInState(optimisticId, final);
       local.revoke();
 
       this.lastReadMessageId = final.id;
@@ -283,8 +280,6 @@ export class Chat {
     }
   }
 
-  /* ---------- DOM ---------- */
-
   private replaceMessage(oldId: number, next: ChatMessageView) {
     const el = this.messagesContainer.querySelector(
       `[data-message-id="${oldId}"]`,
@@ -294,13 +289,26 @@ export class Chat {
     if (el && newEl) el.replaceWith(newEl);
   }
 
-  private scrollToBottom() {
-    this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+  private replaceMessageInState(oldId: number, next: ChatMessageView) {
+    const idx = this.messages.findIndex((m) => m.id === oldId);
+    if (idx >= 0) this.messages[idx] = next;
   }
 
-  /* ---------- WS ---------- */
+  private scrollToBottomSoon() {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+      });
+    });
+  }
 
   private initWS() {
+    if (this.wsHandler) {
+      try {
+        this.wsService.off?.('new_message', this.wsHandler);
+      } catch {}
+    }
+
     this.wsHandler = (data: any) => {
       const msg = data?.message;
       if (!msg || msg.chatID !== this.chatId) return;
@@ -309,7 +317,7 @@ export class Chat {
       const view: ChatMessageView = {
         id: msg.id,
         text: msg.text ?? '',
-        created_at: msg.createdAt ?? new Date().toISOString(),
+        created_at: msg.createdAt ?? msg.created_at ?? new Date().toISOString(),
         attachments: normalizeAttachments(msg.attachments),
         User: {
           id: msg.authorID,
@@ -320,7 +328,7 @@ export class Chat {
 
       this.messages.push(view);
       new Message(this.messagesContainer, view as any, false, true, true).render();
-      this.scrollToBottom();
+      this.scrollToBottomSoon();
     };
 
     this.wsService.on('new_message', this.wsHandler);
@@ -330,6 +338,7 @@ export class Chat {
     const mod = await import('services/WebSocketService');
     this.wsService = (mod as any).wsService;
   }
+
   public getChatId(): number {
     return this.chatId;
   }
