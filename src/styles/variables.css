@@ -12,3 +12,18 @@
     --base-green: #09C26F;
     --light-purple: #F6F0FF;
 }
+
+:root[data-theme="dark"] {
+    --base-background: #1E1E1E;
+    --base-white: #2A2A2A;
+    --light-border: #333333;
+    --text-black: #E6E6E6;
+    --dark-gray: #8B8B8B;
+    --accent-purple: #2B2438;
+    --base-purple: #9B7BFF;
+    --base-red: #FF5A5A;
+    --base-gray: #1E1E1E;
+    --light-gray: #2F2F2F;
+    --base-green: #3DDC97;
+    --light-purple: #2B2438;
+}
