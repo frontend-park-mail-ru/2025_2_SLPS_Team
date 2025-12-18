@@ -23,7 +23,7 @@
     align-items: center;
     background-color: var(--base-white);
     border-radius: 18px;
-    min-height: 300px;
+    min-height: 320px;
 }
 
 .reg-form-info{
@@ -32,6 +32,8 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    align-self: flex-start;
+    margin-top: 20px;
 }
 
 @media (max-width: 738px) {
@@ -44,6 +46,10 @@
         background: white;
         overflow-x: hidden;
         justify-content: flex-start;
+    }
+
+    :root[data-theme="dark"] .reg-page {
+        background: var(--base-white) !important;
     }
 
     #reg-form-container {

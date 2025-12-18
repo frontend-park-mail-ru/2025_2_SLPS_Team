@@ -12,6 +12,7 @@ import { navigateTo } from '../../app/router/navigateTo';
 
 import { NotificationManager } from '../../components/organisms/NotificationsBlock/NotificationsManager';
 import { ModalConfirm } from '../../components/molecules/ModalConfirm/ModalConfirm';
+import { isDarkTheme } from '../../helpers/InitTheme';
 
 import {
   getProfile,
@@ -150,8 +151,13 @@ export class ProfilePage extends BasePage {
     const headerRoot = this.wrapper?.querySelector<HTMLElement>('#profile-card');
     if (!headerRoot) return;
 
+    let headerImage = "/public/globalImages/backgroud.png";
+    if (isDarkTheme()) {
+      headerImage = "/public/globalImages/CancelIcon.svg"
+    }
+
     renderHeaderCard(headerRoot, {
-      coverPath: '/public/globalImages/backgroud.png',
+      coverPath: headerImage,
       avatarPath: data.user.avatarPath,
       title: data.user.fullName,
       subtitle: `${data.user.age} лет`,
