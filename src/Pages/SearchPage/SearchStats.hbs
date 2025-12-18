@@ -1,11 +1,13 @@
 <div class="friends-stats">
-  <button class="friends-stats__item friends-stats__item--active" data-type="users">
-    <span class="friends-stats__label">Пользователи</span>
-    <span class="friends-stats__count">{{usersCount}}</span>
+  <button class="friends-stats__item {{#if isAll}}friends-stats__item--active{{/if}}" data-type="all">
+    <span class="friends-stats__label">Все</span>
   </button>
 
-  <button class="friends-stats__item" data-type="communities">
+  <button class="friends-stats__item {{#if isUsers}}friends-stats__item--active{{/if}}" data-type="users">
+    <span class="friends-stats__label">Пользователи</span>
+  </button>
+
+  <button class="friends-stats__item {{#if isCommunities}}friends-stats__item--active{{/if}}" data-type="communities">
     <span class="friends-stats__label">Сообщества</span>
-    <span class="friends-stats__count">{{communitiesCount}}</span>
   </button>
 </div>

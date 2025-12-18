@@ -3,7 +3,8 @@ import Template from './SearchPage.hbs';
 import './SearchPage.css';
 
 import SearchStatsTemplate from './SearchStats.hbs';
-import '../../components/molecules/FriendsStats/FriendsStats.css'; 
+import '../FriendsStats/FriendsStats.css';
+import '../../components/organisms/NavbarSearchModal/NavbarSearchModal.css';
 
 import { navigateTo } from '../../app/router/navigateTo';
 
@@ -21,7 +22,7 @@ import {
 
 import type { ProfileDTO, FriendsSearchBackendType } from '../../shared/types/friends';
 
-type Tab = 'users' | 'communities';
+type Tab = 'all' | 'users' | 'communities';
 
 type CommunityLike = {
   id?: number;
@@ -36,38 +37,37 @@ type CommunityLike = {
 function debounce(fn: () => void, ms: number) {
   let t: number | null = null;
   return () => {
-    if (t != null) window.clearTimeout(t);
+    if (t !== null) window.clearTimeout(t);
     t = window.setTimeout(fn, ms);
   };
 }
 
-function uniqByKey<T>(items: T[], keyFn: (x: T) => number): T[] {
+function uniqById<T>(items: T[], getId: (x: T) => number): T[] {
   const seen = new Set<number>();
   const out: T[] = [];
   for (const x of items) {
-    const k = keyFn(x);
-    if (!k) continue;
-    if (seen.has(k)) continue;
-    seen.add(k);
+    const id = getId(x);
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
     out.push(x);
   }
   return out;
 }
 
 function getUserId(u: any): number {
-  return typeof u?.userID === 'number' ? u.userID : (typeof u?.id === 'number' ? u.id : 0);
+  return typeof u?.userID === 'number' ? u.userID : u?.id ?? 0;
 }
 
 function getUserName(u: any): string {
-  return (u?.fullName ?? u?.full_name ?? u?.login ?? '').toString() || 'Пользователь';
+  return u?.fullName ?? u?.full_name ?? u?.login ?? 'Пользователь';
 }
 
 function getCommunityId(c: any): number {
-  return typeof c?.id === 'number' ? c.id : (typeof c?.communityID === 'number' ? c.communityID : 0);
+  return typeof c?.id === 'number' ? c.id : c?.communityID ?? 0;
 }
 
 function getCommunityName(c: any): string {
-  return (c?.name ?? c?.groupName ?? '').toString() || 'Сообщество';
+  return c?.name ?? c?.groupName ?? 'Сообщество';
 }
 
 export default class SearchPage extends BasePage {
@@ -75,15 +75,11 @@ export default class SearchPage extends BasePage {
   private root!: HTMLElement;
 
   private input!: HTMLInputElement;
-
-  private statsRoot!: HTMLElement;
-  private usersBtn!: HTMLButtonElement;
-  private communitiesBtn!: HTMLButtonElement;
-
   private usersList!: HTMLElement;
   private communitiesList!: HTMLElement;
+  private statsRoot!: HTMLElement;
 
-  private tab: Tab = 'users';
+  private tab: Tab = 'all';
   private q = '';
 
   private allUsers: ProfileDTO[] | null = null;
@@ -98,28 +94,30 @@ export default class SearchPage extends BasePage {
     const tmp = document.createElement('div');
     tmp.innerHTML = Template({});
     this.root = tmp.firstElementChild as HTMLElement;
+
     this.wrapper.appendChild(this.root);
     this.rootElement.appendChild(this.wrapper);
 
     this.input = this.root.querySelector('.search-page__input') as HTMLInputElement;
     this.usersList = this.root.querySelector('.search-page__list--users') as HTMLElement;
     this.communitiesList = this.root.querySelector('.search-page__list--communities') as HTMLElement;
-
     this.statsRoot = this.root.querySelector('.search-stats') as HTMLElement;
 
     const qFromUrl = new URLSearchParams(window.location.search).get('q') ?? '';
     const qFromStorage = sessionStorage.getItem('globalSearchQuery') ?? '';
     this.q = (qFromUrl || qFromStorage).trim();
-
     this.input.value = this.q;
 
-    this.renderStats(0, 0);
+    this.renderStats();
 
-    this.usersBtn.addEventListener('click', () => this.setTab('users'));
-    this.communitiesBtn.addEventListener('click', () => this.setTab('communities'));
+    this.statsRoot.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest('.friends-stats__item') as HTMLButtonElement | null;
+      if (!btn) return;
+      this.setTab((btn.dataset.type as Tab) ?? 'all');
+    });
 
     const onInput = debounce(() => {
-      this.q = (this.input.value ?? '').trim();
+      this.q = this.input.value.trim();
       sessionStorage.setItem('globalSearchQuery', this.q);
       const url = this.q ? `/search?q=${encodeURIComponent(this.q)}` : '/search';
       window.history.replaceState({}, '', url);
@@ -128,29 +126,25 @@ export default class SearchPage extends BasePage {
 
     this.input.addEventListener('input', onInput);
 
-    this.setTab('users');
+    this.setTab('all');
     await this.loadAndRender();
   }
 
   private setTab(tab: Tab): void {
     this.tab = tab;
 
-    this.usersBtn.classList.toggle('friends-stats__item--active', tab === 'users');
-    this.communitiesBtn.classList.toggle('friends-stats__item--active', tab === 'communities');
+    this.usersList.style.display = tab === 'all' || tab === 'users' ? '' : 'none';
+    this.communitiesList.style.display = tab === 'all' || tab === 'communities' ? '' : 'none';
 
-    this.usersList.style.display = tab === 'users' ? '' : 'none';
-    this.communitiesList.style.display = tab === 'communities' ? '' : 'none';
+    this.renderStats();
   }
 
-  private renderStats(usersCount: number, communitiesCount: number): void {
+  private renderStats(): void {
     this.statsRoot.innerHTML = SearchStatsTemplate({
-      usersCount,
-      communitiesCount,
+      isAll: this.tab === 'all',
+      isUsers: this.tab === 'users',
+      isCommunities: this.tab === 'communities',
     });
-
-    const btns = Array.from(this.statsRoot.querySelectorAll('.friends-stats__item')) as HTMLButtonElement[];
-    this.usersBtn = btns.find((b) => b.dataset.type === 'users')!;
-    this.communitiesBtn = btns.find((b) => b.dataset.type === 'communities')!;
   }
 
   private clearLists(): void {
@@ -161,29 +155,24 @@ export default class SearchPage extends BasePage {
   private async loadAndRender(): Promise<void> {
     this.clearLists();
 
-    const q = this.q;
-
-    if (!q) {
+    if (!this.q) {
       const [users, communities] = await Promise.all([
         this.ensureAllUsers(),
         this.ensureAllCommunities(),
       ]);
-
-      this.renderStats(users.length, communities.length);
 
       this.renderUsers(users);
       this.renderCommunities(communities);
       return;
     }
 
-    const backendUsersType = ('all' as unknown) as FriendsSearchBackendType;
+    const type = ('all' as unknown) as FriendsSearchBackendType;
 
     const [usersFound, communitiesFound] = await Promise.all([
-      searchProfiles(q, backendUsersType).catch(() => [] as ProfileDTO[]),
-      searchCommunities<CommunityLike>({ name: q, type: 'all' }).catch(() => [] as CommunityLike[]),
+      searchProfiles(this.q, type).catch(() => [] as ProfileDTO[]),
+      searchCommunities<CommunityLike>({ name: this.q, type: 'all' }).catch(() => [] as CommunityLike[]),
     ]);
 
-    this.renderStats(usersFound.length, communitiesFound.length);
     this.renderUsers(usersFound);
     this.renderCommunities(communitiesFound);
   }
@@ -196,8 +185,7 @@ export default class SearchPage extends BasePage {
       getFriends().catch(() => [] as ProfileDTO[]),
     ]);
 
-    const merged = [...(possible ?? []), ...(friends ?? [])];
-    this.allUsers = uniqByKey(merged, (u: any) => getUserId(u));
+    this.allUsers = uniqById([...possible, ...friends], getUserId);
     return this.allUsers;
   }
 
@@ -209,12 +197,13 @@ export default class SearchPage extends BasePage {
       getMyCommunities<CommunityLike>().catch(() => [] as CommunityLike[]),
     ]);
 
-    const merged = [...(other ?? []), ...(mine ?? [])];
-    this.allCommunities = uniqByKey(merged, (c: any) => getCommunityId(c)) as CommunityLike[];
+    this.allCommunities = uniqById([...other, ...mine], getCommunityId);
     return this.allCommunities;
   }
 
   private renderUsers(items: ProfileDTO[]): void {
+    if (this.tab === 'communities') return;
+
     if (!items.length) {
       this.usersList.appendChild(this.makeEmpty('Пользователи не найдены'));
       return;
@@ -222,19 +211,18 @@ export default class SearchPage extends BasePage {
 
     for (const u of items as any[]) {
       const id = getUserId(u);
-      const name = getUserName(u);
-
-      const row = document.createElement('div');
-      row.className = 'friends-list__grid-item'; 
-      row.textContent = name;
-      row.style.cursor = 'pointer';
-
-      row.addEventListener('click', () => navigateTo(`/profile/${id}`));
+      const row = this.makeRow(
+        getUserName(u),
+        u.avatarPath ?? u.avatar ?? null,
+        () => navigateTo(`/profile/${id}`),
+      );
       this.usersList.appendChild(row);
     }
   }
 
   private renderCommunities(items: CommunityLike[]): void {
+    if (this.tab === 'users') return;
+
     if (!items.length) {
       this.communitiesList.appendChild(this.makeEmpty('Сообщества не найдены'));
       return;
@@ -242,16 +230,36 @@ export default class SearchPage extends BasePage {
 
     for (const c of items as any[]) {
       const id = getCommunityId(c);
-      const name = getCommunityName(c);
-
-      const row = document.createElement('div');
-      row.className = 'friends-list__grid-item';
-      row.textContent = name;
-      row.style.cursor = 'pointer';
-
-      row.addEventListener('click', () => navigateTo(`/community/${id}`));
+      const row = this.makeRow(
+        getCommunityName(c),
+        c.avatar ?? c.avatarPath ?? c.photo ?? null,
+        () => navigateTo(`/community/${id}`),
+      );
       this.communitiesList.appendChild(row);
     }
+  }
+
+  private makeRow(title: string, avatar: string | null, onClick: () => void): HTMLElement {
+    const row = document.createElement('div');
+    row.className = 'navbar-search-item';
+
+    const left = document.createElement('div');
+    left.className = 'navbar-search-item__left';
+
+    const img = document.createElement('img');
+    img.className = 'navbar-search-item__avatar';
+    img.src = avatar || '/public/globalImages/DefaultAvatar.svg';
+
+    const name = document.createElement('div');
+    name.className = 'navbar-search-item__name';
+    name.textContent = title;
+
+    left.appendChild(img);
+    left.appendChild(name);
+    row.appendChild(left);
+
+    row.addEventListener('click', onClick);
+    return row;
   }
 
   private makeEmpty(text: string): HTMLElement {

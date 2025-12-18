@@ -98,7 +98,7 @@ export class NavbarSearchModal {
       '.navbar-search-modal__list--communities',
     ) as HTMLElement | null;
 
-    this.showAllBtn = this.rootEl.querySelector('.navbar-search-modal__show-all') as HTMLElement | null;
+    this.showAllBtn = this.rootEl.querySelector('.navbar-search-modal__more') as HTMLElement | null;
 
     this.containerEl.appendChild(this.rootEl);
 
