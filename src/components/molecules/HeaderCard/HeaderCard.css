@@ -6,7 +6,14 @@
 .header-image {
     width: 100%;
     height: 180px;
-    object-fit: cover;
+    border-radius: 14px;
+    object-fit: contain;
+    background-image: var(--background-image);
+    background-size: contain;
+}
+
+:root[data-theme="dark"] .header-image {
+    background-size: unset;
 }
 
 .header-card__content {
