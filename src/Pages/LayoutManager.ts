@@ -243,6 +243,7 @@ export class LayoutManager {
   }
 
   public toggleMenu(): void {
+    console.log(this.menu);
     const sidebar = this.menu?.sidebarContainer;
     if (!sidebar) return;
     sidebar.classList.toggle('menu-hidden');

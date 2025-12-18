@@ -2,9 +2,9 @@ import Handlebars from 'handlebars/runtime';
 
 Handlebars.registerHelper('svg', function (src: string, options: any) {
     const className = options.hash.class ?? '';
-    console.log('SVG helper src:', src);
 
     let isSvg = false;
+
 
     const defaultAvatarPath = '/public/globalImages/DefaultAvatar.svg';
     if (src === defaultAvatarPath) {
