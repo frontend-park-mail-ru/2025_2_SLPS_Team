@@ -71,5 +71,9 @@ export function inlineExternalSVGs(root: HTMLElement | Document = document) {
   });
 }
 
-window.addEventListener('load', () => inlineExternalSVGs());
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => inlineExternalSVGs());
+} else {
+  inlineExternalSVGs();
+}
 
