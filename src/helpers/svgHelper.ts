@@ -2,8 +2,16 @@ import Handlebars from 'handlebars/runtime';
 
 Handlebars.registerHelper('svg', function (src: string, options: any) {
     const className = options.hash.class ?? '';
+    console.log(src);
 
-    const isSvg = src.trim().toLowerCase().endsWith('.svg');
+    let isSvg = false;
+
+    try {
+        const url = new URL(src, window.location.origin);
+        isSvg = url.pathname.toLowerCase().endsWith('.svg');
+    } catch {
+        isSvg = src.toLowerCase().endsWith('.svg');
+    }
 
     if (isSvg) {
         return new Handlebars.SafeString(`
@@ -11,11 +19,12 @@ Handlebars.registerHelper('svg', function (src: string, options: any) {
                 <use href="${src}"></use>
             </svg>
         `);
-    } else {
-        return new Handlebars.SafeString(`
-            <img src="${src}" class="${className}" alt="image" />
-        `);
     }
+
+    return new Handlebars.SafeString(`
+        <img src="${src}" class="${className}" alt="image" />
+    `);
 });
+
 
 export {};

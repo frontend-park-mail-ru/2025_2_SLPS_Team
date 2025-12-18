@@ -61,7 +61,7 @@
 }
 
 .friend-card__img use {
-    transform: scale(0.3);
+    transform: scale(0.5);
 }
 
 .friend-actions-container {
