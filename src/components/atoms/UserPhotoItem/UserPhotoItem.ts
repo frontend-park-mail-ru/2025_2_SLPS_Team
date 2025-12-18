@@ -12,10 +12,7 @@ export class UserPhotoItem {
 
     render(): void {
         const tempDiv = document.createElement('div');
-        const photoPath: string =
-            this.photoPath !== undefined && this.photoPath !== null && this.photoPath !== '' && this.photoPath !== 'null'
-                ? `${process.env.API_BASE_URL}/uploads/${this.photoPath}`
-                : '/public/globalImages/DefaultAvatar.svg';
+        const photoPath = this.getPhotoPath(this.photoPath);
 
         tempDiv.innerHTML = UserPhotoItemTemplate({ photoPath });
 
@@ -37,4 +34,10 @@ export class UserPhotoItem {
     makeOffline(): void {
         this.wrapper?.classList.remove('online');
     }
+
+    getPhotoPath(photoPath?: string | null): string {
+    if (!photoPath || photoPath === 'null') return '/public/globalImages/DefaultAvatar.svg';
+    if (photoPath.startsWith('/public/globalImages/')) return photoPath;
+    return `${process.env.API_BASE_URL}/uploads/${photoPath}`;
+}
 }
