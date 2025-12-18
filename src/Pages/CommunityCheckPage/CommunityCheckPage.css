@@ -64,6 +64,10 @@
   object-fit: cover;
 }
 
+.community-header-card__avatar use {
+  transform: scale(0.67);
+}
+
 .community-header-card__info {
   display: flex;
   flex-direction: column;

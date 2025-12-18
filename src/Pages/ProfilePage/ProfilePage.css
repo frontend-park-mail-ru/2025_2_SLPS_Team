@@ -53,9 +53,14 @@
     color: var(--avatar-color);
 }
 
+.profile-avatar use {
+    transform: scale(0.95);
+}
+
 .profile-header-content{
     display: flex;
-    gap: 14px
+    gap: 14px;
+    margin-top: 6px;
 }
 
 
