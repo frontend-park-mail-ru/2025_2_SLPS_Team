@@ -46,7 +46,7 @@
 .communities-list__name{
     font-family: inherit;
     font-size: 16px;
-    color: var(--base-black);
+    color: var(--text-black);
 }
 
 .communities-list__name__nosubs {

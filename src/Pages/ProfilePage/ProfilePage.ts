@@ -153,7 +153,7 @@ export class ProfilePage extends BasePage {
 
     let headerImage = "/public/globalImages/backgroud.png";
     if (isDarkTheme()) {
-      headerImage = "/public/globalImages/CancelIcon.svg"
+      headerImage = "/public/globalImages/DarkBackground.png"
     }
 
     renderHeaderCard(headerRoot, {
