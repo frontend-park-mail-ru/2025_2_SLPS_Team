@@ -2,15 +2,20 @@ import Handlebars from 'handlebars/runtime';
 
 Handlebars.registerHelper('svg', function (src: string, options: any) {
     const className = options.hash.class ?? '';
-    console.log(src);
+    console.log('SVG helper src:', src);
 
     let isSvg = false;
 
-    try {
-        const url = new URL(src, window.location.origin);
-        isSvg = url.pathname.toLowerCase().endsWith('.svg');
-    } catch {
-        isSvg = src.toLowerCase().endsWith('.svg');
+    const defaultAvatarPath = '/public/globalImages/DefaultAvatar.svg';
+    if (src === defaultAvatarPath) {
+        isSvg = true;
+    } else {
+        try {
+            const url = new URL(src, window.location.origin);
+            isSvg = url.pathname.toLowerCase().endsWith('.svg');
+        } catch {
+            isSvg = src.toLowerCase().endsWith('.svg');
+        }
     }
 
     if (isSvg) {
@@ -25,6 +30,5 @@ Handlebars.registerHelper('svg', function (src: string, options: any) {
         <img src="${src}" class="${className}" alt="image" />
     `);
 });
-
 
 export {};
