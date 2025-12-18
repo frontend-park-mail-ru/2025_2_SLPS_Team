@@ -12,7 +12,7 @@
     background-size: contain;
 }
 
-:root[data-theme="dark"] .header-image {
+:root[data-theme="light"] .header-image {
     background-size: unset;
 }
 
