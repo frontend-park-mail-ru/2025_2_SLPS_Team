@@ -3,6 +3,8 @@
     flex-direction: column;
     height: 100%;
     position: relative;
+    min-height: 0;
+    overflow: hidden;
 }
 
 
@@ -13,6 +15,7 @@
     padding: 10px;
     box-sizing: border-box;
     flex-direction: column;
+    min-height: 0;
 }
 
 
@@ -26,9 +29,9 @@
     scrollbar-width: none;
 }
 
-.messege-input{
-    height: fit-content;
-    padding: 0px 12px 12px 12px;
+.messege-input {
+    flex-shrink: 0;
+    padding: 0 12px 12px;
 }
 
 
