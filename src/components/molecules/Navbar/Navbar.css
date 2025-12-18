@@ -90,7 +90,7 @@
     color: var(--avatar-color);
 }
 
-.navbar-profile-photo {
+.navbar-profile-photo use {
     transform: scale(0.3);
 }
 
