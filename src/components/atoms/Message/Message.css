@@ -142,6 +142,6 @@
   align-items: flex-start;
 }
 
-.message-text:not(:has(:not(:empty))) {
-    height: 0;
+.message-text:empty {
+    display: none;
 }
