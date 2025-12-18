@@ -178,6 +178,12 @@
     border-radius: 16px 16px 0 0;
     transform: translateY(100%);
     transition: transform 0.35s ease;
+    height: 430px;
+    justify-content: flex-start;
+  }
+
+  .create-modal-container {
+    height: 100%;
   }
 
   .create-community-modal.open .create-community-modal__window {
