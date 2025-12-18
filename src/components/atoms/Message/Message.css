@@ -52,6 +52,7 @@
 
 .messege-info-container {
     display: flex;
+    margin-left: auto;
 }
 
 @keyframes messageLeft {
@@ -127,10 +128,11 @@
 }
 
 .message-attachment-img {
-  max-width: 240px;
-  max-height: 240px;
-  border-radius: 10px;
-  object-fit: cover;
+    max-width: 240px;
+    max-height: 240px;
+    border-radius: 10px;
+    object-fit: cover;
+    width: 100%;
 }
 
 .message-attachments-files {
@@ -138,4 +140,8 @@
   flex-direction: column;
   gap: 6px;
   align-items: flex-start;
+}
+
+.message-text:not(:has(:not(:empty))) {
+    height: 0;
 }
