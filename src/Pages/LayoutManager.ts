@@ -243,9 +243,11 @@ export class LayoutManager {
   }
 
   public toggleMenu(): void {
-    console.log(this.menu);
-    const sidebar = this.menu?.sidebarContainer;
+    if (!this.menu) return;
+
+    const sidebar = this.menu.querySelector('.sidebar-container');
     if (!sidebar) return;
+
     sidebar.classList.toggle('menu-hidden');
   }
 }
