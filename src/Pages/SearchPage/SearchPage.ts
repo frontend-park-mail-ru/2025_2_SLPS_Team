@@ -3,8 +3,8 @@ import Template from './SearchPage.hbs';
 import './SearchPage.css';
 
 import SearchStatsTemplate from './SearchStats.hbs';
-import '../FriendsStats/FriendsStats.css';
-import '../../components/organisms/NavbarSearchModal/NavbarSearchModal.css';
+import '../../components/molecules/FriendsStats/FriendsStats.css';
+import '../../components/molecules/NavbarSearchModal/NavbarSearchModal.css';
 
 import { navigateTo } from '../../app/router/navigateTo';
 
