@@ -7,13 +7,12 @@
     width: 100%;
     height: 180px;
     border-radius: 14px;
-    object-fit: contain;
     background-image: var(--background-image);
-    background-size: contain;
+    background-size: unset;
 }
 
-:root[data-theme="light"] .header-image {
-    background-size: unset;
+:root[data-theme="dark"] .header-image {
+    background-size: contain;
 }
 
 .header-card__content {
