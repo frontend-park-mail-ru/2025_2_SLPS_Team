@@ -12,6 +12,7 @@
     --base-green: #09C26F;
     --light-purple: #F6F0FF;
     --toogle-color: #714bb9;
+    --avatar-color: #EDEEF0;
 
     --background-image: url('/public/globalImages/backgroud.png');
 }
@@ -30,6 +31,7 @@
     --base-gray: #1E1E1E;
     --base-green: #3DDC97;
     --light-purple: #2B2438;
+    --avatar-color: #424750;
 
     --background-image: url('/public/globalImages/DarkBackground.png');
 }

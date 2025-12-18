@@ -4,7 +4,7 @@
   <div class="header-image"></div>
 
   <div class="profile-header-content">
-    <img class="profile-avatar" src="{{avatarPath}}">
+    {{{ svg avtarPath class="profile-avatar" }}}
 
     <div class="user-info-container">
       <div class="user-infromation">{{title}}</div>
@@ -43,12 +43,12 @@
 {{!-- Вариант для СООБЩЕСТВА --}}
 {{#if isCommunity}}
   <div class="community-header-card">
-    <div class="header-image"></div>
+    <img class="community-header-card__cover" src="{{coverPath}}">
 
     <div class="community-header-card__content">
       <div class="community-header-card__left">
         <div class="community-header-card__avatar-wrapper">
-          <img class="community-header-card__avatar" src="{{avatarPath}}">
+          {{{svg avatarPath class="community-header-card__avatar"}}}
         </div>
 
         <div class="community-header-card__info">
