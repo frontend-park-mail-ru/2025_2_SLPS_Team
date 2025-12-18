@@ -33,6 +33,8 @@ export class Message {
     const files: NormalizedFile[] = attachments
       .filter((u) => !this.isImageUrl(u))
       .map((u) => ({ name: this.extractName(u), url: u }));
+    
+    const hasAttachments = images.length > 0 || files.length > 0;
 
     const html = MessageTemplate({
       ...data,
@@ -42,7 +44,7 @@ export class Message {
       hasAttachments: images.length > 0 || files.length > 0,
       images,
       files,
-      isEmoji: this.isSingleEmoji(text),
+      isEmoji: this.isSingleEmoji(text, hasAttachments),
     });
 
     const wrapper = document.createElement('div');
@@ -50,6 +52,16 @@ export class Message {
 
     const el = wrapper.firstElementChild as HTMLElement | null;
     if (!el) return null;
+
+    const messageTextEl = el.querySelector<HTMLElement>('.message-text');
+
+    if (messageTextEl) {
+    const hasText = Boolean(text && text.trim().length > 0);
+
+    if (!hasText) {
+        messageTextEl.style.display = 'none';
+    }
+    }
 
     if (this.isLastInGroup) el.classList.add('last-in-group');
     if (!this.isMine) el.classList.add('last-not-mine');
@@ -136,12 +148,13 @@ export class Message {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
-  private isSingleEmoji(text: string): boolean {
+    private isSingleEmoji(text: string, hasAttachments: boolean): boolean {
+    if (hasAttachments) return false;
+
     const t = text.trim();
     if (!t) return false;
-    const matches = Array.from(t.matchAll(regex))
-      .map((m) => m[0])
-      .filter((x): x is string => typeof x === 'string');
+
+    const matches = Array.from(t.matchAll(regex)).map(m => m[0]);
     return matches.length === 1 && matches[0] === t;
-  }
+    }
 }
