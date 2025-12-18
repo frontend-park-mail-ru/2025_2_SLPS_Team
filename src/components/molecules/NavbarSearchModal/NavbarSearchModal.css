@@ -12,7 +12,6 @@
     overflow: hidden;
     z-index: 2500;
 }
-
 .navbar-search-modal--open {
     display: block;
 }
@@ -35,6 +34,7 @@
 
 .navbar-search-modal__list {
     display: flex;
+    color: var(--text-black);
     flex-direction: column;
     gap: 8px;
 }

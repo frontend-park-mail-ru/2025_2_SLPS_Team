@@ -3,7 +3,6 @@ import FriendsPageTemplate from './FriendsPage.hbs';
 
 import { renderFriendsStats } from '../../components/molecules/FriendsStats/FriendsStats';
 import { renderFriendsList } from '../../components/organisms/FriendsList/FriendsList';
-import { ApplicationModal } from '../../components/organisms/ApplicationModal/ApplicationModal';
 import { NotificationManager } from '../../components/organisms/NotificationsBlock/NotificationsManager';
 
 import './FriendsPage.css';
