@@ -46,12 +46,17 @@
     overflow: hidden; 
     flex-shrink: 0;  
     cursor: pointer; 
+    color: var(--avatar-color);
 }
 
 .community-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+.community-avatar use {
+    transform: scale(0.3);
 }
 
 .community-name {

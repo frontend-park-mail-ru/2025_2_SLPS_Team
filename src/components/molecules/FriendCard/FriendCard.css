@@ -57,6 +57,11 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    color: var(--avatar-color);
+}
+
+.friend-card__img use {
+    transform: scale(0.3);
 }
 
 .friend-actions-container {

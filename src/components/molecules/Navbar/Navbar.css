@@ -82,11 +82,16 @@
 }
 
 
-.navbar-profile-photo{
+.navbar-profile-photo {
     height: 45px;
     width: 45px;
     border: none;
     border-radius: 40px;
+    color: var(--avatar-color);
+}
+
+.navbar-profile-photo {
+    transform: scale(0.3);
 }
 
 .dropdown-button{

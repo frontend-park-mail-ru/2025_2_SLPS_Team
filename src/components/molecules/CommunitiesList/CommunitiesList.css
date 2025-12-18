@@ -41,6 +41,11 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
+    color: var(--avatar-color);
+}
+
+.communities-list__avatar use{
+    transform: scale(0.3);
 }
 
 .communities-list__name{
