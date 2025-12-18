@@ -63,7 +63,7 @@
 @media (max-width: 768px) {
   .messenger-page {
     position: relative;
-    height: 100dvh;
+    height: 100svh;
     overflow: hidden;
   }
 
