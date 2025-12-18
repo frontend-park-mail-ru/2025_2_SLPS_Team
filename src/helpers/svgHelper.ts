@@ -34,38 +34,42 @@ Handlebars.registerHelper('svg', function (src: string, options: any) {
 export {};
 
 
-function fixExternalSVGForMobile() {
-  if (window.innerWidth > 768) return;
-
-  const svgUses = document.querySelectorAll<SVGUseElement>('svg use');
+// svgHelper.ts
+export function inlineExternalSVGs(root: HTMLElement | Document = document) {
+  const svgUses = root.querySelectorAll<SVGUseElement>('svg use');
 
   svgUses.forEach(async (use) => {
     const href = use.getAttribute('href');
     if (!href) return;
+    if (href.startsWith('#')) return;
 
-    if (!href.startsWith('#')) {
-      try {
-        const res = await fetch(href);
-        const text = await res.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(text, 'image/svg+xml');
-        const svg = doc.querySelector('svg');
-        if (!svg) return;
+    try {
+      const res = await fetch(href);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const svgText = await res.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(svgText, 'image/svg+xml');
+      const svg = doc.querySelector('svg');
+      if (!svg) return;
 
-        const parent = use.parentElement as unknown as SVGSVGElement;
-        if (!parent) return;
+      const parent = use.parentElement;
+      if (!parent) return;
 
-        parent.innerHTML = '';
-        Array.from(svg.childNodes).forEach((child) => {
-          parent.appendChild(child.cloneNode(true));
-        });
-      } catch (e) {
-        console.warn('Не удалось подгрузить SVG:', href, e);
-      }
+      parent.innerHTML = '';
+      Array.from(svg.childNodes).forEach((child) => {
+        parent.appendChild(child.cloneNode(true));
+      });
+
+      const className = parent.getAttribute('class') ?? '';
+      parent.setAttribute('class', className);
+      parent.removeAttribute('width');
+      parent.removeAttribute('height');
+
+    } catch (err) {
+      console.warn('Не удалось загрузить SVG:', href, err);
     }
   });
 }
 
-window.addEventListener('load', fixExternalSVGForMobile);
-window.addEventListener('resize', fixExternalSVGForMobile);
+window.addEventListener('load', () => inlineExternalSVGs());
 
