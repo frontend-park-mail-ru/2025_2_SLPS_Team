@@ -57,6 +57,10 @@
     .user-infromation {
         font-family: 'Nunito Sans';
         font-size: 16px;
-        color: var(--base-black);
+        color: var(--text-black);
+    }
+
+    .profile-avatar use {
+        transform: scale(0.7);
     }
 }
