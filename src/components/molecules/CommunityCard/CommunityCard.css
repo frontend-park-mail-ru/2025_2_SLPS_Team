@@ -21,6 +21,7 @@
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
+  color: var(--avatar-color);
 }
 
 .community-card__img {

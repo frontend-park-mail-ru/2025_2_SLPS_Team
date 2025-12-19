@@ -392,7 +392,7 @@
 }
 
 .community-tab--active {
-  background: #f4ecff;
+  background: var(--switcher-background);
   border-radius: 8px;
   color: var(--text-black);
   font-weight: 400;
@@ -473,7 +473,7 @@
 
 .community-created__name {
   font-size: 14px;
-  color: #161616;
+  color: var(--text-black);
   text-align: left;
 }
 

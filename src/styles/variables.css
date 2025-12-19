@@ -13,6 +13,7 @@
     --light-purple: #F6F0FF;
     --toogle-color: #714bb9;
     --avatar-color: #EDEEF0;
+    --switcher-background: #f4ecff;
 
     --background-image: url('/public/globalImages/backgroud.png');
 }
@@ -32,6 +33,7 @@
     --base-green: #3DDC97;
     --light-purple: #2B2438;
     --avatar-color: #424750;
+    --switcher-background: #3d2f59;
 
     --background-image: url('/public/globalImages/DarkBackground.png');
 }
