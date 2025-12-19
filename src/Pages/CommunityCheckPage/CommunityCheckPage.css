@@ -455,6 +455,7 @@
   border: none;
   background: transparent;
   cursor: pointer;
+  height: 40px;
 }
 
 .community-created__avatar {
@@ -466,8 +467,7 @@
 }
 
 .community-created__img {
-  width: 100%;
-  height: 100%;
+  width: fit-content;
   object-fit: cover;
 }
 
