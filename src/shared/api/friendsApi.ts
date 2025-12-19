@@ -50,6 +50,9 @@ export function deleteFriend(userId: number): Promise<Response> {
 export function acceptFriend(userId: number): Promise<Response> {
   return apiRaw(`/api/friends/${userId}/accept`, { method: 'PUT' });
 }
+export async function rejectFriendRequest(id: number) {
+  return apiRaw(`/friends/${id}/reject`, { method: 'PUT' });
+}
 
 export function sendFriendRequest(userId: number): Promise<Response> {
   return apiRaw(`/api/friends/${userId}`, { method: 'POST' });

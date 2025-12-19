@@ -14,6 +14,8 @@ import {
   searchProfiles,
   sendFriendRequest,
   deleteFriend,
+  acceptFriend,
+  rejectFriendRequest,
 } from '../../shared/api/friendsApi';
 
 import {
@@ -23,21 +25,25 @@ import {
   toggleCommunitySubscription,
 } from '../../shared/api/communityApi';
 
+import { API_BASE_URL } from '../../shared/api/client';
+import { renderCommunityCard } from '../../components/molecules/CommunityCard/CommunityCard';
+
 import type { ProfileDTO, FriendsSearchBackendType } from '../../shared/types/friends';
 
 type Tab = 'all' | 'users' | 'communities';
+type FriendStatus = 'accepted' | 'pending' | 'sent' | 'notFriends';
 
-type CommunityLike = {
-  id?: number;
-  communityID?: number;
-  name?: string;
-  groupName?: string;
-  avatar?: string | null;
+type CommunityDTO = {
+  id: number;
+  name: string;
+  description: string;
   avatarPath?: string | null;
-  photo?: string | null;
+  subscribersCount?: number;
   isSubscribed?: boolean;
   subscriptionType?: string;
 };
+
+type UserView = ProfileDTO & { __friendStatus?: FriendStatus };
 
 function debounce(fn: () => void, ms: number) {
   let t: number | null = null;
@@ -67,25 +73,40 @@ function getUserName(u: any): string {
   return u?.fullName ?? u?.full_name ?? u?.login ?? 'Пользователь';
 }
 
-function getCommunityId(c: any): number {
-  return typeof c?.id === 'number' ? c.id : c?.communityID ?? 0;
+function isFriendStatus(v: any): v is FriendStatus {
+  return v === 'accepted' || v === 'pending' || v === 'sent' || v === 'notFriends';
 }
 
-function getCommunityName(c: any): string {
-  return c?.name ?? c?.groupName ?? 'Сообщество';
-}
-
-function isCommunitySubscribed(c: any): boolean {
-  return c?.isSubscribed === true || c?.subscriptionType === 'subscriber';
-}
-
-type FriendStatus = 'accepted' | 'pending' | 'sent' | 'notFriends';
-
-function statusPriority(s: FriendStatus): number {
+function priority(s: FriendStatus): number {
   if (s === 'accepted') return 4;
   if (s === 'pending') return 3;
   if (s === 'sent') return 2;
   return 1;
+}
+
+function uploadsUrl(path?: string | null): string {
+  if (!path || path === 'null') return '/public/globalImages/DefaultAvatar.svg';
+  const s = String(path).trim();
+  if (!s) return '/public/globalImages/DefaultAvatar.svg';
+  if (s.startsWith('http://') || s.startsWith('https://')) return s;
+
+  const origin = API_BASE_URL.replace(/\/api$/i, '');
+
+  if (s.startsWith('/api/uploads/')) return `${origin}${s}`;
+  if (s.startsWith('api/uploads/')) return `${API_BASE_URL}/${s.replace(/^api\//, '')}`;
+  if (s.startsWith('/uploads/')) return `${API_BASE_URL}${s}`;
+  if (s.startsWith('uploads/')) return `${API_BASE_URL}/${s}`;
+  if (s.includes('/')) return `${origin}/${s.replace(/^\//, '')}`;
+
+  return `${API_BASE_URL}/uploads/${s}`;
+}
+
+function userAvatar(u: any): string {
+  return uploadsUrl(u?.avatarPath ?? u?.avatar ?? null);
+}
+
+function communitySubscribed(c: CommunityDTO): boolean {
+  return c.isSubscribed === true || c.subscriptionType === 'subscriber';
 }
 
 export default class SearchPage extends BasePage {
@@ -103,8 +124,8 @@ export default class SearchPage extends BasePage {
   private tab: Tab = 'all';
   private q = '';
 
-  private allUsers: ProfileDTO[] | null = null;
-  private allCommunities: CommunityLike[] | null = null;
+  private cachedUsers: UserView[] | null = null;
+  private cachedCommunities: CommunityDTO[] | null = null;
 
   async render(): Promise<void> {
     document.getElementById('page-wrapper')?.remove();
@@ -156,10 +177,8 @@ export default class SearchPage extends BasePage {
 
   private setTab(tab: Tab): void {
     this.tab = tab;
-
     this.usersSection.style.display = tab === 'communities' ? 'none' : '';
     this.communitiesSection.style.display = tab === 'users' ? 'none' : '';
-
     this.renderStats();
   }
 
@@ -176,123 +195,97 @@ export default class SearchPage extends BasePage {
     this.communitiesList.innerHTML = '';
   }
 
-  private avatarUrl(path: string | null | undefined): string {
-    if (!path || path === 'null') return '/public/globalImages/DefaultAvatar.svg';
-    const s = String(path).trim();
-    if (!s) return '/public/globalImages/DefaultAvatar.svg';
-    if (s.startsWith('http://') || s.startsWith('https://')) return s;
-
-    const apiBase = (process.env.API_BASE_URL ?? '').replace(/\/$/, '');
-    const origin = apiBase.replace(/\/api$/i, '');
-
-    if (s.startsWith('api/uploads/')) {
-      return `${apiBase}/${s.replace(/^api\//, '')}`;
-    }
-
-    if (s.startsWith('/api/uploads/')) {
-      return `${origin}${s}`;
-    }
-
-    if (s.startsWith('/uploads/')) {
-      return `${apiBase}${s}`;
-    }
-    if (s.startsWith('uploads/')) {
-      return `${apiBase}/${s}`;
-    }
-
-    if (s.startsWith('/')) return `${origin}${s}`;
-    return `${origin}/${s}`;
-  }
-
   private async loadAndRender(): Promise<void> {
     this.clearLists();
 
     if (!this.q) {
-      const [users, communities] = await Promise.all([
-        this.ensureAllUsers(),
-        this.ensureAllCommunities(),
-      ]);
-
+      const [users, communities] = await Promise.all([this.ensureUsers(), this.ensureCommunities()]);
       this.renderUsers(users);
       this.renderCommunities(communities);
       return;
     }
 
     const [usersFound, communitiesFound] = await Promise.all([
-      this.searchUsersAllTypes(this.q).catch(() => [] as any[]),
-      this.searchCommunitiesSafe(this.q).catch(() => [] as CommunityLike[]),
+      this.searchUsersAllStatuses(this.q).catch(() => [] as UserView[]),
+      this.searchCommunitiesSafe(this.q).catch(() => [] as CommunityDTO[]),
     ]);
 
-    this.renderUsers(usersFound as any);
+    this.renderUsers(usersFound);
     this.renderCommunities(communitiesFound);
   }
 
-  private async searchUsersAllTypes(q: string): Promise<any[]> {
-    const types: FriendStatus[] = ['accepted', 'pending', 'sent', 'notFriends'];
+  private async ensureUsers(): Promise<UserView[]> {
+    if (this.cachedUsers) return this.cachedUsers;
+
+    const [friends, possible] = await Promise.all([
+      getFriends().catch(() => [] as ProfileDTO[]),
+      getPossibleFriends().catch(() => [] as ProfileDTO[]),
+    ]);
+
+    const mappedFriends = friends.map((u) => ({ ...(u as any), __friendStatus: 'accepted' as FriendStatus }));
+    const mappedPossible = possible.map((u) => ({ ...(u as any), __friendStatus: 'notFriends' as FriendStatus }));
+
+    this.cachedUsers = uniqById([...mappedFriends, ...mappedPossible], getUserId);
+    return this.cachedUsers;
+  }
+
+  private async ensureCommunities(): Promise<CommunityDTO[]> {
+    if (this.cachedCommunities) return this.cachedCommunities;
+
+    const [mine, other] = await Promise.all([
+      getMyCommunities<CommunityDTO>().catch(() => [] as CommunityDTO[]),
+      getOtherCommunities<CommunityDTO>().catch(() => [] as CommunityDTO[]),
+    ]);
+
+    this.cachedCommunities = uniqById([...mine, ...other], (c) => c.id);
+    return this.cachedCommunities;
+  }
+
+  private async searchUsersAllStatuses(q: string): Promise<UserView[]> {
+    const statuses: FriendStatus[] = ['accepted', 'pending', 'sent', 'notFriends'];
 
     const parts = await Promise.all(
-      types.map(async (t) => {
-        const data = await searchProfiles(q, t as unknown as FriendsSearchBackendType, 1, 20).catch(() => []);
-        return (data as any[]).map((u) => ({ ...u, __friendStatus: t as FriendStatus }));
+      statuses.map(async (s) => {
+        const data = await searchProfiles(q, s as unknown as FriendsSearchBackendType, 1, 20).catch(
+          () => [] as ProfileDTO[],
+        );
+        return data.map((u) => ({ ...(u as any), __friendStatus: s }));
       }),
     );
 
     const merged = parts.flat();
+    const byId = new Map<number, UserView>();
 
-    const byId = new Map<number, any>();
     for (const u of merged) {
       const id = getUserId(u);
       if (!id) continue;
+      const st = isFriendStatus((u as any).__friendStatus) ? (u as any).__friendStatus : 'notFriends';
       const prev = byId.get(id);
       if (!prev) {
         byId.set(id, u);
-      } else {
-        const a = prev.__friendStatus as FriendStatus;
-        const b = u.__friendStatus as FriendStatus;
-        if (statusPriority(b) > statusPriority(a)) byId.set(id, u);
+        continue;
       }
+      const prevSt = isFriendStatus((prev as any).__friendStatus) ? (prev as any).__friendStatus : 'notFriends';
+      if (priority(st) > priority(prevSt)) byId.set(id, u);
     }
+
     return Array.from(byId.values());
   }
 
-  private async searchCommunitiesSafe(q: string): Promise<CommunityLike[]> {
+  private async searchCommunitiesSafe(q: string): Promise<CommunityDTO[]> {
     try {
-      const data = await searchCommunities<CommunityLike>({ name: q, page: 1, limit: 20 } as any);
-      return Array.isArray(data) ? uniqById(data, getCommunityId) : [];
+      const data = await searchCommunities<CommunityDTO>({ name: q, page: 1, limit: 20 } as any);
+      return Array.isArray(data) ? uniqById(data, (c) => c.id) : [];
     } catch {
       const [sub, rec] = await Promise.all([
-        searchCommunities<CommunityLike>({ name: q, type: 'subscriber', page: 1, limit: 20 }).catch(() => []),
-        searchCommunities<CommunityLike>({ name: q, type: 'recommended', page: 1, limit: 20 }).catch(() => []),
+        searchCommunities<CommunityDTO>({ name: q, type: 'subscriber', page: 1, limit: 20 }).catch(() => []),
+        searchCommunities<CommunityDTO>({ name: q, type: 'recommended', page: 1, limit: 20 }).catch(() => []),
       ]);
-      return uniqById([...sub, ...rec], getCommunityId);
+      return uniqById([...sub, ...rec], (c) => c.id);
     }
   }
 
-  private async ensureAllUsers(): Promise<ProfileDTO[]> {
-    if (this.allUsers) return this.allUsers;
-
-    const [possible, friends] = await Promise.all([
-      getPossibleFriends().catch(() => [] as ProfileDTO[]),
-      getFriends().catch(() => [] as ProfileDTO[]),
-    ]);
-
-    this.allUsers = uniqById([...possible, ...friends], getUserId);
-    return this.allUsers;
-  }
-
-  private async ensureAllCommunities(): Promise<CommunityLike[]> {
-    if (this.allCommunities) return this.allCommunities;
-
-    const [other, mine] = await Promise.all([
-      getOtherCommunities<CommunityLike>().catch(() => [] as CommunityLike[]),
-      getMyCommunities<CommunityLike>().catch(() => [] as CommunityLike[]),
-    ]);
-
-    this.allCommunities = uniqById([...other, ...mine], getCommunityId);
-    return this.allCommunities;
-  }
-
-  private renderUsers(items: any[]): void {
+  private renderUsers(items: UserView[]): void {
     if (this.tab === 'communities') return;
 
     if (!items.length) {
@@ -300,32 +293,17 @@ export default class SearchPage extends BasePage {
       return;
     }
 
-    for (const u of items) {
+    const frag = document.createDocumentFragment();
+    for (const u of items as any[]) {
       const id = getUserId(u);
-      const status: FriendStatus = (u.__friendStatus ?? 'notFriends') as FriendStatus;
-
-      const row = this.makeUserRow(
-        getUserName(u),
-        u.avatarPath ?? u.avatar ?? null,
-        status,
-        () => navigateTo(`/profile/${id}`),
-        async () => {
-          sessionStorage.setItem('openChatUserId', String(id));
-          navigateTo('/chats');
-        },
-        async () => {
-          await sendFriendRequest(id);
-        },
-        async () => {
-          await deleteFriend(id); 
-        },
-      );
-
-      this.usersList.appendChild(row);
+      const name = getUserName(u);
+      const status: FriendStatus = isFriendStatus(u.__friendStatus) ? u.__friendStatus : 'notFriends';
+      frag.appendChild(this.renderUserRow(id, name, userAvatar(u), status));
     }
+    this.usersList.appendChild(frag);
   }
 
-  private renderCommunities(items: CommunityLike[]): void {
+  private renderCommunities(items: CommunityDTO[]): void {
     if (this.tab === 'users') return;
 
     if (!items.length) {
@@ -333,35 +311,38 @@ export default class SearchPage extends BasePage {
       return;
     }
 
-    for (const c of items as any[]) {
-      const id = getCommunityId(c);
-
-      const row = this.makeCommunityRow(
-        getCommunityName(c),
-        c.avatar ?? c.avatarPath ?? c.photo ?? null,
-        isCommunitySubscribed(c),
-        () => navigateTo(`/community/${id}`),
-        async (subscribed) => {
-          const res = await toggleCommunitySubscription(id, subscribed);
-          c.isSubscribed = res.isSubscribed;
-          c.subscriptionType = res.isSubscribed ? 'subscriber' : 'recommended';
-          return res.isSubscribed;
-        },
-      );
-
-      this.communitiesList.appendChild(row);
+    const frag = document.createDocumentFragment();
+    for (const c of items) {
+      const card = renderCommunityCard({
+        id: c.id,
+        name: c.name,
+        description: c.description,
+        subscribers: String(c.subscribersCount ?? 0),
+        avatarPath: uploadsUrl(c.avatarPath ?? null),
+        isSubscribed: communitySubscribed(c),
+        onToggleSubscribe: (id: string | number) => void this.onToggleSubscribe(Number(id), c),
+        onClick: (id: string | number) => navigateTo(`/community/${Number(id)}`),
+      });
+      if (card) frag.appendChild(card);
     }
+    this.communitiesList.appendChild(frag);
   }
 
-  private makeUserRow(
-    title: string,
-    avatar: string | null,
-    status: FriendStatus,
-    onClick: () => void,
-    onMessage: () => Promise<void>,
-    onAdd: () => Promise<void>,
-    onCancelOrRemove: () => Promise<void>,
-  ): HTMLElement {
+  private async onToggleSubscribe(id: number, model: CommunityDTO): Promise<void> {
+    const prev = communitySubscribed(model);
+    model.isSubscribed = !prev;
+    try {
+      const res = await toggleCommunitySubscription(id, prev);
+      model.isSubscribed = res.isSubscribed;
+      model.subscriptionType = res.isSubscribed ? 'subscriber' : 'recommended';
+    } catch {
+      model.isSubscribed = prev;
+      model.subscriptionType = prev ? 'subscriber' : 'recommended';
+    }
+    await this.loadAndRender();
+  }
+
+  private renderUserRow(id: number, name: string, avatar: string, status: FriendStatus): HTMLElement {
     const row = document.createElement('div');
     row.className = 'navbar-search-item';
 
@@ -370,15 +351,15 @@ export default class SearchPage extends BasePage {
 
     const img = document.createElement('img');
     img.className = 'navbar-search-item__avatar';
-    img.src = this.avatarUrl(avatar);
-    img.alt = title;
+    img.src = avatar;
+    img.alt = name;
 
-    const name = document.createElement('div');
-    name.className = 'navbar-search-item__name';
-    name.textContent = title;
+    const title = document.createElement('div');
+    title.className = 'navbar-search-item__name';
+    title.textContent = name;
 
     left.appendChild(img);
-    left.appendChild(name);
+    left.appendChild(title);
 
     const actions = document.createElement('div');
     actions.className = 'navbar-search-item__actions';
@@ -393,9 +374,10 @@ export default class SearchPage extends BasePage {
 
     if (status === 'accepted') {
       const msg = mkBtn('Сообщение');
-      msg.addEventListener('click', async (e) => {
+      msg.addEventListener('click', (e) => {
         e.stopPropagation();
-        await onMessage();
+        sessionStorage.setItem('openChatUserId', String(id));
+        navigateTo('/chats');
       });
 
       const fr = mkBtn('В друзьях', true);
@@ -407,25 +389,48 @@ export default class SearchPage extends BasePage {
         e.stopPropagation();
         cancel.disabled = true;
         try {
-          await onCancelOrRemove();
-          cancel.textContent = 'Отменено';
-          cancel.classList.add('navbar-search-item__action--muted');
+          await deleteFriend(id);
+          await this.loadAndRender();
         } finally {
           cancel.disabled = false;
         }
       });
       actions.appendChild(cancel);
     } else if (status === 'pending') {
-      actions.appendChild(mkBtn('Ожидает вас', true));
+      const accept = mkBtn('Принять');
+      accept.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        accept.disabled = true;
+        try {
+          await acceptFriend(id);
+          await this.loadAndRender();
+        } finally {
+          accept.disabled = false;
+        }
+      });
+
+      const reject = mkBtn('Отклонить');
+      reject.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        reject.disabled = true;
+        try {
+          await rejectFriendRequest(id);
+          await this.loadAndRender();
+        } finally {
+          reject.disabled = false;
+        }
+      });
+
+      actions.appendChild(accept);
+      actions.appendChild(reject);
     } else {
       const add = mkBtn('Добавить');
       add.addEventListener('click', async (e) => {
         e.stopPropagation();
         add.disabled = true;
         try {
-          await onAdd();
-          add.textContent = 'Заявка отправлена';
-          add.classList.add('navbar-search-item__action--muted');
+          await sendFriendRequest(id);
+          await this.loadAndRender();
         } finally {
           add.disabled = false;
         }
@@ -435,67 +440,15 @@ export default class SearchPage extends BasePage {
 
     row.appendChild(left);
     row.appendChild(actions);
-    row.addEventListener('click', onClick);
-    return row;
-  }
 
-  private makeCommunityRow(
-    title: string,
-    avatar: string | null,
-    subscribed: boolean,
-    onClick: () => void,
-    onToggle: (isSubscribed: boolean) => Promise<boolean>,
-  ): HTMLElement {
-    const row = document.createElement('div');
-    row.className = 'navbar-search-item';
-
-    const left = document.createElement('div');
-    left.className = 'navbar-search-item__left';
-
-    const img = document.createElement('img');
-    img.className = 'navbar-search-item__avatar';
-    img.src = this.avatarUrl(avatar);
-    img.alt = title;
-
-    const name = document.createElement('div');
-    name.className = 'navbar-search-item__name';
-    name.textContent = title;
-
-    left.appendChild(img);
-    left.appendChild(name);
-
-    const actions = document.createElement('div');
-    actions.className = 'navbar-search-item__actions';
-
-    const btn = document.createElement('button');
-    btn.className = 'navbar-search-item__action';
-    btn.textContent = subscribed ? 'Отписаться' : 'Подписаться';
-
-    btn.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      btn.disabled = true;
-      try {
-        const now = await onToggle(subscribed);
-        subscribed = now;
-        btn.textContent = now ? 'Отписаться' : 'Подписаться';
-      } finally {
-        btn.disabled = false;
-      }
-    });
-
-    actions.appendChild(btn);
-
-    row.appendChild(left);
-    row.appendChild(actions);
-    row.addEventListener('click', onClick);
+    row.addEventListener('click', () => navigateTo(`/profile/${id}`));
     return row;
   }
 
   private makeEmpty(text: string): HTMLElement {
     const el = document.createElement('div');
     el.textContent = text;
-    el.style.opacity = '0.75';
-    el.style.padding = '6px 0';
+    el.style.opacity = '0.7';
     return el;
   }
 }
