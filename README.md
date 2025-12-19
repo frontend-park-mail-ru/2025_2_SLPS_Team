@@ -19,7 +19,6 @@
 
 [Титова Мария](https://t.me/MarinaTitova1) - _UX_
 
-
 ### Ссылки
 
 [Репозиторий бэкенда](https://github.com/go-park-mail-ru/2025_2_SLPS_Team)
@@ -31,4 +30,5 @@
 ## Сборка и запус
 ```npm run build```
 
-```node server.mjs```
+## Запуск api-server
+```node api-server.mjs```
