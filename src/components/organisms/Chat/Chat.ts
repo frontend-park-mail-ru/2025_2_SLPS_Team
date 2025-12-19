@@ -226,7 +226,9 @@ export class Chat {
 
     this.input = new MessageInput(inputContainer);
     this.input.render();
-
+    this.input.onStickerSelect = (stickerId: number) => {
+      void this.sendSticker(stickerId);
+    };
     this.input.textarea.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) this.sendEvent(e);
     });
@@ -283,6 +285,65 @@ export class Chat {
     this.messagesContainer.addEventListener('scroll', this.onScrollBound, { passive: true });
     this.initWS();
   }
+
+  private async sendSticker(stickerId: number): Promise<void> {
+    this.input.clear();
+
+    const optimisticId = -Date.now();
+
+    const optimistic: ChatMessageView = {
+      id: optimisticId,
+      text: '',
+      created_at: new Date().toISOString(),
+      attachments: [],
+      User: {
+        id: this.myUserId,
+        full_name: this.myUserName,
+        avatar: this.myUserAvatar,
+      },
+    };
+
+    new Message(this.messagesContainer, optimistic as any, true, true, true).render();
+    this.messages.push(optimistic);
+    this.scrollToBottomSoon();
+
+    try {
+      const resp: any = await sendChatMessage(
+        this.chatId,
+        '',
+        [],
+        stickerId,
+      );
+
+      const stickerPath =
+        resp?.sticker?.filePath ??
+        resp?.stickerPath ??
+        '';
+
+      const stickerUrl = stickerPath
+        ? toAbsoluteAttachmentUrl(stickerPath)
+        : '';
+
+      const final: ChatMessageView = {
+        id: resp.id,
+        text: '',
+        created_at: resp.createdAt ?? resp.created_at ?? new Date().toISOString(),
+        attachments: stickerUrl ? [stickerUrl] : [],
+        User: optimistic.User,
+      };
+
+      this.replaceMessage(optimisticId, final);
+      this.replaceMessageInState(optimisticId, final);
+
+      this.lastReadMessageId = final.id;
+      await updateChatReadState(this.chatId, final.id);
+
+      EventBus.emit('chatUpdated', { chatId: this.chatId });
+    } catch (e) {
+      console.error('sendSticker error', e);
+    }
+  }
+
 
   private async sendEvent(e: Event): Promise<void> {
     e.preventDefault();
