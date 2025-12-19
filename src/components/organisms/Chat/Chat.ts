@@ -163,6 +163,42 @@ export class Chat {
       data.lastReadMessageId ?? (data as any).lastReadMessageID ?? null;
   }
 
+
+  private isSyncingAfterWs = false;
+
+  private async syncMessageFromApi(messageId: number) {
+    if (this.isSyncingAfterWs) return;
+    this.isSyncingAfterWs = true;
+
+    try {
+      const raw: any = await getChatMessages(this.chatId, 0);
+      const list = raw?.messages ?? raw?.Messages ?? [];
+
+      const found = (list as any[]).find((m) => m.id === messageId);
+      if (!found) return;
+
+      if (this.messages.some((m) => m.id === messageId)) return;
+
+      const view: ChatMessageView = {
+        id: found.id,
+        text: found.text ?? '',
+        created_at: found.createdAt ?? found.created_at ?? new Date().toISOString(),
+        attachments: normalizeAttachments(found.attachments),
+        User: {
+          id: found.authorID,
+          full_name: 'User',
+          avatar: '',
+        },
+      };
+
+      this.messages.push(view);
+      new Message(this.messagesContainer, view as any, false, true, true).render();
+      this.scrollToBottomSoon();
+    } finally {
+      this.isSyncingAfterWs = false;
+    }
+  }
+
   async render(): Promise<void> {
     await this.loadSocket();
 
@@ -423,7 +459,16 @@ export class Chat {
       const chatId = msg.chatID ?? msg.chatId;
       if (chatId !== this.chatId) return;
 
-      if (msg.authorID === this.myUserId) return;
+      const authorId = msg.authorID ?? msg.authorId;
+      if (authorId === this.myUserId) return;
+
+      const hasAttachments =
+        Array.isArray(msg.attachments) ? msg.attachments.length > 0 : !!msg.attachments;
+
+      if (!hasAttachments) {
+        void this.syncMessageFromApi(msg.id);
+        return;
+      }
 
       const view: ChatMessageView = {
         id: msg.id,
@@ -431,7 +476,7 @@ export class Chat {
         created_at: msg.createdAt ?? msg.created_at ?? new Date().toISOString(),
         attachments: normalizeAttachments(msg.attachments),
         User: {
-          id: msg.authorID,
+          id: authorId,
           full_name: data?.lastMessageAuthor?.fullName ?? 'User',
           avatar: data?.lastMessageAuthor?.avatarPath ?? '',
         },
@@ -441,6 +486,7 @@ export class Chat {
       new Message(this.messagesContainer, view as any, false, true, true).render();
       this.scrollToBottomSoon();
     };
+
     this.wsService.on('new_message', this.wsHandler);
   }
 
