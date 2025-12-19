@@ -51,21 +51,27 @@
     }
 
     .post-modal-wrapper {
-        height: 100%;
+        height: fit-content;
         display: flex;
         align-items: flex-end;
         align-self: flex-end;
+        width: 100%;
     }
 
     .comment-list-root {
         padding: 12px 8px;
-        border-bottom-left-radius: 0;
-        border-bottom-right-radius: 0;
+        border-bottom-left-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
         min-height: 500px;
         max-height: 500px;
     }
 
     .post-modal-overlay {
         display: flex;
+    }
+
+    .post-modal-content {
+        min-width: 100% !important;
+        padding: 0;
     }
 }
