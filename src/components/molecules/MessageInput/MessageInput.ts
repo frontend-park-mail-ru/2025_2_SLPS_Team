@@ -10,7 +10,6 @@ export class MessageInput {
 
   emojiPicker!: EmojiMenu;
   emojiBtn!: HTMLButtonElement;
-  private pickerRoot!: HTMLElement;
 
   attachBtn!: HTMLButtonElement;
   fileInput!: HTMLInputElement;
@@ -37,17 +36,42 @@ export class MessageInput {
     if (!root) throw new Error('[MessageInput] template root not found');
     this.wrapper = root;
 
-    const previewRoot = this.wrapper.querySelector('.attachments-preview') as HTMLElement | null;
-    const previewGrid = this.wrapper.querySelector('.attachments-preview-grid') as HTMLElement | null;
-    const previewFiles = this.wrapper.querySelector('.attachments-preview-files') as HTMLElement | null;
+    const previewRoot = this.wrapper.querySelector(
+      '.attachments-preview',
+    ) as HTMLElement | null;
+    const previewGrid = this.wrapper.querySelector(
+      '.attachments-preview-grid',
+    ) as HTMLElement | null;
+    const previewFiles = this.wrapper.querySelector(
+      '.attachments-preview-files',
+    ) as HTMLElement | null;
 
-    const textarea = this.wrapper.querySelector('.input-message') as HTMLTextAreaElement | null;
-    const sendBtn = this.wrapper.querySelector('.message-send-btn') as HTMLButtonElement | null;
-    const emojiBtn = this.wrapper.querySelector('.emoji-btn') as HTMLButtonElement | null;
-    const attachBtn = this.wrapper.querySelector('.message-attach-btn') as HTMLButtonElement | null;
-    const fileInput = this.wrapper.querySelector('.message-file-input') as HTMLInputElement | null;
+    const textarea = this.wrapper.querySelector(
+      '.input-message',
+    ) as HTMLTextAreaElement | null;
+    const sendBtn = this.wrapper.querySelector(
+      '.message-send-btn',
+    ) as HTMLButtonElement | null;
+    const emojiBtn = this.wrapper.querySelector(
+      '.emoji-btn',
+    ) as HTMLButtonElement | null;
+    const attachBtn = this.wrapper.querySelector(
+      '.message-attach-btn',
+    ) as HTMLButtonElement | null;
+    const fileInput = this.wrapper.querySelector(
+      '.message-file-input',
+    ) as HTMLInputElement | null;
 
-    if (!previewRoot || !previewGrid || !previewFiles || !textarea || !sendBtn || !emojiBtn || !attachBtn || !fileInput) {
+    if (
+      !previewRoot ||
+      !previewGrid ||
+      !previewFiles ||
+      !textarea ||
+      !sendBtn ||
+      !emojiBtn ||
+      !attachBtn ||
+      !fileInput
+    ) {
       throw new Error('[MessageInput] some elements not found in template');
     }
 
@@ -65,28 +89,25 @@ export class MessageInput {
 
     this.textarea.addEventListener('input', () => {
       this.textarea.style.height = 'auto';
-      this.textarea.style.height = Math.min(this.textarea.scrollHeight, 120) + 'px';
+      this.textarea.style.height =
+        Math.min(this.textarea.scrollHeight, 120) + 'px';
     });
 
-    const pickerRoot = this.wrapper.querySelector('.emoji-picker') as HTMLElement | null;
+    const pickerRoot = this.wrapper.querySelector(
+      '.emoji-picker',
+    ) as HTMLElement | null;
     if (!pickerRoot) throw new Error('[MessageInput] emoji-picker not found');
-    this.pickerRoot = pickerRoot;
-
-    this.pickerRoot.classList.remove('hidden');
 
     this.emojiPicker = new EmojiMenu(
-      this.pickerRoot,
+      pickerRoot,
       (emoji) => this.insertEmoji(emoji),
       (sticker) => this.onStickerSelect?.(sticker),
     );
     this.emojiPicker.render();
-    this.emojiPicker.hide();
 
     this.emojiBtn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-
-      this.pickerRoot.classList.remove('hidden');
       this.emojiPicker.toggle();
     });
 
@@ -94,17 +115,17 @@ export class MessageInput {
       const target = event.target as HTMLElement;
 
       const clickedEmojiBtn = this.emojiBtn.contains(target);
-      const clickedInsidePicker = this.pickerRoot.contains(target);
+      const clickedInsidePicker = pickerRoot.contains(target);
 
-      if (!clickedEmojiBtn && !clickedInsidePicker) {
-        this.emojiPicker.hide();
-      }
+      if (!clickedEmojiBtn && !clickedInsidePicker) this.emojiPicker.hide();
     });
 
     this.attachBtn.addEventListener('click', () => this.fileInput.click());
 
     this.fileInput.addEventListener('change', () => {
-      this.pendingFiles = this.fileInput.files ? Array.from(this.fileInput.files) : [];
+      this.pendingFiles = this.fileInput.files
+        ? Array.from(this.fileInput.files)
+        : [];
       this.renderPreview();
     });
 
@@ -215,7 +236,8 @@ export class MessageInput {
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
 
-    textarea.value = textarea.value.slice(0, start) + emoji + textarea.value.slice(end);
+    textarea.value =
+      textarea.value.slice(0, start) + emoji + textarea.value.slice(end);
 
     textarea.focus();
     textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
