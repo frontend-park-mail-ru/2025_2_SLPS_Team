@@ -288,8 +288,8 @@ export class NavbarSearchModal {
         null;
 
       const html = templateAvatar({
-        avatar: this.avatarUrl(avatar),
-        name: community.name || community.title || 'Сообщество',
+        avatarPath: this.avatarUrl(avatar),
+        fullName: community.name || community.title || 'Сообщество',
       });
 
       left.insertAdjacentHTML('beforeend', html);
