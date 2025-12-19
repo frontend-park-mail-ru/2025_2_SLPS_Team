@@ -223,6 +223,7 @@
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
+  color: var(--avatar-color);
 }
 
 .search-row__text {

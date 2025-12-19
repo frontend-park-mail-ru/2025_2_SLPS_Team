@@ -28,6 +28,8 @@ import {
 } from '../../shared/api/communityApi';
 
 import type { ProfileDTO, FriendsSearchBackendType } from '../../shared/types/friends';
+import AvatarSvgTemplate from './AvatarSvg.hbs';
+
 
 const notifier = new NotificationManager();
 
@@ -357,10 +359,10 @@ export default class SearchPage extends BasePage {
     const left = document.createElement('div');
     left.className = 'search-row__left';
 
-    const avatar = document.createElement('img');
-    avatar.className = 'search-row__avatar';
-    avatar.src = uploadsUrl(c.avatarPath ?? null);
-    avatar.alt = c.name;
+    const avatarHtml = AvatarSvgTemplate({
+      avatar: uploadsUrl(c.avatarPath ?? null),
+      className: 'search-row__avatar',
+    });
 
     const text = document.createElement('div');
     text.className = 'search-row__text';
@@ -381,7 +383,7 @@ export default class SearchPage extends BasePage {
     text.appendChild(desc);
     text.appendChild(meta);
 
-    left.appendChild(avatar);
+    left.insertAdjacentHTML('beforeend', avatarHtml);
     left.appendChild(text);
 
     const right = document.createElement('div');
