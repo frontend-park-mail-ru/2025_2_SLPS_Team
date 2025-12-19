@@ -118,6 +118,18 @@ function extractStickerUrl(m: any): string {
   return typeof p === 'string' && p.length ? toAbsoluteAttachmentUrl(p) : '';
 }
 
+function extractStickerId(m: any): number | null {
+  const id =
+    m?.stickerID ??
+    m?.stickerId ??
+    m?.sticker_id ??
+    m?.StickerID ??
+    m?.StickerId ??
+    m?.Sticker_id;
+
+  return typeof id === 'number' ? id : null;
+}
+
 function mergeAttachmentsWithSticker(rawAttachments: unknown, rawMessage: any): string[] {
   const atts = normalizeAttachments(rawAttachments);
   const stickerUrl = extractStickerUrl(rawMessage);
@@ -141,6 +153,9 @@ function buildLocalAttachmentUrls(files: File[]) {
 export class Chat {
   private rootElement: HTMLElement;
   private chatId: number;
+
+  private stickerUrlById = new Map<number, string>();
+  private stickersLoaded = false;
 
   private myUserId: number;
   private myUserName: string;
@@ -191,6 +206,49 @@ export class Chat {
       data.lastReadMessageId ?? (data as any).lastReadMessageID ?? null;
   }
 
+  private async ensureStickersLoaded(): Promise<void> {
+    if (this.stickersLoaded) return;
+    this.stickersLoaded = true;
+
+    try {
+      const mod = await import('../../../shared/api/stickersApi');
+      const packs = await (mod as any).getStickerPacks();
+
+      for (const p of packs) {
+        const stickers = await (mod as any).getPackStickers(p.id);
+        for (const s of stickers) {
+          this.stickerUrlById.set(s.id, toAbsoluteAttachmentUrl(s.filePath));
+        }
+      }
+    } catch {
+      this.stickersLoaded = false;
+    }
+  }
+
+  private mapMessage(m: any, authorFallback?: number): ChatMessageView {
+    const atts = mergeAttachmentsWithSticker(m?.attachments, m);
+
+    if (atts.length === 0) {
+      const sid = extractStickerId(m);
+      if (sid !== null) {
+        const url = this.stickerUrlById.get(sid);
+        if (url) atts.unshift(url);
+      }
+    }
+
+    return {
+      id: m.id,
+      text: m.text ?? '',
+      created_at: m.createdAt ?? m.created_at ?? new Date().toISOString(),
+      attachments: atts,
+      User: {
+        id: m.authorID ?? authorFallback ?? 0,
+        full_name: 'User',
+        avatar: '',
+      },
+    };
+  }
+
   private isSyncingAfterWs = false;
 
   private async syncMessageFromApi(messageId: number) {
@@ -198,6 +256,8 @@ export class Chat {
     this.isSyncingAfterWs = true;
 
     try {
+      await this.ensureStickersLoaded();
+
       const raw: any = await getChatMessages(this.chatId, 0);
       const list = raw?.messages ?? raw?.Messages ?? [];
 
@@ -206,17 +266,7 @@ export class Chat {
 
       if (this.messages.some((m) => m.id === messageId)) return;
 
-      const view: ChatMessageView = {
-        id: found.id,
-        text: found.text ?? '',
-        created_at: found.createdAt ?? found.created_at ?? new Date().toISOString(),
-        attachments: mergeAttachmentsWithSticker(found.attachments, found),
-        User: {
-          id: found.authorID,
-          full_name: 'User',
-          avatar: '',
-        },
-      };
+      const view = this.mapMessage(found, found.authorID);
 
       this.messages.push(view);
       new Message(this.messagesContainer, view as any, false, true, true).render();
@@ -252,6 +302,8 @@ export class Chat {
     this.input = new MessageInput(inputContainer);
     this.input.render();
 
+    await this.ensureStickersLoaded();
+
     this.input.onStickerSelect = (sticker: StickerSelectPayload) => {
       void this.sendSticker(sticker);
     };
@@ -277,17 +329,7 @@ export class Chat {
 
     const list = (raw as any).messages ?? (raw as any).Messages ?? [];
 
-    this.messages = list.map((m: any) => ({
-      id: m.id,
-      text: m.text ?? '',
-      created_at: m.createdAt ?? m.created_at ?? new Date().toISOString(),
-      attachments: mergeAttachmentsWithSticker(m.attachments, m),
-      User: {
-        id: m.authorID,
-        full_name: 'User',
-        avatar: '',
-      },
-    }));
+    this.messages = list.map((m: any) => this.mapMessage(m));
 
     this.messages.sort(
       (a, b) =>
@@ -469,17 +511,7 @@ export class Chat {
         return;
       }
 
-      const batch: ChatMessageView[] = list.map((m: any) => ({
-        id: m.id,
-        text: m.text ?? '',
-        created_at: m.createdAt ?? m.created_at ?? new Date().toISOString(),
-        attachments: mergeAttachmentsWithSticker(m.attachments, m),
-        User: {
-          id: m.authorID,
-          full_name: 'User',
-          avatar: '',
-        },
-      }));
+      const batch: ChatMessageView[] = list.map((m: any) => this.mapMessage(m));
 
       batch.sort(
         (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
@@ -533,30 +565,25 @@ export class Chat {
       const authorId = msg.authorID ?? msg.authorId;
       if (authorId === this.myUserId) return;
 
+      void this.ensureStickersLoaded();
+
       const stickerUrl = extractStickerUrl(msg);
 
       const hasAttachments =
         Array.isArray(msg.attachments) ? msg.attachments.length > 0 : !!msg.attachments;
 
-      const hasAnyMedia = hasAttachments || !!stickerUrl;
+      const hasAnyMedia = hasAttachments || !!stickerUrl || extractStickerId(msg) !== null;
 
       if (!hasAnyMedia) {
         void this.syncMessageFromApi(msg.id);
         return;
       }
 
-      const atts = mergeAttachmentsWithSticker(msg.attachments, msg);
-
-      const view: ChatMessageView = {
-        id: msg.id,
-        text: msg.text ?? '',
-        created_at: msg.createdAt ?? msg.created_at ?? new Date().toISOString(),
-        attachments: atts,
-        User: {
-          id: authorId,
-          full_name: data?.lastMessageAuthor?.fullName ?? 'User',
-          avatar: data?.lastMessageAuthor?.avatarPath ?? '',
-        },
+      const view = this.mapMessage(msg, authorId);
+      view.User = {
+        id: authorId,
+        full_name: data?.lastMessageAuthor?.fullName ?? 'User',
+        avatar: data?.lastMessageAuthor?.avatarPath ?? '',
       };
 
       this.messages.push(view);
