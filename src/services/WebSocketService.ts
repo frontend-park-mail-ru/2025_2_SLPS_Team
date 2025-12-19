@@ -1,45 +1,62 @@
+type Listener = (data: any) => void;
+
 class WebSocketService {
   private ws: WebSocket | null = null;
-  private listeners = new Map<string, Set<(data: any) => void>>();
-  private onOpenCallbacks: Array<() => void> = [];
-  private reconnectTimeout = 3000;
+  private listeners = new Map<string, Set<Listener>>();
+  private openListeners = new Set<() => void>();
+
+  private reconnectDelayMs = 2000;
+  private reconnectTimer: number | null = null;
 
   private constructor(private url: string) {}
 
-  static getInstance() {
+  static getInstance(): WebSocketService {
+    const GLOBAL = globalThis as any;
+
+    const apiBase = (process.env.API_BASE_URL ?? '').replace(/\/$/, '');
+    const derived =
+      apiBase && (apiBase.startsWith('http://') || apiBase.startsWith('https://'))
+        ? apiBase.replace(/^https:/, 'wss:').replace(/^http:/, 'ws:') + '/ws'
+        : '';
+
     const url =
       process.env.WS_URL ||
-      (process.env.API_BASE_URL
-        ? (process.env.API_BASE_URL as string)
-            .replace(/\/$/, '')
-            .replace(/^https:/, 'wss:')
-            .replace(/^http:/, 'ws:') + '/ws'
-        : 'ws://185.86.146.77:8080/api/ws');
+      derived ||
+      'ws://185.86.146.77:8080/api/ws';
 
-    const GLOBAL = globalThis as any;
     if (!GLOBAL.__WS_SERVICE__) GLOBAL.__WS_SERVICE__ = new WebSocketService(url);
     return GLOBAL.__WS_SERVICE__ as WebSocketService;
   }
 
-  private connect() {
+  private ensureConnected() {
     if (
       this.ws &&
       (this.ws.readyState === WebSocket.OPEN ||
         this.ws.readyState === WebSocket.CONNECTING)
-    )
+    ) {
       return;
+    }
+
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
 
     this.ws = new WebSocket(this.url);
 
     this.ws.onopen = () => {
       console.log('[WS] Connected:', this.url);
-      this.onOpenCallbacks.forEach((cb) => cb());
-      this.onOpenCallbacks = [];
+      for (const cb of this.openListeners) cb();
     };
 
     this.ws.onclose = (e) => {
       console.warn('[WS] Closed:', e.code, e.reason);
-      setTimeout(() => this.connect(), this.reconnectTimeout);
+
+      if (this.reconnectTimer) return;
+      this.reconnectTimer = window.setTimeout(() => {
+        this.reconnectTimer = null;
+        this.ensureConnected();
+      }, this.reconnectDelayMs);
     };
 
     this.ws.onerror = (e) => {
@@ -60,16 +77,10 @@ class WebSocketService {
       console.debug('[WS] <- json:', msg);
 
       const type = msg?.type ?? msg?.event ?? msg?.action ?? msg?.name;
-
-      const payload =
-        msg?.data ??
-        msg?.message ??
-        msg?.payload ??
-        msg?.body ??
-        msg;
+      const payload = msg?.data ?? msg?.message ?? msg?.payload ?? msg?.body ?? msg;
 
       if (!type) {
-        console.warn('[WS] no type/event/action in message');
+        console.warn('[WS] no type/event/action in message:', msg);
         this.emit('__raw__', payload);
         return;
       }
@@ -79,24 +90,35 @@ class WebSocketService {
     };
   }
 
-  on(type: string, callback: (data: any) => void) {
+  on(type: string, callback: Listener) {
     if (!this.listeners.has(type)) this.listeners.set(type, new Set());
     this.listeners.get(type)!.add(callback);
-    this.connect();
+    this.ensureConnected();
   }
 
-  off(type: string, callback: (data: any) => void) {
+  off(type: string, callback: Listener) {
     this.listeners.get(type)?.delete(callback);
   }
 
-  private emit(type: string, data: any) {
-    this.listeners.get(type)?.forEach((cb) => cb(data));
+  onOpen(callback: () => void) {
+    this.openListeners.add(callback);
+    this.ensureConnected();
   }
 
-  onOpen(callback: () => void) {
-    if (this.ws?.readyState === WebSocket.OPEN) callback();
-    else this.onOpenCallbacks.push(callback);
-    this.connect();
+  send(data: any) {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      console.warn('[WS] send skipped, socket not open');
+      return;
+    }
+    const payload = typeof data === 'string' ? data : JSON.stringify(data);
+    console.debug('[WS] ->', payload);
+    this.ws.send(payload);
+  }
+
+  private emit(type: string, data: any) {
+    const set = this.listeners.get(type);
+    if (!set || set.size === 0) return;
+    for (const cb of set) cb(data);
   }
 }
 
