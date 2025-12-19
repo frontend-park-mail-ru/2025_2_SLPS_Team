@@ -1,6 +1,7 @@
 import BasePage from '../BasePage';
 import Template from './SearchPage.hbs';
 import './SearchPage.css';
+import { Notification } from '../../components/molecules/Notification/Notification';
 
 import SearchStatsTemplate from './SearchStats.hbs';
 import '../../components/molecules/FriendsStats/FriendsStats.css';
@@ -392,14 +393,34 @@ export default class SearchPage extends BasePage {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
       btn.disabled = true;
+
       try {
-        const res = await toggleCommunitySubscription(c.id, isSub);
-        c.subscriptionType = res.isSubscribed ? 'subscriber' : 'recommended';
-        btn.textContent = res.isSubscribed ? 'Отписаться' : 'Подписаться';
+        const wasSub = c.subscriptionType === 'subscriber';
+        const res = await toggleCommunitySubscription(c.id, wasSub);
+        const nowSub = res.isSubscribed;
+
+        new Notification(
+          document.body,
+          nowSub ? 'Вы подписались на сообщество' : 'Вы отписались от сообщества',
+          c.name,
+          nowSub ? 'success' : 'warning'
+        ).render();
+
+        c.subscriptionType = nowSub ? 'subscriber' : 'recommended';
+        btn.textContent = nowSub ? 'Отписаться' : 'Подписаться';
+      } catch {
+        new Notification(
+          document.body,
+          'Не удалось выполнить действие',
+          'Попробуйте ещё раз',
+          'error'
+        ).render();
       } finally {
         btn.disabled = false;
       }
     });
+
+
 
     right.appendChild(btn);
 
@@ -471,6 +492,12 @@ export default class SearchPage extends BasePage {
         accept.disabled = true;
         try {
           await acceptFriend(id);
+          new Notification(
+            document.body,
+            'Пользователь добавлен в друзья',
+            undefined,
+            'success'
+          ).render();
           await this.loadAndRender();
         } finally {
           accept.disabled = false;
@@ -483,6 +510,13 @@ export default class SearchPage extends BasePage {
         reject.disabled = true;
         try {
           await rejectFriendRequest(id);
+          new Notification(
+            document.body,
+            'Заявка отклонена',
+            undefined,
+            'warning'
+          ).render();
+
           await this.loadAndRender();
         } finally {
           reject.disabled = false;
@@ -498,6 +532,13 @@ export default class SearchPage extends BasePage {
         cancel.disabled = true;
         try {
           await deleteFriend(id);
+          new Notification(
+            document.body,
+            'Заявка отменена',
+            undefined,
+            'warning'
+          ).render();
+
           await this.loadAndRender();
         } finally {
           cancel.disabled = false;
@@ -511,6 +552,12 @@ export default class SearchPage extends BasePage {
         add.disabled = true;
         try {
           await sendFriendRequest(id);
+          new Notification(
+            document.body,
+            'Заявка отправлена',
+            'Пользователь получит уведомление',
+            'success'
+          ).render();
           await this.loadAndRender();
         } finally {
           add.disabled = false;
