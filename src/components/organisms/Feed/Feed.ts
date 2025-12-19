@@ -2,7 +2,7 @@ import { renderPost } from '../../molecules/Post/Post';
 import FeedTemplate from './Feed.hbs';
 import { CreatePostForm } from '../CreatePost/CreatePost';
 import { EventBus } from '../../../services/EventBus';
-import { getPosts } from '../../../shared/api/postsApi';
+import { getPostsPaged } from '../../../shared/api/postsApi';
 
 export type PostData = any;
 
@@ -23,6 +23,7 @@ interface FeedInstance {
 
   loadedIds: Set<number>;
   sentinel: HTMLElement | null;
+  trigger: HTMLElement | null;
   observer: IntersectionObserver | null;
 }
 
@@ -67,25 +68,22 @@ async function appendPostsInto(
 }
 
 async function getPostsPage(page: number, limit: number): Promise<PostData[]> {
-  const offset = page * limit;
-  const fn = getPosts as unknown as (o?: number, l?: number) => Promise<PostData[]>;
-  return fn(offset, limit);
+  const p = Math.max(1, page);
+  return getPostsPaged<PostData>(p, limit);
 }
 
 
 async function getPostsUpToPage(maxPage: number, limit: number): Promise<PostData[]> {
   const out: PostData[] = [];
-  for (let p = 0; p <= maxPage; p++) {
+  for (let p = 1; p <= maxPage; p++) {
     const batch = await getPostsPage(p, limit);
-
-    if (p === 0 && batch.length > limit * 2) return batch;
+    if (p === 1 && batch.length > limit * 2) return batch;
 
     out.push(...batch);
     if (batch.length < limit) break;
   }
   return out;
 }
-
 export async function renderFeed(
   posts: PostData[],
   isOwner: boolean = true,
@@ -133,13 +131,14 @@ await renderPostsInto(containerEl, posts);
   if (mode === 'global') {
     const inst: FeedInstance = {
       postsContainer: containerEl,
-      page: 0,
+      page: 1,
       limit: 20,
       isLoading: false,
       reachedEnd: false,
       loadedIds: new Set<number>(),
       sentinel: null,
       observer: null,
+      trigger: null,
     };
 
     for (const p of (Array.isArray(posts) ? posts : [])) {
@@ -150,8 +149,50 @@ await renderPostsInto(containerEl, posts);
     const sentinel = document.createElement('div');
     sentinel.className = 'feed-sentinel';
     sentinel.style.height = '1px';
+    sentinel.dataset.feedSentinel = '1';
     containerEl.appendChild(sentinel);
     inst.sentinel = sentinel;
+
+    const TRIGGER_OFFSET = 5;
+
+    function getPostChildren(targetContainer: HTMLElement): HTMLElement[] {
+      return Array.from(targetContainer.children).filter((el) => {
+        const e = el as HTMLElement;
+        return !e.dataset.feedSentinel && !e.dataset.feedTrigger;
+      }) as HTMLElement[];
+    }
+
+    function updateTriggerFor(target: FeedInstance): void {
+      const targetContainer = target.postsContainer;
+
+      if (target.trigger && target.trigger.parentElement) {
+        target.observer?.unobserve(target.trigger);
+        target.trigger.remove();
+      }
+
+      const postsEls = getPostChildren(targetContainer);
+      if (!postsEls.length) return;
+
+      const idx = Math.max(0, postsEls.length - TRIGGER_OFFSET);
+      const before = postsEls[idx] ?? target.sentinel;
+
+      const trigger = document.createElement('div');
+      trigger.className = 'feed-trigger';
+      trigger.style.height = '1px';
+      trigger.dataset.feedTrigger = '1';
+
+      if (before && before.parentElement === targetContainer) {
+        targetContainer.insertBefore(trigger, before);
+      } else if (target.sentinel) {
+        targetContainer.insertBefore(trigger, target.sentinel);
+      } else {
+        targetContainer.appendChild(trigger);
+      }
+
+      target.trigger = trigger;
+      target.observer?.observe(trigger);
+    }
+
 
     async function loadMore() {
       if (inst.isLoading || inst.reachedEnd) return;
@@ -178,8 +219,13 @@ await renderPostsInto(containerEl, posts);
 
         if (unique.length) {
           await appendPostsInto(containerEl, unique, inst.sentinel);
-          }
-
+        }
+        if (!unique.length) {
+          inst.reachedEnd = true;
+          return;
+        }
+        updateTriggerFor(inst);
+        
         inst.page = nextPage;
 
         if (batch.length < inst.limit) inst.reachedEnd = true;
@@ -197,8 +243,7 @@ await renderPostsInto(containerEl, posts);
       { root: null, rootMargin: '600px 0px', threshold: 0 },
     );
 
-    inst.observer.observe(sentinel);
-
+    updateTriggerFor(inst);
     feedInstances.push(inst);
 
     if (!subscribed) {
@@ -218,8 +263,8 @@ await renderPostsInto(containerEl, posts);
 
           if (f.sentinel) {
             f.postsContainer.appendChild(f.sentinel);
-            f.observer?.observe(f.sentinel);
           }
+          updateTriggerFor(f);
         }
       };
 
