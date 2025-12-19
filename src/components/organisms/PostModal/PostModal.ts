@@ -27,9 +27,15 @@ export class PostModal {
         const postSlot = overlay.querySelector('.post-modal-post-slot') as HTMLElement;
         const commentsSlot = overlay.querySelector('.post-modal-comments-slot') as HTMLElement;
 
-        const postElement = await renderPost(this.options.postData);
-        if (postElement) {
-            postSlot.appendChild(postElement);
+        const isMobile = window.matchMedia('(max-width: 768px)').matches;
+
+        if (!isMobile) {
+            const postElement = await renderPost(this.options.postData);
+            if (postElement) {
+                postSlot.appendChild(postElement);
+            }
+        } else {
+            postSlot.remove();
         }
 
         const commentsList = new CommentsList({

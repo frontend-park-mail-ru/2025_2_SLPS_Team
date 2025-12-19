@@ -43,3 +43,35 @@
 .post-modal-post {
   margin-bottom: 16px;
 }
+
+@media (max-width: 768px) {
+    .post-modal {
+        min-width: 100%;
+        padding: 0;
+    }
+
+    .post-modal-wrapper {
+        height: fit-content;
+        display: flex;
+        align-items: flex-end;
+        align-self: flex-end;
+        width: 100%;
+    }
+
+    .comment-list-root {
+        padding: 12px 8px;
+        border-bottom-left-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+        min-height: 500px;
+        max-height: 500px;
+    }
+
+    .post-modal-overlay {
+        display: flex;
+    }
+
+    .post-modal-content {
+        min-width: 100% !important;
+        padding: 0;
+    }
+}
