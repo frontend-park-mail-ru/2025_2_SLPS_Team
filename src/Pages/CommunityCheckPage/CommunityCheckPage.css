@@ -35,7 +35,7 @@
 }
 
 .community-header-card__content {
-  margin-top: -50px;
+  margin-top: -45px;
   padding: 0 0px 16px 16px;
   display: flex;
   justify-content: space-between;
@@ -469,6 +469,7 @@
 .community-created__img {
   width: fit-content;
   object-fit: cover;
+  border-radius: 50%;
 }
 
 .community-created__name {

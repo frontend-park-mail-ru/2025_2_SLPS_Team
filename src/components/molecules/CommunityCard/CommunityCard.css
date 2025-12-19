@@ -29,6 +29,7 @@
   height: 60px;
   object-fit: cover;
   color: var(--avatar-color);
+  border-radius: 50%;
 }
 
 .community-card__info {

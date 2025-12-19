@@ -32,7 +32,7 @@ export class EditProfileForm {
   private inputs: EditProfileInputs = {};
 
   private editAvatarMenu: DropDown | null = null;
-  private defaultAvatar: string = '/public/globalImages/DefaultAvatar.svg';
+  private defaultAvatar: string = '/public/globalImages/Avatar.svg';
   private hasCustomAvatar: boolean;
   private avatarDeleted: boolean = false;
   private currentAvatarBlobUrl: string | null = null;
