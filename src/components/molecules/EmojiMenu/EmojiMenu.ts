@@ -68,17 +68,13 @@ export class EmojiMenu {
     }
     this.picker = picker;
 
-    this.tabs = this.picker.querySelectorAll('.emoji-tab');
+    this.tabs = this.rootElement.querySelectorAll('.emoji-tab');
 
-    const emojiPanel = this.picker.querySelector('.emoji-tab-content--emoji') as HTMLElement | null;
-    const stickersPanel = this.picker.querySelector(
-      '.emoji-tab-content--stickers',
-    ) as HTMLElement | null;
+    const emojiPanel = this.rootElement.querySelector('.emoji-tab-content--emoji') as HTMLElement | null;
+    const stickersPanel = this.rootElement.querySelector('.emoji-tab-content--stickers') as HTMLElement | null;
 
-    const grid = this.picker.querySelector('.emoji-picker-grid') as HTMLElement | null;
-    const searchContainer = this.picker.querySelector(
-      '.emoji-search-container',
-    ) as HTMLElement | null;
+    const grid = this.rootElement.querySelector('.emoji-picker-grid') as HTMLElement | null;
+    const searchContainer = this.rootElement.querySelector('.emoji-search-container') as HTMLElement | null;
 
     if (!emojiPanel || !stickersPanel || !grid || !searchContainer) {
       console.warn('[EmojiMenu] required elements missing', {
@@ -86,6 +82,8 @@ export class EmojiMenu {
         stickersPanel: !!stickersPanel,
         grid: !!grid,
         searchContainer: !!searchContainer,
+        root: this.rootElement,
+        picker: this.picker,
       });
       return;
     }
@@ -95,15 +93,14 @@ export class EmojiMenu {
     this.grid = grid;
     this.searchEleentContainer = searchContainer;
 
-    const stickerPacksEl = this.picker.querySelector('.sticker-packs') as HTMLElement | null;
-    const stickerGridEl = this.picker.querySelector('.sticker-grid') as HTMLElement | null;
+    const stickerPacksEl = this.rootElement.querySelector('.sticker-packs') as HTMLElement | null;
+    const stickerGridEl = this.rootElement.querySelector('.sticker-grid') as HTMLElement | null;
 
     const stickersOk = !!stickerPacksEl && !!stickerGridEl;
     if (stickersOk) {
       this.stickerPacksEl = stickerPacksEl!;
       this.stickerGridEl = stickerGridEl!;
     } else {
-      console.warn('[EmojiMenu] stickers DOM missing, disable stickers tab');
       this.tabs.forEach((t) => {
         if (t.dataset.tab === 'stickers') t.classList.add('hidden');
       });
@@ -126,6 +123,7 @@ export class EmojiMenu {
 
     this.hide();
   }
+
 
   private switchTab(tab: 'emoji' | 'stickers', stickersOk: boolean) {
     const safeTab = tab === 'stickers' && !stickersOk ? 'emoji' : tab;
