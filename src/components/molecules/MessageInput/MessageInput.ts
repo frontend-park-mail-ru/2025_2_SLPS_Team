@@ -21,7 +21,7 @@ export class MessageInput {
   private pendingFiles: File[] = [];
   private objectUrls: string[] = [];
 
-  public onStickerSelect: ((stickerId: number) => void) | null = null;
+  public onStickerSelect: ((sticker: { id: number; filePath: string }) => void) | null = null;
 
   constructor(rootElement: HTMLElement) {
     this.rootElement = rootElement;
@@ -34,7 +34,6 @@ export class MessageInput {
     if (!root) throw new Error('[MessageInput] template root not found');
     this.wrapper = root;
 
-    // preview элементы берём из шаблона (не создаём второй раз)
     const previewRoot = this.wrapper.querySelector('.attachments-preview') as HTMLElement | null;
     const previewGrid = this.wrapper.querySelector('.attachments-preview-grid') as HTMLElement | null;
     const previewFiles = this.wrapper.querySelector('.attachments-preview-files') as HTMLElement | null;
@@ -75,14 +74,11 @@ export class MessageInput {
       this.textarea.style.height = Math.min(this.textarea.scrollHeight, 120) + 'px';
     });
 
-    // EmojiMenu (эмодзи + стикеры)
     this.emojiPicker = new EmojiMenu(
       this.wrapper,
       (emoji) => this.insertEmoji(emoji),
-      (stickerId) => this.onStickerSelect?.(stickerId),
+      (sticker) => this.onStickerSelect?.(sticker),
     );
-
-    // отрендерить после монтирования
     requestAnimationFrame(() => this.emojiPicker.render());
 
     this.emojiBtn.addEventListener('click', (e) => {
@@ -91,7 +87,6 @@ export class MessageInput {
       this.emojiPicker.toggle();
     });
 
-    // клик вне — закрыть
     document.addEventListener('click', (event) => {
       const target = event.target as HTMLElement;
       const picker = this.wrapper.querySelector('.emoji-picker') as HTMLElement | null;

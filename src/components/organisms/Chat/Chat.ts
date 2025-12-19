@@ -40,7 +40,13 @@ interface ChatOptions {
 
 type WsNewMessagePayload = any;
 
-const UPLOADS_BASE = `${process.env.API_BASE_URL}/uploads/`;
+type StickerSelectPayload = {
+  id: number;
+  filePath: string;
+};
+
+const API_ORIGIN = (process.env.API_BASE_URL ?? '').replace(/\/$/, '');
+const UPLOADS_BASE = `${API_ORIGIN}/uploads/`;
 
 function isRecord(v: unknown): v is Record<string, any> {
   return typeof v === 'object' && v !== null;
@@ -52,6 +58,11 @@ function toAbsoluteAttachmentUrl(u: string): string {
 
   if (s.startsWith('blob:')) return s;
   if (s.startsWith('http://') || s.startsWith('https://')) return s;
+
+  if (s.startsWith('/uploads/') || s.startsWith('/api/uploads/')) {
+    return `${API_ORIGIN}${s}`;
+  }
+
   if (s.startsWith('/')) return `${location.origin}${s}`;
 
   return `${UPLOADS_BASE}${s}`;
@@ -96,6 +107,24 @@ function normalizeAttachments(raw: unknown): string[] {
   return [];
 }
 
+function extractStickerUrl(m: any): string {
+  const p =
+    m?.sticker?.filePath ??
+    m?.sticker?.file_path ??
+    m?.stickerPath ??
+    m?.sticker_filePath ??
+    m?.sticker_file_path;
+
+  return typeof p === 'string' && p.length ? toAbsoluteAttachmentUrl(p) : '';
+}
+
+function mergeAttachmentsWithSticker(rawAttachments: unknown, rawMessage: any): string[] {
+  const atts = normalizeAttachments(rawAttachments);
+  const stickerUrl = extractStickerUrl(rawMessage);
+  if (stickerUrl) atts.unshift(stickerUrl);
+  return atts;
+}
+
 function buildLocalAttachmentUrls(files: File[]) {
   const created: string[] = [];
   const urls = files.map((f) => {
@@ -131,14 +160,13 @@ export class Chat {
   private lastReadMessageId: number | null = null;
   private wsService: any;
   private wsHandler: ((data: WsNewMessagePayload) => void) | null = null;
-  
+
   private page = 1;
   private totalPages: number | null = null;
   private isLoadingMore = false;
   private reachedEnd = false;
 
   private onScrollBound = () => this.onScroll();
-
 
   constructor(
     rootElement: HTMLElement,
@@ -163,7 +191,6 @@ export class Chat {
       data.lastReadMessageId ?? (data as any).lastReadMessageID ?? null;
   }
 
-
   private isSyncingAfterWs = false;
 
   private async syncMessageFromApi(messageId: number) {
@@ -183,7 +210,7 @@ export class Chat {
         id: found.id,
         text: found.text ?? '',
         created_at: found.createdAt ?? found.created_at ?? new Date().toISOString(),
-        attachments: normalizeAttachments(found.attachments),
+        attachments: mergeAttachmentsWithSticker(found.attachments, found),
         User: {
           id: found.authorID,
           full_name: 'User',
@@ -211,9 +238,7 @@ export class Chat {
 
     this.messagesContainer = main.querySelector('.chat-messeges') as HTMLElement;
     const inputContainer = main.querySelector('.messege-input') as HTMLElement;
-    const headerContainer = main.querySelector(
-      '.chat-header-container',
-    ) as HTMLElement;
+    const headerContainer = main.querySelector('.chat-header-container') as HTMLElement;
 
     this.chatHeader = new ChatHeader(
       headerContainer,
@@ -226,9 +251,11 @@ export class Chat {
 
     this.input = new MessageInput(inputContainer);
     this.input.render();
-    this.input.onStickerSelect = (stickerId: number) => {
-      void this.sendSticker(stickerId);
+
+    this.input.onStickerSelect = (sticker: StickerSelectPayload) => {
+      void this.sendSticker(sticker);
     };
+
     this.input.textarea.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) this.sendEvent(e);
     });
@@ -250,13 +277,11 @@ export class Chat {
 
     const list = (raw as any).messages ?? (raw as any).Messages ?? [];
 
-
-
     this.messages = list.map((m: any) => ({
       id: m.id,
       text: m.text ?? '',
       created_at: m.createdAt ?? m.created_at ?? new Date().toISOString(),
-      attachments: normalizeAttachments(m.attachments),
+      attachments: mergeAttachmentsWithSticker(m.attachments, m),
       User: {
         id: m.authorID,
         full_name: 'User',
@@ -286,16 +311,17 @@ export class Chat {
     this.initWS();
   }
 
-  private async sendSticker(stickerId: number): Promise<void> {
+  private async sendSticker(sticker: StickerSelectPayload): Promise<void> {
     this.input.clear();
 
     const optimisticId = -Date.now();
+    const stickerUrl = toAbsoluteAttachmentUrl(sticker.filePath);
 
     const optimistic: ChatMessageView = {
       id: optimisticId,
       text: '',
       created_at: new Date().toISOString(),
-      attachments: [],
+      attachments: stickerUrl ? [stickerUrl] : [],
       User: {
         id: this.myUserId,
         full_name: this.myUserName,
@@ -308,42 +334,28 @@ export class Chat {
     this.scrollToBottomSoon();
 
     try {
-      const resp: any = await sendChatMessage(
-        this.chatId,
-        '',
-        [],
-        stickerId,
-      );
+      const resp: any = await sendChatMessage(this.chatId, '', [], sticker.id);
 
-      const stickerPath =
-        resp?.sticker?.filePath ??
-        resp?.stickerPath ??
-        '';
-
-      const stickerUrl = stickerPath
-        ? toAbsoluteAttachmentUrl(stickerPath)
-        : '';
+      const serverId = resp?.messageID ?? resp?.messageId ?? resp?.id;
 
       const final: ChatMessageView = {
-        id: resp.id,
-        text: '',
-        created_at: resp.createdAt ?? resp.created_at ?? new Date().toISOString(),
-        attachments: stickerUrl ? [stickerUrl] : [],
-        User: optimistic.User,
+        ...optimistic,
+        id: typeof serverId === 'number' ? serverId : optimisticId,
       };
 
       this.replaceMessage(optimisticId, final);
       this.replaceMessageInState(optimisticId, final);
 
-      this.lastReadMessageId = final.id;
-      await updateChatReadState(this.chatId, final.id);
+      if (typeof serverId === 'number') {
+        this.lastReadMessageId = serverId;
+        await updateChatReadState(this.chatId, serverId);
+      }
 
       EventBus.emit('chatUpdated', { chatId: this.chatId });
     } catch (e) {
       console.error('sendSticker error', e);
     }
   }
-
 
   private async sendEvent(e: Event): Promise<void> {
     e.preventDefault();
@@ -376,7 +388,7 @@ export class Chat {
 
     try {
       const resp: any = await sendChatMessage(this.chatId, text, files);
-      const serverAttachments = normalizeAttachments(resp.attachments);
+      const serverAttachments = mergeAttachmentsWithSticker(resp.attachments, resp);
 
       const final: ChatMessageView = {
         id: resp.id,
@@ -420,7 +432,8 @@ export class Chat {
       });
     });
   }
-    private onScroll() {
+
+  private onScroll() {
     if (this.messagesContainer.scrollTop > 80) return;
     void this.loadMore();
   }
@@ -460,7 +473,7 @@ export class Chat {
         id: m.id,
         text: m.text ?? '',
         created_at: m.createdAt ?? m.created_at ?? new Date().toISOString(),
-        attachments: normalizeAttachments(m.attachments),
+        attachments: mergeAttachmentsWithSticker(m.attachments, m),
         User: {
           id: m.authorID,
           full_name: 'User',
@@ -498,7 +511,6 @@ export class Chat {
 
       const newScrollHeight = this.messagesContainer.scrollHeight;
       this.messagesContainer.scrollTop = prevScrollTop + (newScrollHeight - prevScrollHeight);
-
     } finally {
       this.isLoadingMore = false;
     }
@@ -512,8 +524,6 @@ export class Chat {
     }
 
     this.wsHandler = (data: any) => {
-      console.log('[Chat] WS new_message payload:', data);
-
       const msg = data?.lastMessage;
       if (!msg) return;
 
@@ -523,19 +533,25 @@ export class Chat {
       const authorId = msg.authorID ?? msg.authorId;
       if (authorId === this.myUserId) return;
 
+      const stickerUrl = extractStickerUrl(msg);
+
       const hasAttachments =
         Array.isArray(msg.attachments) ? msg.attachments.length > 0 : !!msg.attachments;
 
-      if (!hasAttachments) {
+      const hasAnyMedia = hasAttachments || !!stickerUrl;
+
+      if (!hasAnyMedia) {
         void this.syncMessageFromApi(msg.id);
         return;
       }
+
+      const atts = mergeAttachmentsWithSticker(msg.attachments, msg);
 
       const view: ChatMessageView = {
         id: msg.id,
         text: msg.text ?? '',
         created_at: msg.createdAt ?? msg.created_at ?? new Date().toISOString(),
-        attachments: normalizeAttachments(msg.attachments),
+        attachments: atts,
         User: {
           id: authorId,
           full_name: data?.lastMessageAuthor?.fullName ?? 'User',
