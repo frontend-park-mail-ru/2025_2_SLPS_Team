@@ -2,7 +2,6 @@ import BasePage from '../BasePage';
 import MessengerPageTemplate from './MassengerPage.hbs';
 import { ChatItem } from '../../components/molecules/ChatItem/ChatItem';
 import { Chat } from '../../components/organisms/Chat/Chat';
-import { SearchInput } from '../../components/molecules/SearchInput/SearchInput';
 import { EventBus } from '../../services/EventBus';
 import { authService } from '../../services/AuthService';
 import { gsap } from 'gsap';
@@ -44,7 +43,6 @@ export class MessengerPage extends BasePage {
   private activeChatItem: ChatItem | null = null;
   private myUserId: number = -1;
 
-  private chatsSearch: SearchInput | null = null;
   private chatItems: ChatItem[] = [];
   private wsService: any;
 
@@ -64,12 +62,6 @@ export class MessengerPage extends BasePage {
 
     const chatsContainer = this.wrapper.querySelector('.chats-container') as HTMLElement | null;
     if (!chatsContainer) return;
-
-    const searchHost = chatsContainer.querySelector('.chats-sreach-container') as HTMLElement | null;
-    if (!searchHost) return;
-
-    this.chatsSearch = new SearchInput(searchHost);
-    this.chatsSearch.render();
 
     const chatItemsBlock = chatsContainer.querySelector('.chat-items-block') as HTMLElement | null;
     if (!chatItemsBlock) return;

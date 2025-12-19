@@ -30,6 +30,8 @@
   object-fit: cover;
   color: var(--avatar-color);
   border-radius: 50%;
+  min-width: 60px;
+  min-height: 60px;
 }
 
 .community-card__info {
