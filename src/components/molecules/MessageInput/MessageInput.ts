@@ -80,7 +80,7 @@ export class MessageInput {
 
     document.addEventListener('pointerdown', (event) => {
       const target = event.target as HTMLElement;
-      const picker = this.wrapper.querySelector('.emoji-modal') as HTMLElement | null;
+      const picker = this.wrapper.querySelector('.emoji-picker') as HTMLElement | null;
 
       const clickedEmojiBtn = this.emojiBtn.contains(target);
       const clickedInsidePicker = !!picker && picker.contains(target);
