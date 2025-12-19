@@ -160,3 +160,19 @@
   color: var(--dark-gray);
   padding: 10px 6px;
 }
+
+.hidden {
+  display: none !important;
+}
+
+.emoji-modal__panel {
+  width: 100%;
+}
+
+.emoji-modal__panel--emoji {
+  display: block;
+}
+
+.emoji-modal__panel--stickers {
+  display: block;
+}
