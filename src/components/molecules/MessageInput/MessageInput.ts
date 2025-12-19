@@ -67,7 +67,9 @@ export class MessageInput {
       (stickerId) => this.onStickerSelect?.(stickerId),
     );
 
-    this.emojiPicker.render();
+    requestAnimationFrame(() => {
+      this.emojiPicker.render();
+    });
 
     this.emojiBtn.addEventListener('click', () => this.emojiPicker.toggle());
 
