@@ -43,3 +43,29 @@
 .post-modal-post {
   margin-bottom: 16px;
 }
+
+@media (max-width: 768px) {
+    .post-modal {
+        min-width: 100%;
+        padding: 0;
+    }
+
+    .post-modal-wrapper {
+        height: 100%;
+        display: flex;
+        align-items: flex-end;
+        align-self: flex-end;
+    }
+
+    .comment-list-root {
+        padding: 12px 8px;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        min-height: 500px;
+        max-height: 500px;
+    }
+
+    .post-modal-overlay {
+        display: flex;
+    }
+}
