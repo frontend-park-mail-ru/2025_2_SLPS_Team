@@ -1,6 +1,7 @@
 import Template from './EmojiMenu.hbs';
 import './EmojiMenu.css';
 import emojiData from '../../../services/Emoji/compact.raw.json';
+import { SearchInput } from '../SearchInput/SearchInput';
 import { searchEmojis } from '../../../services/Emoji/Emoji';
 import { getStickerPacks, getPackStickers } from '../../../shared/api/stickersApi';
 
@@ -17,29 +18,48 @@ type StickerPack = {
 
 type Sticker = {
   id: number;
+  packId?: number;
   filePath: string;
+  position?: number;
 };
 
 function toAbs(u: string): string {
-  if (!u) return u;
-  if (u.startsWith('http')) return u;
+  const s = (u ?? '').trim();
+  if (!s) return s;
+  if (s.startsWith('http://') || s.startsWith('https://')) return s;
+
   const base = (process.env.API_BASE_URL ?? '').replace(/\/$/, '');
-  return u.startsWith('/') ? `${base}${u}` : `${base}/${u}`;
+  if (!base) return s;
+
+  if (s.startsWith('/')) return `${base}${s}`;
+  return `${base}/${s}`;
+}
+
+function pickEmoji(e: any): string {
+  return (e?.emoji ?? e?.unicode ?? e?.char ?? '').toString();
 }
 
 export class EmojiMenu {
   private rootElement: HTMLElement;
-  private onSelect: (emoji: string) => void;
+  private onSelectEmoji: (emoji: string) => void;
   private onSelectSticker: (sticker: StickerSelectPayload) => void;
 
   private wrapper!: HTMLElement;
-  private emojiGrid!: HTMLElement;
-  private searchRoot!: HTMLElement;
+  private tabs!: NodeListOf<HTMLButtonElement>;
+  private emojiPanel!: HTMLElement;
+  private stickersPanel!: HTMLElement;
+
+  private searchContainer!: HTMLElement;
+  private grid!: HTMLElement;
+
   private packsRoot!: HTMLElement;
   private stickerGrid!: HTMLElement;
 
   private packs: StickerPack[] = [];
   private activePackId: number | null = null;
+  private stickersInited = false;
+
+  private searchInput!: SearchInput;
 
   constructor(
     rootElement: HTMLElement,
@@ -47,82 +67,134 @@ export class EmojiMenu {
     onSelectSticker: (sticker: StickerSelectPayload) => void,
   ) {
     this.rootElement = rootElement;
-    this.onSelect = onSelectEmoji;
+    this.onSelectEmoji = onSelectEmoji;
     this.onSelectSticker = onSelectSticker;
   }
 
   render(): void {
     const temp = document.createElement('div');
     temp.innerHTML = Template({});
-    const root = temp.firstElementChild as HTMLElement;
+    const root = temp.firstElementChild as HTMLElement | null;
+    if (!root) return;
+
     this.wrapper = root;
 
-    this.emojiGrid = root.querySelector('.emoji-picker-grid') as HTMLElement;
-    this.searchRoot = root.querySelector('.emoji-search-container') as HTMLElement;
-    this.packsRoot = root.querySelector('.sticker-packs') as HTMLElement;
-    this.stickerGrid = root.querySelector('.sticker-grid') as HTMLElement;
+    const tabs = root.querySelectorAll('.emoji-modal__tab') as NodeListOf<HTMLButtonElement>;
+    const emojiPanel = root.querySelector('.emoji-modal__panel--emoji') as HTMLElement | null;
+    const stickersPanel = root.querySelector('.emoji-modal__panel--stickers') as HTMLElement | null;
 
-    this.initTabs();
-    this.renderEmojiGrid(emojiData);
+    const searchContainer = root.querySelector('.emoji-search-container') as HTMLElement | null;
+    const grid = root.querySelector('.emoji-picker-grid') as HTMLElement | null;
 
-    void this.initStickers();
+    const packsRoot = root.querySelector('.sticker-packs') as HTMLElement | null;
+    const stickerGrid = root.querySelector('.sticker-grid') as HTMLElement | null;
 
+    if (!tabs.length || !emojiPanel || !stickersPanel || !searchContainer || !grid || !packsRoot || !stickerGrid) return;
+
+    this.tabs = tabs;
+    this.emojiPanel = emojiPanel;
+    this.stickersPanel = stickersPanel;
+
+    this.searchContainer = searchContainer;
+    this.grid = grid;
+
+    this.packsRoot = packsRoot;
+    this.stickerGrid = stickerGrid;
+
+    this.searchInput = new SearchInput(this.searchContainer);
+    this.searchInput.render();
+    this.searchInput.onInput((value) => this.renderEmojis(value));
+
+    this.tabs.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const tab = (btn.dataset.tab as 'emoji' | 'stickers') ?? 'emoji';
+        this.switchTab(tab);
+      });
+    });
+
+    this.renderEmojis('');
     this.rootElement.appendChild(root);
   }
 
   toggle(): void {
+    if (!this.wrapper) return;
     this.wrapper.classList.toggle('hidden');
   }
 
   hide(): void {
+    if (!this.wrapper) return;
     this.wrapper.classList.add('hidden');
   }
 
-  private initTabs() {
-    const tabs = this.wrapper.querySelectorAll('.emoji-tab');
-    const emojiTab = this.wrapper.querySelector('.emoji-tab-content--emoji') as HTMLElement;
-    const stickerTab = this.wrapper.querySelector('.emoji-tab-content--stickers') as HTMLElement;
-
-    tabs.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        tabs.forEach((b) => b.classList.remove('active'));
-        btn.classList.add('active');
-
-        const tab = btn.getAttribute('data-tab');
-        if (tab === 'emoji') {
-          emojiTab.classList.remove('hidden');
-          stickerTab.classList.add('hidden');
-        } else {
-          stickerTab.classList.remove('hidden');
-          emojiTab.classList.add('hidden');
-        }
-      });
-    });
+  show(): void {
+    if (!this.wrapper) return;
+    this.wrapper.classList.remove('hidden');
   }
 
-  private renderEmojiGrid(list: any[]) {
-    this.emojiGrid.innerHTML = '';
+  private switchTab(tab: 'emoji' | 'stickers') {
+    this.tabs.forEach((t) => t.classList.remove('active'));
+    const active = this.wrapper.querySelector(`.emoji-modal__tab[data-tab="${tab}"]`) as HTMLButtonElement | null;
+    if (active) active.classList.add('active');
 
-    list.forEach((e) => {
+    this.emojiPanel.classList.toggle('hidden', tab !== 'emoji');
+    this.stickersPanel.classList.toggle('hidden', tab !== 'stickers');
+
+    if (tab === 'stickers' && !this.stickersInited) {
+      this.stickersInited = true;
+      void this.initStickers();
+    }
+  }
+
+  private renderEmojis(search: string): void {
+    if (!this.grid) return;
+
+    const q = (search ?? '').trim();
+    const src = emojiData as any[];
+    const results = q ? (searchEmojis(q, src as any) as any[]) : src;
+
+    this.grid.innerHTML = '';
+
+    if (!results.length) {
+      const no = document.createElement('div');
+      no.className = 'no-result-text';
+      no.textContent = 'Нет результатов';
+      this.grid.appendChild(no);
+      return;
+    }
+
+    results.forEach((e: any) => {
+      const ch = pickEmoji(e);
+      if (!ch) return;
+
       const btn = document.createElement('button');
+      btn.type = 'button';
       btn.className = 'emoji-item';
-      btn.textContent = e.emoji;
+      btn.textContent = ch;
       btn.onclick = () => {
-        this.onSelect(e.emoji);
+        this.onSelectEmoji(ch);
         this.hide();
       };
-      this.emojiGrid.appendChild(btn);
+      this.grid.appendChild(btn);
     });
   }
 
   private async initStickers() {
-    this.packs = await getStickerPacks();
-    const first = this.packs[0];
-    if (!first) return;
+    try {
+      this.packs = (await getStickerPacks()) as StickerPack[];
+      const first = this.packs[0];
+      if (!first) {
+        this.packsRoot.innerHTML = '';
+        this.stickerGrid.innerHTML = '';
+        return;
+      }
 
-    this.activePackId = first.id;
-    this.renderPacks();
-    await this.loadPack(first.id);
+      this.activePackId = first.id;
+      this.renderPacks();
+      await this.loadPack(first.id);
+    } catch {
+      this.packsRoot.innerHTML = '';
+      this.stickerGrid.innerHTML = '';
+    }
   }
 
   private renderPacks() {
@@ -130,11 +202,13 @@ export class EmojiMenu {
 
     this.packs.forEach((p) => {
       const btn = document.createElement('button');
+      btn.type = 'button';
       btn.className = 'sticker-pack-btn' + (p.id === this.activePackId ? ' active' : '');
 
       const img = document.createElement('img');
       img.className = 'sticker-pack-cover';
       img.src = toAbs(p.coverPath);
+      img.alt = p.name ?? 'pack';
 
       btn.appendChild(img);
       btn.onclick = async () => {
@@ -148,16 +222,28 @@ export class EmojiMenu {
   }
 
   private async loadPack(packId: number) {
-    const stickers: Sticker[] = await getPackStickers(packId);
+    const stickers = (await getPackStickers(packId)) as Sticker[];
+    const list = (stickers ?? []).slice().sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+
     this.stickerGrid.innerHTML = '';
 
-    stickers.forEach((s) => {
+    if (!list.length) {
+      const no = document.createElement('div');
+      no.className = 'no-result-text';
+      no.textContent = 'В паке нет стикеров';
+      this.stickerGrid.appendChild(no);
+      return;
+    }
+
+    list.forEach((s) => {
       const btn = document.createElement('button');
+      btn.type = 'button';
       btn.className = 'sticker-item';
 
       const img = document.createElement('img');
       img.className = 'sticker-img';
       img.src = toAbs(s.filePath);
+      img.alt = `sticker-${s.id}`;
 
       btn.appendChild(img);
       btn.onclick = () => {
