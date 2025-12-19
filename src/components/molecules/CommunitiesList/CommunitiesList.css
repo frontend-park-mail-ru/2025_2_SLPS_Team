@@ -15,6 +15,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
+    color: var(--text-black);
 }
 
 .communities-list-count{
@@ -40,12 +41,17 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
+    color: var(--avatar-color);
+}
+
+.communities-list__avatar use{
+    transform: scale(0.3);
 }
 
 .communities-list__name{
     font-family: inherit;
     font-size: 16px;
-    color: var(--base-black);
+    color: var(--text-black);
 }
 
 .communities-list__name__nosubs {

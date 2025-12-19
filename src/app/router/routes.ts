@@ -8,6 +8,8 @@ import { FriendsPage } from '../../Pages/FriendsPage/FriendsPage';
 import { HelpPage } from '../../Pages/HelpPage/HelpPage';
 import { layout } from '../../Pages/LayoutManager';
 import { SupportFormPage } from '../../Pages/SupportFormPage/SupportFormPage';
+import  SearchPage  from '../../Pages/SearchPage/SearchPage';
+
 import { CommunityCheckPage } from '../../Pages/CommunityCheckPage/CommunityCheckPage';
 
 import { navigateTo } from './navigateTo';
@@ -93,4 +95,10 @@ export const routes: RoutesMap = {
     access: 'auth-only',
     title: 'Сообщество',
   },
+    '/search': {
+    renderFunc: async () => layout.renderPage(SearchPage),
+    access: 'auth-only',
+    title: 'Поиск',
+  },
+
 };

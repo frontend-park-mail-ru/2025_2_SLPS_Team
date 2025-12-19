@@ -56,6 +56,7 @@
 .file-name {
     font-size: 14px;
     font-weight: 350;
+    color: var(--text-black);
 }
 
 .file-delete-btn {

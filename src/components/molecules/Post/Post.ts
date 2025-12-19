@@ -12,8 +12,11 @@ import type { ApiError } from '../../../shared/api/client';
 import { navigateTo } from '../../../app/router/navigateTo';
 import { Post } from './PostTypes';
 import { FileItem } from '../../atoms/FileItem/FileItem';
+import { PostModal } from '../../organisms/PostModal/PostModal';
 
 const notifier = new NotificationManager();
+
+let commentsModalOpen = false;
 
 /**
  * Рендерит пост с фотографиями, кнопками действий и возможностью разворачивания текста.
@@ -39,10 +42,10 @@ export async function renderPost(rawPostData: Post | Record<string, any>): Promi
     const comments =
       (postData.comments as number | undefined) ??
       (post.comments as number | undefined) ??
-      (post.commentCount as number | undefined) ??
+      (post.commentsCount as number | undefined) ??
       (post.comment_count as number | undefined) ??
       0;
-
+      console.log(post);
     const reposts =
       (postData.reposts as number | undefined) ??
       (post.reposts as number | undefined) ??
@@ -74,10 +77,11 @@ export async function renderPost(rawPostData: Post | Record<string, any>): Promi
       0;
 
     const comments =
-      (postData.comments as number | undefined) ??
-      (postData.commentCount as number | undefined) ??
-      (postData.comment_count as number | undefined) ??
-      0;
+    (postData.comments as number | undefined) ??
+    (postData.commentsCount as number | undefined) ?? 
+    (postData.commentCount as number | undefined) ??  
+    (postData.comment_count as number | undefined) ??
+    0;
 
     const reposts =
       (postData.reposts as number | undefined) ??
@@ -232,6 +236,32 @@ export async function renderPost(rawPostData: Post | Record<string, any>): Promi
   postFooter.appendChild(LikeButton);
   postFooter.appendChild(CommentButton);
   postFooter.appendChild(ShareButton);
+
+  CommentButton.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (commentsModalOpen) return;
+
+    commentsModalOpen = true;
+
+    const commentsEl = document.createElement('div');
+    commentsEl.textContent = 'Тут будут комментарии';
+
+    const modal = new PostModal({
+      postData,
+      commentsComponent: commentsEl,
+    });
+
+    modal.open();
+
+    const originalClose = modal.close.bind(modal);
+    modal.close = () => {
+      commentsModalOpen = false;
+      originalClose();
+    };
+  });
+
 
   const likeImg = LikeButton.querySelector('img');
   const likeCountNode = LikeButton.querySelector('.icon-button-counter') as HTMLElement;

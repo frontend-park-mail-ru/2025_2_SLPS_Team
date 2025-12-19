@@ -12,6 +12,7 @@ import { navigateTo } from '../../app/router/navigateTo';
 import DropDown from '../../components/atoms/dropDown/dropDown';
 import BaseButton from '../../components/atoms/BaseButton/BaseButton';
 import { EditCommunityModal } from '../../components/organisms/EditCommunityModal/EditCommunityModal';
+import { isDarkTheme } from '../../helpers/InitTheme';
 
 import {
   getCommunity,
@@ -464,10 +465,10 @@ export class CommunityCheckPage extends BasePage {
       '/public/globalImages/DefaultAvatar.svg',
     );
 
-    const coverPath = resolveImagePath(
-      this.community.coverPath,
-      '/public/globalImages/backgroud.png',
-    );
+    let coverPath = "/public/globalImages/backgroud.png";
+    if (isDarkTheme()) {
+      coverPath = "/public/globalImages/DarkBackground.png"
+    }
 
     if (this.headerRoot) {
       this.headerRoot.innerHTML = '';

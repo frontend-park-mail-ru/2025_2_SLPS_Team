@@ -10,31 +10,37 @@ const app = express();
 const distPath = path.join(__dirname, "dist");
 
 app.use((req, res, next) => {
-    res.setHeader("X-Content-Type-Options", "nosniff");
-  //  res.setHeader("X-Frame-Options", "DENY");
-    res.setHeader("X-XSS-Protection", "1; mode=block");
-    res.setHeader("Referrer-Policy", "no-referrer");
-    res.setHeader("Permissions-Policy", "geolocation=(), microphone=()");
+    const apiOrigin = process.env.API_BASE_URL
+    ? new URL(process.env.API_BASE_URL).origin
+    : "http://localhost";
+
     res.setHeader(
-        "Content-Security-Policy",
-        "default-src 'self'; " +
-        "frame-src 'self'; " + 
-        "script-src 'self' https://cdn.jsdelivr.net; " +
-        "style-src 'self' 'unsafe-inline';" +
-        `connect-src 'self' ${process.env.API_BASE_URL || 'http://185.86.146.77:8080'} ${process.env.WS_URL || ''}; ` +
-        `img-src 'self' ${process.env.API_BASE_URL || 'http://185.86.146.77:8080'} blob: data:;` +
-        `media-src 'self' ${process.env.API_BASE_URL || 'http://185.86.146.77:8080'} blob: data:;`
+    "Content-Security-Policy",
+    [
+        "default-src 'self'",
+        "frame-src 'self'",
+        "script-src 'self' https://cdn.jsdelivr.net",
+        "style-src 'self' 'unsafe-inline'",
+        `connect-src 'self' ${apiOrigin} ${process.env.WS_URL || ""}`,
+        `img-src 'self' ${apiOrigin} blob: data:`,
+        `media-src 'self' ${apiOrigin} blob: data:`
+    ].join("; ")
     );
     next();
 });
 
 app.use(express.static(distPath));
 
+app.get("/manifest.json", (req, res) => {
+    res.type("application/manifest+json");
+    res.sendFile(path.join(distPath, "manifest.json"));
+});
+
 app.get(/.*/, (req, res) => {
     res.sendFile(path.resolve(__dirname, "dist", "index.html"));
 });
 
-app.listen(80, () => {
+app.listen(3000,"0.0.0.0", () => {
     dotenv.config();
     console.log(process.env.API_BASE_URL)
     console.log("Server started at http://localhost:3000");

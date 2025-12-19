@@ -1,5 +1,6 @@
 import ChatTemplate from './Chat.hbs';
 import { ChatHeader } from '../../molecules/ChatHeader/ChatHeader';
+import { MessageAttachmentsModal } from '../MessageAttachmentsModal/MessageAttachmentsModal';
 import { Message } from '../../atoms/Message/Message';
 import { MessageInput } from '../../molecules/MessageInput/MessageInput';
 import { EventBus } from '../../../services/EventBus';
@@ -16,100 +17,128 @@ interface ChatUserView {
   avatar: string;
 }
 
-export interface ChatMessageView {
+interface ChatMessageView {
   id: number;
   text: string;
   created_at: string;
+  attachments?: string[];
   User: ChatUserView;
 }
 
-interface ChatMessagesResponseAuthor {
-  fullName: string;
-  avatarPath?: string | null;
-}
-
-interface ChatMessagesResponseMessage {
+interface ChatData {
   id: number;
-  text: string;
-  createdAt: string;
-  authorID: number;
-}
-
-interface ChatMessagesResponse {
-  Messages?: ChatMessagesResponseMessage[];
-  Authors?: Record<number, ChatMessagesResponseAuthor>;
-}
-
-interface SentMessageResponse {
-  id: number;
-}
-
-export interface ChatData {
-  id: number;
-  name: string;
+  name?: string | null;
   avatarPath?: string | null;
   lastReadMessageId?: number | null;
   lastReadMessageID?: number | null;
 }
 
-export interface ChatOptions {
+interface ChatOptions {
   hasBackButton?: boolean;
   onBack?: () => void;
 }
 
-interface WsLastMessage {
-  id: number;
-  text: string;
-  createdAt: string;
-  chatID: number;
+type WsNewMessagePayload = any;
+
+const UPLOADS_BASE = `${process.env.API_BASE_URL}/uploads/`;
+
+function isRecord(v: unknown): v is Record<string, any> {
+  return typeof v === 'object' && v !== null;
 }
 
-interface WsAuthor {
-  userID: number;
-  fullName: string;
-  avatarPath?: string | null;
+function toAbsoluteAttachmentUrl(u: string): string {
+  const s = (u ?? '').trim();
+  if (!s) return s;
+
+  if (s.startsWith('blob:')) return s;
+  if (s.startsWith('http://') || s.startsWith('https://')) return s;
+  if (s.startsWith('/')) return `${location.origin}${s}`;
+
+  return `${UPLOADS_BASE}${s}`;
 }
 
-interface WsNewMessagePayload {
-  id?: number;
-  chatId?: number;
-  chatID?: number;
-  chat_id?: number;
+function normalizeAttachments(raw: unknown): string[] {
+  if (!raw) return [];
 
-  lastMessage?: WsLastMessage;
-  last_message?: WsLastMessage;
-  message?: WsLastMessage;
+  if (Array.isArray(raw)) {
+    const out: string[] = [];
+    for (const item of raw) {
+      if (typeof item === 'string') out.push(toAbsoluteAttachmentUrl(item));
+      else if (isRecord(item)) {
+        const url =
+          item.url ??
+          item.path ??
+          item.fileUrl ??
+          item.file_url ??
+          item.downloadUrl ??
+          item.download_url ??
+          item.src ??
+          item.href;
+        if (typeof url === 'string') out.push(toAbsoluteAttachmentUrl(url));
+      }
+    }
+    return out;
+  }
 
-  lastMessageAuthor?: WsAuthor;
-  last_message_author?: WsAuthor;
-  author?: WsAuthor;
+  if (isRecord(raw)) {
+    const url =
+      raw.url ??
+      raw.path ??
+      raw.fileUrl ??
+      raw.file_url ??
+      raw.downloadUrl ??
+      raw.download_url ??
+      raw.src ??
+      raw.href;
+    return typeof url === 'string' ? [toAbsoluteAttachmentUrl(url)] : [];
+  }
+
+  return [];
+}
+
+function buildLocalAttachmentUrls(files: File[]) {
+  const created: string[] = [];
+  const urls = files.map((f) => {
+    const blob = URL.createObjectURL(f);
+    created.push(blob);
+    return f.name ? `${blob}#${encodeURIComponent(f.name)}` : blob;
+  });
+  return {
+    urls,
+    revoke: () => created.forEach(URL.revokeObjectURL),
+  };
 }
 
 export class Chat {
   private rootElement: HTMLElement;
-  private chatInfo: number;
+  private chatId: number;
 
   private myUserId: number;
   private myUserName: string;
   private myUserAvatar: string;
 
   private data: ChatData;
-
   private hasBackButton: boolean;
   private onBack: (() => void) | null;
 
   private messages: ChatMessageView[] = [];
-  private chatHeader: ChatHeader | null = null;
-  private inputMes: MessageInput | null = null;
-  private messagesContainer!: HTMLDivElement;
-  private scrollButton: HTMLButtonElement | null = null;
+  private messagesContainer!: HTMLElement;
+  private input!: MessageInput;
+  private chatHeader!: ChatHeader;
 
-  private lastReadMessageId: number | null;
-  private unreadMessageIds: Set<number> = new Set();
-  private readUpdateInFlight = false;
+  private attachmentsModal: MessageAttachmentsModal | null = null;
+
+  private lastReadMessageId: number | null = null;
   private wsService: any;
+  private wsHandler: ((data: WsNewMessagePayload) => void) | null = null;
+  
+  private page = 1;
+  private totalPages: number | null = null;
+  private isLoadingMore = false;
+  private reachedEnd = false;
 
-  private wsHandler: ((data: WsNewMessagePayload | null) => void) | null = null;
+  private onScrollBound = () => this.onScroll();
+
 
   constructor(
     rootElement: HTMLElement,
@@ -120,369 +149,308 @@ export class Chat {
     options: ChatOptions = {},
   ) {
     this.rootElement = rootElement;
-    this.chatInfo = data.id;
+    this.chatId = data.id;
 
     this.myUserId = myUserId;
     this.myUserName = myUserName;
     this.myUserAvatar = myUserAvatar;
 
     this.data = data;
-
     this.hasBackButton = options.hasBackButton ?? false;
     this.onBack = options.onBack ?? null;
 
     this.lastReadMessageId =
-      data.lastReadMessageId ?? data.lastReadMessageID ?? null;
+      data.lastReadMessageId ?? (data as any).lastReadMessageID ?? null;
   }
 
-async render(): Promise<void> {
-    
-    // ----------------------------------------------------------------------------------
-    // ИСПРАВЛЕНИЕ RАСЕ CONDITION: Подписка на WS происходит СИНХРОННО до любых await
-    // ----------------------------------------------------------------------------------
-    this.wsHandler = (data: WsNewMessagePayload | null) => {
-      if (!data) return;
-
-      const chatIdFromEvent =
-        data.id??
-        data.chatId??
-        data.chatID??
-        data.chat_id??
-        data.lastMessage?.chatID??
-        data.last_message?.chatID??
-        data.message?.chatID;
-
-      if (chatIdFromEvent!== this.chatInfo) {
-        return;
-      }
-
-      const last =
-        data.lastMessage??
-        data.last_message??
-        data.message??
-        null;
-
-      const author =
-        data.lastMessageAuthor??
-        data.last_message_author??
-        data.author??
-        null;
-
-      if (!last ||!author) {
-        console.warn('[Chat] WS new_message без lastMessage/lastMessageAuthor', data);
-        return;
-      }
-
-      if (this.messages.some((m) => m.id === last.id)) {
-        return;
-      }
-
-      const messageData: ChatMessageView = {
-        id: last.id,
-        text: last.text,
-        created_at: last.createdAt,
-        User: {
-          id: author.userID,
-          full_name: author.fullName,
-          avatar: author.avatarPath?? '',
-        },
-      };
-
-      if (!this.messagesContainer) return; 
-
-      const isMine = messageData.User.id === this.myUserId;
-
-      const msg = new Message(
-        this.messagesContainer,
-        messageData,
-        isMine,
-        true,
-        true,
-      );
-      msg.render(true);
-      this.messages.push(messageData);
-
-      if (!isMine) {
-        this.unreadMessageIds.add(messageData.id);
-        EventBus.emit('chatReadUpdated', {
-          chatId: this.chatInfo,
-          unreadCount: this.unreadMessageIds.size,
-          lastReadMessageId: this.lastReadMessageId,
-        });
-      }
-
-      this.scrollToBottom();
-    };
-    await this.loadSocet();
-    this.wsService.on('new_message', this.wsHandler);
-    // ----------------------------------------------------------------------------------
-
+  async render(): Promise<void> {
+    await this.loadSocket();
 
     const wrapper = document.createElement('div');
-    wrapper.innerHTML = ChatTemplate(this.chatInfo);
+    wrapper.innerHTML = ChatTemplate(this.chatId);
 
-    const mainContainer = wrapper.querySelector<HTMLDivElement>('.chat-container');
-    if (!mainContainer) {
-      throw new Error('Chat:.chat-container not found');
-    }
+    const main = wrapper.querySelector('.chat-container') as HTMLElement;
+    this.rootElement.innerHTML = '';
+    this.rootElement.appendChild(main);
 
-    // Асинхронная операция теперь выполняется ПОСЛЕ подписки
-    const rawData = (await getChatMessages(
-      this.chatInfo,
-      1,
-    )) as ChatMessagesResponse;
-
-    // ИСПРАВЛЕНО: Корректный тип (массив) и fallback
-    const rawMessages = rawData.Messages??[]; 
-    
-    // ИСПРАВЛЕНО: Корректный fallback для Authors
-    const authors: Record<number, ChatMessagesResponseAuthor> = rawData.Authors?? {};
-
-    // ИСПРАВЛЕНО: Корректная логика получения автора по ID
-    this.messages = rawMessages.map<ChatMessageView>((msg:any) => {
-      const author = authors; 
-      return {
-        id: msg.id,
-        text: msg.text,
-        created_at: msg.createdAt,
-        User: {
-          id: msg.authorID,
-          full_name:'',
-          avatar: '',
-        },
-      };
-    });
-
-    const headerContainer = mainContainer.querySelector<HTMLDivElement>(
+    this.messagesContainer = main.querySelector('.chat-messeges') as HTMLElement;
+    const inputContainer = main.querySelector('.messege-input') as HTMLElement;
+    const headerContainer = main.querySelector(
       '.chat-header-container',
-    );
-    if (!headerContainer) {
-      throw new Error('Chat:.chat-header-container not found');
-    }
+    ) as HTMLElement;
 
     this.chatHeader = new ChatHeader(
       headerContainer,
-      this.data.name,
-      this.data.avatarPath?? '',
+      this.data.name ?? '',
+      this.data.avatarPath ?? '',
       this.hasBackButton,
-      this.onBack?? undefined,
+      this.onBack ?? undefined,
     );
     this.chatHeader.render();
 
-    const messagesContainer = mainContainer.querySelector<HTMLDivElement>(
-      '.chat-messeges',
+    this.input = new MessageInput(inputContainer);
+    this.input.render();
+
+    this.input.textarea.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) this.sendEvent(e);
+    });
+
+    this.input.sendButton.addEventListener('click', (e) => {
+      this.sendEvent(e);
+    });
+
+    this.page = 1;
+    this.reachedEnd = false;
+
+    const raw = await getChatMessages(this.chatId, 1);
+
+    this.totalPages =
+      (raw as any).totalPages ??
+      (raw as any).total_pages ??
+      (raw as any).TotalPages ??
+      null;
+
+    const list = (raw as any).messages ?? (raw as any).Messages ?? [];
+
+
+
+    this.messages = list.map((m: any) => ({
+      id: m.id,
+      text: m.text ?? '',
+      created_at: m.createdAt ?? m.created_at ?? new Date().toISOString(),
+      attachments: normalizeAttachments(m.attachments),
+      User: {
+        id: m.authorID,
+        full_name: 'User',
+        avatar: '',
+      },
+    }));
+
+    this.messages.sort(
+      (a, b) =>
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
     );
-    if (!messagesContainer) {
-      throw new Error('Chat:.chat-messeges not found');
-    }
 
-    this.messagesContainer = messagesContainer;
-
-    this.messages.forEach((messageData, index) => {
-      const isMine = messageData.User.id === this.myUserId;
-      const nextMessage = this.messages[index + 1];
-      
-      // ВОССТАНОВЛЕНО: Синтаксис логического ИЛИ (||)
-
-      const msg = new Message(
+    this.messagesContainer.innerHTML = '';
+    this.messages.forEach((m, i) => {
+      new Message(
         this.messagesContainer,
-        messageData,
-        isMine,
+        m as any,
+        m.User.id === this.myUserId,
+        i === this.messages.length - 1,
         false,
-        false,
-      );
-      msg.render();
+      ).render();
     });
 
-
-    const inputContainer = mainContainer.querySelector<HTMLDivElement>(
-      '.messege-input',
-    );
-    if (!inputContainer) {
-      throw new Error('Chat:.messege-input not found');
-    }
-
-    this.inputMes = new MessageInput(inputContainer);
-    this.inputMes.render();
-
-    if (this.inputMes.textarea) {
-      this.inputMes.textarea.addEventListener('keydown', (e: KeyboardEvent) => {
-        if (e.key === 'Enter' &&!e.shiftKey) {
-          this.sendEvent(e);
-        }
-      });
-    }
-
-    if (this.inputMes.sendButton) {
-      this.inputMes.sendButton.addEventListener('click', (e: MouseEvent) => {
-        this.sendEvent(e);
-      });
-    }
-
-    this.addScrollButton();
-
-
-    this.rootElement.appendChild(wrapper.firstElementChild as HTMLElement);
-
-    this.scrollToLastRead();
-  }
-  private async pushReadState(): Promise<void> {
-    if (!this.lastReadMessageId) return;
-    if (this.readUpdateInFlight) return;
-    this.readUpdateInFlight = true;
-
-    try {
-      await updateChatReadState(this.chatInfo, this.lastReadMessageId);
-    } catch (e) {
-      console.error('Не удалось обновить lastReadMessageId', e);
-    } finally {
-      this.readUpdateInFlight = false;
-    }
-  }
-
-
-  private scrollToBottom(): void {
-    if (!this.messagesContainer) return;
-
-    this.messagesContainer.scrollTop =
-      this.messagesContainer.scrollHeight -
-      this.messagesContainer.clientHeight;
-  }
-
-  private scrollToLastRead(): void {
-    if (!this.messagesContainer) return;
-
-    if (!this.lastReadMessageId) {
-      this.scrollToBottom();
-      return;
-    }
-
-    const el = this.messagesContainer.querySelector<HTMLElement>(
-      `[data-message-id="${this.lastReadMessageId}"]`,
-    );
-
-    if (!el) {
-      this.scrollToBottom();
-      return;
-    }
-
-    const targetTop =
-      el.offsetTop - this.messagesContainer.clientHeight * 0.3;
-
-    this.messagesContainer.scrollTop = Math.max(targetTop, 0);
-  }
-
-  private addScrollButton(): void {
-    if (!this.messagesContainer) return;
-
-    this.scrollButton = this.messagesContainer.querySelector<HTMLButtonElement>(
-      '.scroll-to-bottom-btn',
-    );
-    if (!this.scrollButton) {
-      return;
-    }
-
-    this.messagesContainer.addEventListener('scroll', () => {
-      if (!this.messagesContainer || !this.scrollButton) return;
-
-      const maxScroll =
-        this.messagesContainer.scrollHeight -
-        this.messagesContainer.clientHeight;
-      const isAtBottom =
-        this.messagesContainer.scrollTop >= maxScroll - 200;
-
-      if (isAtBottom) {
-        this.scrollButton.classList.remove('visible');
-      } else {
-        this.scrollButton.classList.add('visible');
-      }
-    });
-
-    this.scrollButton.addEventListener('click', () => {
-      if (!this.messagesContainer) return;
-
-      const el = this.messagesContainer;
-      const smoothPart = 700;
-
-      const maxScroll = el.scrollHeight - el.clientHeight;
-
-      el.scrollTop = maxScroll - smoothPart;
-
-      setTimeout(() => {
-        el.scrollTo({
-          top: maxScroll,
-          behavior: 'smooth',
-        });
-      }, 20);
-    });
+    this.scrollToBottomSoon();
+    this.messagesContainer.removeEventListener('scroll', this.onScrollBound);
+    this.messagesContainer.addEventListener('scroll', this.onScrollBound, { passive: true });
+    this.initWS();
   }
 
   private async sendEvent(e: Event): Promise<void> {
     e.preventDefault();
-    if (!this.inputMes || !this.messagesContainer) return;
 
-    const text = this.inputMes.getValue();
-    if (!text) return;
+    const text = this.input.getValue().trim();
+    const files = this.input.getFiles();
 
-    const chatID = this.chatInfo;
+    if (!text && files.length === 0) return;
+
+    const optimisticId = -Date.now();
+    const local = buildLocalAttachmentUrls(files);
+
+    const optimistic: ChatMessageView = {
+      id: optimisticId,
+      text,
+      created_at: new Date().toISOString(),
+      attachments: local.urls,
+      User: {
+        id: this.myUserId,
+        full_name: this.myUserName,
+        avatar: this.myUserAvatar,
+      },
+    };
+
+    new Message(this.messagesContainer, optimistic as any, true, true, true).render();
+    this.messages.push(optimistic);
+
+    this.input.clear();
+    this.scrollToBottomSoon();
 
     try {
-      const data = (await sendChatMessage(
-        chatID,
-        text,
-      )) as SentMessageResponse;
+      const resp: any = await sendChatMessage(this.chatId, text, files);
+      const serverAttachments = normalizeAttachments(resp.attachments);
 
-      const message: ChatMessageView = {
-        id: data.id,
+      const final: ChatMessageView = {
+        id: resp.id,
         text,
-        created_at: new Date().toISOString(),
+        created_at: resp.createdAt ?? resp.created_at ?? new Date().toISOString(),
+        attachments: serverAttachments.length ? serverAttachments : local.urls,
+        User: optimistic.User,
+      };
+
+      this.replaceMessage(optimisticId, final);
+      this.replaceMessageInState(optimisticId, final);
+      local.revoke();
+
+      this.lastReadMessageId = final.id;
+      await updateChatReadState(this.chatId, final.id);
+
+      EventBus.emit('chatUpdated', { chatId: this.chatId });
+    } catch {
+      local.revoke();
+    }
+  }
+
+  private replaceMessage(oldId: number, next: ChatMessageView) {
+    const el = this.messagesContainer.querySelector(
+      `[data-message-id="${oldId}"]`,
+    );
+    const msg = new Message(this.messagesContainer, next as any, true, true, false);
+    const newEl = msg.render();
+    if (el && newEl) el.replaceWith(newEl);
+  }
+
+  private replaceMessageInState(oldId: number, next: ChatMessageView) {
+    const idx = this.messages.findIndex((m) => m.id === oldId);
+    if (idx >= 0) this.messages[idx] = next;
+  }
+
+  private scrollToBottomSoon() {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+      });
+    });
+  }
+    private onScroll() {
+    if (this.messagesContainer.scrollTop > 80) return;
+    void this.loadMore();
+  }
+
+  private async loadMore() {
+    if (this.isLoadingMore || this.reachedEnd) return;
+
+    if (this.totalPages !== null && this.page >= this.totalPages) {
+      this.reachedEnd = true;
+      return;
+    }
+
+    this.isLoadingMore = true;
+    const nextPage = this.page + 1;
+
+    const prevScrollHeight = this.messagesContainer.scrollHeight;
+    const prevScrollTop = this.messagesContainer.scrollTop;
+
+    try {
+      const raw = await getChatMessages(this.chatId, nextPage);
+
+      const newTotalPages =
+        (raw as any).totalPages ??
+        (raw as any).total_pages ??
+        (raw as any).TotalPages ??
+        null;
+
+      if (newTotalPages !== null) this.totalPages = newTotalPages;
+
+      const list = (raw as any).messages ?? (raw as any).Messages ?? [];
+      if (!Array.isArray(list) || list.length === 0) {
+        this.reachedEnd = true;
+        return;
+      }
+
+      const batch: ChatMessageView[] = list.map((m: any) => ({
+        id: m.id,
+        text: m.text ?? '',
+        created_at: m.createdAt ?? m.created_at ?? new Date().toISOString(),
+        attachments: normalizeAttachments(m.attachments),
         User: {
-          id: this.myUserId,
-          full_name: this.myUserName,
-          avatar: this.myUserAvatar,
+          id: m.authorID,
+          full_name: 'User',
+          avatar: '',
+        },
+      }));
+
+      batch.sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+      );
+
+      const existing = new Set(this.messages.map((m) => m.id));
+      const uniqueBatch = batch.filter((m) => !existing.has(m.id));
+
+      this.page = nextPage;
+
+      if (uniqueBatch.length === 0) return;
+
+      this.messages = [...uniqueBatch, ...this.messages];
+
+      const frag = document.createDocumentFragment();
+      for (const m of uniqueBatch) {
+        const msg = new Message(
+          this.messagesContainer,
+          m as any,
+          m.User.id === this.myUserId,
+          false,
+          false,
+        );
+        const el = msg.render();
+        if (el) frag.appendChild(el);
+      }
+
+      this.messagesContainer.insertBefore(frag, this.messagesContainer.firstChild);
+
+      const newScrollHeight = this.messagesContainer.scrollHeight;
+      this.messagesContainer.scrollTop = prevScrollTop + (newScrollHeight - prevScrollHeight);
+
+    } finally {
+      this.isLoadingMore = false;
+    }
+  }
+
+  private initWS() {
+    if (this.wsHandler) {
+      try {
+        this.wsService.off?.('new_message', this.wsHandler);
+      } catch {}
+    }
+
+    this.wsHandler = (data: any) => {
+      console.debug('[Chat] WS new_message:', data);
+      const msg = data?.message ?? data;
+      if (!msg) return;
+
+      const chatId = msg.chatID ?? msg.chatId ?? msg.chat_id;
+      if (chatId !== this.chatId) return;
+
+      const authorId = msg.authorID ?? msg.authorId ?? msg.author_id;
+      if (authorId === this.myUserId) return;
+
+      const view: ChatMessageView = {
+        id: msg.id,
+        text: msg.text ?? '',
+        created_at: msg.createdAt ?? msg.created_at ?? new Date().toISOString(),
+        attachments: normalizeAttachments(msg.attachments),
+        User: {
+          id: authorId,
+          full_name: 'User',
+          avatar: '',
         },
       };
 
-      const msg = new Message(
-        this.messagesContainer,
-        message,
-        true,
-        true,
-        true,
-      );
-      msg.render(true);
+      this.messages.push(view);
+      new Message(this.messagesContainer, view as any, false, true, true).render();
+      this.scrollToBottomSoon();
+    };
 
-      this.messages.push(message);
-
-      this.inputMes.clear();
-
-      EventBus.emit('chatUpdated', { chatId: this.chatInfo });
-
-      this.lastReadMessageId = message.id;
-      this.unreadMessageIds.clear();
-      void this.pushReadState();
-      EventBus.emit('chatReadUpdated', {
-        chatId: this.chatInfo,
-        unreadCount: 0,
-        lastReadMessageId: this.lastReadMessageId,
-      });
-
-      this.scrollToBottom();
-    } catch (err) {
-      console.error('Ошибка при отправке сообщения:', err);
-    }
+    this.wsService.on('new_message', this.wsHandler);
   }
 
-  destroy(): void {
-    if (this.wsHandler) {
-      this.wsService.off?.('new_message', this.wsHandler);
-      this.wsHandler = null;
-    }
+  async loadSocket() {
+    const mod = await import('services/WebSocketService');
+    this.wsService = (mod as any).wsService;
   }
 
-
-  async loadSocet() {
-      const module = await import('services/WebSocketService');
-      this.wsService = module.wsService;
+  public getChatId(): number {
+    return this.chatId;
   }
 }

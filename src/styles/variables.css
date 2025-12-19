@@ -11,4 +11,29 @@
     --light-gray: #F5F6F7;
     --base-green: #09C26F;
     --light-purple: #F6F0FF;
+    --toogle-color: #714bb9;
+    --avatar-color: #EDEEF0;
+    --switcher-background: #f4ecff;
+
+    --background-image: url('/public/globalImages/backgroud.png');
+}
+
+:root[data-theme="dark"] {
+    --base-background: #151618;
+    --base-white: #252628;
+    --text-black: #F5F6F8;
+    --light-gray: #2e2e2e;
+    --toogle-color: #714bb9;
+    --light-border: #333333;
+    --dark-gray: #8B8B8B;
+    --accent-purple: #2B2438;
+    --base-purple: #a98cfe;
+    --base-red: #FF5A5A;
+    --base-gray: #1E1E1E;
+    --base-green: #3DDC97;
+    --light-purple: #2B2438;
+    --avatar-color: #424750;
+    --switcher-background: #3d2f59;
+
+    --background-image: url('/public/globalImages/DarkBackground.png');
 }

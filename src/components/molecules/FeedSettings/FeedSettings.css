@@ -10,14 +10,12 @@
 }
 
 .settings-menu-container{
-    display: flex
-;
+    display: flex;
     flex-direction: column;
     gap: 6px;
     width: 250px;
     position: fixed;
     color: var(--base-white);
-    background: var(--base-white);
     padding: 6px;
     border-radius: 10px;
 }

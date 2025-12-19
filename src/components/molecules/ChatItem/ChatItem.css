@@ -29,13 +29,13 @@
 .user-name{
     font-family: 'Nunito Sans';
     font-size: 16px;
-    color: var(--base-black);
+    color: var(--text-black);
     font-weight: 400;
 }
 
 .new-mess-counter{
-    width: 10px;
-    height: 10px;
+    width: 14px;
+    height: 14px;
     color: var(--base-white);
     border-radius: 50%;
     background-color: var(--base-purple);

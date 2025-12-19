@@ -1,83 +1,125 @@
+type Listener = (data: any) => void;
+
 class WebSocketService {
   private ws: WebSocket | null = null;
-  private listeners = new Map<string, Set<any>>();
-  private onOpenCallbacks: Array<() => void> = [];
-  private reconnectTimeout = 3000;
+  private listeners = new Map<string, Set<Listener>>();
+  private openListeners = new Set<() => void>();
+
+  private reconnectDelayMs = 2000;
+  private reconnectTimer: number | null = null;
 
   private constructor(private url: string) {}
 
-  private connect() {
-    if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) return;
+  static getInstance(): WebSocketService {
+    const GLOBAL = globalThis as any;
+
+    const apiBase = (process.env.API_BASE_URL ?? '').replace(/\/$/, '');
+    const derived =
+      apiBase && (apiBase.startsWith('http://') || apiBase.startsWith('https://'))
+        ? apiBase.replace(/^https:/, 'wss:').replace(/^http:/, 'ws:') + '/ws'
+        : '';
+
+    const url =
+      process.env.WS_URL ||
+      derived ||
+      'ws://185.86.146.77:8080/api/ws';
+
+    if (!GLOBAL.__WS_SERVICE__) GLOBAL.__WS_SERVICE__ = new WebSocketService(url);
+    return GLOBAL.__WS_SERVICE__ as WebSocketService;
+  }
+
+  private ensureConnected() {
+    if (
+      this.ws &&
+      (this.ws.readyState === WebSocket.OPEN ||
+        this.ws.readyState === WebSocket.CONNECTING)
+    ) {
+      return;
+    }
+
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
 
     this.ws = new WebSocket(this.url);
 
     this.ws.onopen = () => {
-      console.log('[WS] Connected');
-      this.onOpenCallbacks.forEach(cb => cb());
-      this.onOpenCallbacks = [];
+      console.log('[WS] Connected:', this.url);
+      for (const cb of this.openListeners) cb();
+    };
+
+    this.ws.onclose = (e) => {
+      console.warn('[WS] Closed:', e.code, e.reason);
+
+      if (this.reconnectTimer) return;
+      this.reconnectTimer = window.setTimeout(() => {
+        this.reconnectTimer = null;
+        this.ensureConnected();
+      }, this.reconnectDelayMs);
+    };
+
+    this.ws.onerror = (e) => {
+      console.error('[WS] Error:', e);
     };
 
     this.ws.onmessage = (event) => {
+      console.debug('[WS] <- raw:', event.data);
+
+      let msg: any;
       try {
-        const msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-        const type = msg?.type;
-        const data = msg?.data;
-        if (type) this.emit(type, data);
+        msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
       } catch (err) {
-        console.error('[WS] Parse error:', err, event.data);
+        console.error('[WS] JSON parse error:', err);
+        return;
       }
-    };
 
-    this.ws.onclose = () => {
-      console.warn('[WS] Connection closed. Reconnecting...');
-      setTimeout(() => this.connect(), this.reconnectTimeout);
-    };
+      console.debug('[WS] <- json:', msg);
 
-    this.ws.onerror = (err) => {
-      console.error('[WS] Error:', err);
-      this.ws?.close();
+      const type = msg?.type ?? msg?.event ?? msg?.action ?? msg?.name;
+      const payload = msg?.data ?? msg?.message ?? msg?.payload ?? msg?.body ?? msg;
+
+      if (!type) {
+        console.warn('[WS] no type/event/action in message:', msg);
+        this.emit('__raw__', payload);
+        return;
+      }
+
+      console.debug('[WS] emit:', type, payload);
+      this.emit(type, payload);
     };
   }
 
-  static getInstance(): WebSocketService {
-    const GLOBAL = globalThis as any;
-    if (!GLOBAL.__WS_SERVICE__) {
-      GLOBAL.__WS_SERVICE__ = new WebSocketService(process.env.WS_URL || 'ws://185.86.146.77:8080/api/ws');
-      GLOBAL.__WS_SERVICE__.connect();
-    }
-    return GLOBAL.__WS_SERVICE__;
-  }
-
-  send(type: string, data: any) {
-    if (this.ws?.readyState === WebSocket.OPEN) this.ws.send(JSON.stringify({ type, data }));
-  }
-
-  on(type: string, callback: any) {
+  on(type: string, callback: Listener) {
     if (!this.listeners.has(type)) this.listeners.set(type, new Set());
     this.listeners.get(type)!.add(callback);
+    this.ensureConnected();
   }
 
-  off(type: string, callback: any) {
+  off(type: string, callback: Listener) {
     this.listeners.get(type)?.delete(callback);
   }
 
-  private emit(type: string, data: any) {
-    this.listeners.get(type)?.forEach(cb => cb(data));
+  onOpen(callback: () => void) {
+    this.openListeners.add(callback);
+    this.ensureConnected();
   }
 
-  onOpen(callback: () => void) {
-    if (this.ws?.readyState === WebSocket.OPEN) callback();
-    else this.onOpenCallbacks.push(callback);
+  send(data: any) {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      console.warn('[WS] send skipped, socket not open');
+      return;
+    }
+    const payload = typeof data === 'string' ? data : JSON.stringify(data);
+    console.debug('[WS] ->', payload);
+    this.ws.send(payload);
+  }
+
+  private emit(type: string, data: any) {
+    const set = this.listeners.get(type);
+    if (!set || set.size === 0) return;
+    for (const cb of set) cb(data);
   }
 }
-
 
 export const wsService = WebSocketService.getInstance();
-
-
-if ((import.meta as any).hot) {
-  (import.meta as any).hot.dispose(() => {
-    (globalThis as any).__WS_SERVICE__?.ws?.close();
-    (globalThis as any).__WS_SERVICE__ = undefined;
-  });
-}

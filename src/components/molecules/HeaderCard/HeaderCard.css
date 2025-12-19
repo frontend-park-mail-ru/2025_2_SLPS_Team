@@ -6,7 +6,13 @@
 .header-image {
     width: 100%;
     height: 180px;
-    object-fit: cover;
+    border-radius: 14px;
+    background-image: var(--background-image);
+    background-size: unset;
+}
+
+:root[data-theme="dark"] .header-image {
+    background-size: contain;
 }
 
 .header-card__content {
@@ -43,13 +49,18 @@
 
 .user-infromation {
     font-size: 20px;
-    font-weight: 600;   
+    font-weight: 600;
+    color: var(--text-black);   
 }
 
 @media (max-width: 768px) {
     .user-infromation {
         font-family: 'Nunito Sans';
         font-size: 16px;
-        color: var(--base-black);
+        color: var(--text-black);
+    }
+
+    .profile-avatar use {
+        transform: scale(0.7) !important;
     }
 }

@@ -23,6 +23,10 @@
   overflow: visible;
 }
 
+.community-about-card__text {
+  color: var(--text-black);
+}
+
 .community-header-card__cover {
   width: 100%;
   height: 180px;
@@ -31,7 +35,7 @@
 }
 
 .community-header-card__content {
-  margin-top: -50px;
+  margin-top: -45px;
   padding: 0 0px 16px 16px;
   display: flex;
   justify-content: space-between;
@@ -58,6 +62,11 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  color: var(--avatar-color);
+}
+
+.community-header-card__avatar use {
+  transform: scale(0.67);
 }
 
 .community-header-card__info {
@@ -158,6 +167,7 @@
 .community-about-card__title {
   font-weight: 350;
   font-size: 18px;
+  color: var(--text-black);
 }
 
 .community-about-card__row {
@@ -257,6 +267,7 @@
   font-family: inherit;
   font-size: 14px;
   font-weight: 330;
+  color: var(--text-black);
 }
 
 .community-about-card__created-date {
@@ -270,6 +281,7 @@
   font-family: inherit;
   font-size: 18px;
   font-weight: 350;
+  color: var(--text-black);
 }
 
 .community-header-card__right {
@@ -361,6 +373,7 @@
 
   font-size: 15px;
   outline: none;
+  color: var(--text-black);
 }
 
 .community-search-input::placeholder {
@@ -379,7 +392,7 @@
 }
 
 .community-tab--active {
-  background: #f4ecff;
+  background: var(--switcher-background);
   border-radius: 8px;
   color: var(--text-black);
   font-weight: 400;
@@ -442,6 +455,7 @@
   border: none;
   background: transparent;
   cursor: pointer;
+  height: 40px;
 }
 
 .community-created__avatar {
@@ -453,14 +467,14 @@
 }
 
 .community-created__img {
-  width: 100%;
-  height: 100%;
+  width: fit-content;
   object-fit: cover;
+  border-radius: 50%;
 }
 
 .community-created__name {
   font-size: 14px;
-  color: #161616;
+  color: var(--text-black);
   text-align: left;
 }
 

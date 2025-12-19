@@ -70,6 +70,7 @@
     font-size: inherit;
     background: transparent;
     padding: 0;
+    color: var(--text-black);
 }
 
 .post-text__input::-webkit-scrollbar {

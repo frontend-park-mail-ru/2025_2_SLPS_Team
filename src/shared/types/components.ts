@@ -51,6 +51,7 @@ export interface MessageData {
     id?: string | number;
     text: string;
     created_at?: string | Date;
+    attachments?: string[];
 }
 
 export interface NavButtonData {

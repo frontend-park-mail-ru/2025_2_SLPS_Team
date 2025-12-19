@@ -1,17 +1,29 @@
-<div class="message-input-container">
-  <textarea
-    class="input-message"
-    placeholder="Введите сообщение..."
-    rows="1"
-  ></textarea>
-  <button class="emoji-btn">
-    <img class="emoji-icon" src="/public/ChatIcons/EmojiIcon.svg">
-  </button>
-  <div class="emoji-picker">
-    <div class="emoji-search-container"></div>
-    <div class="emoji-picker-grid"></div>
+<div class="message-input-root">
+  <div class="attachments-preview">
+    <div class="attachments-preview-grid"></div>
+    <div class="attachments-preview-files"></div>
   </div>
-  <button class="message-send-btn">
-    <img src="public/ChatIcons/SendIcon.svg"/>
-  </button>
+
+  <div class="message-input-container">
+    <button type="button" class="message-attach-btn" aria-label="attach">
+      <img src="/public/ChatIcons/Attach.svg" alt="attach" />
+    </button>
+
+    <input class="message-file-input" type="file" multiple />
+
+    <textarea class="input-message" placeholder="Введите сообщение..." rows="1"></textarea>
+
+    <button type="button" class="emoji-btn" aria-label="emoji">
+      <img src="/public/ChatIcons/EmojiIcon.svg" alt="emoji" />
+    </button>
+
+    <button type="button" class="message-send-btn" aria-label="send">
+      <img src="/public/ChatIcons/SendIcon.svg" alt="send" />
+    </button>
+
+    <div class="emoji-picker hidden">
+      <div class="emoji-search-container"></div>
+      <div class="emoji-picker-grid"></div>
+    </div>
+  </div>
 </div>

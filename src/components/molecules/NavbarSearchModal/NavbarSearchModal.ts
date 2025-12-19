@@ -62,8 +62,7 @@ export class NavbarSearchModal {
   private usersListEl: HTMLElement | null = null;
   private communitiesListEl: HTMLElement | null = null;
 
-  private moreFriendsBtn: HTMLElement | null = null;
-  private moreCommunitiesBtn: HTMLElement | null = null;
+  private showAllBtn: HTMLElement | null = null;
 
   private inputEl: HTMLInputElement | null = null;
 
@@ -99,13 +98,7 @@ export class NavbarSearchModal {
       '.navbar-search-modal__list--communities',
     ) as HTMLElement | null;
 
-    this.moreFriendsBtn = this.rootEl.querySelector(
-      '.navbar-search-modal__more--friends',
-    ) as HTMLElement | null;
-
-    this.moreCommunitiesBtn = this.rootEl.querySelector(
-      '.navbar-search-modal__more--communities',
-    ) as HTMLElement | null;
+    this.showAllBtn = this.rootEl.querySelector('.navbar-search-modal__more') as HTMLElement | null;
 
     this.containerEl.appendChild(this.rootEl);
 
@@ -119,14 +112,15 @@ export class NavbarSearchModal {
       }
     });
 
-    this.moreFriendsBtn?.addEventListener('click', () => {
-      this.close();
-      navigateTo('/friends');
-    });
+    this.showAllBtn?.addEventListener('click', () => {
+      const q = (this.inputEl?.value ?? '').trim();
 
-    this.moreCommunitiesBtn?.addEventListener('click', () => {
+      sessionStorage.setItem('globalSearchQuery', q);
+
       this.close();
-      navigateTo('/community');
+
+      const url = q ? `/search?q=${encodeURIComponent(q)}` : '/search';
+      navigateTo(url);
     });
   }
 
