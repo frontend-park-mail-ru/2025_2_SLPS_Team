@@ -1,79 +1,60 @@
 import Handlebars from 'handlebars/runtime';
 
 Handlebars.registerHelper('svg', function (src: string, options: any) {
-    const className = options.hash.class ?? '';
+  const className = options.hash.class ?? '';
+  const isSvg = src.toLowerCase().endsWith('.svg') || src === '/public/globalImages/DefaultAvatar.svg';
 
-    let isSvg = false;
+  if (!isSvg) {
+    return new Handlebars.SafeString(`<img src="${src}" class="${className}" alt="image" />`);
+  }
 
-
-    const defaultAvatarPath = '/public/globalImages/DefaultAvatar.svg';
-    if (src === defaultAvatarPath) {
-        isSvg = true;
-    } else {
-        try {
-            const url = new URL(src, window.location.origin);
-            isSvg = url.pathname.toLowerCase().endsWith('.svg');
-        } catch {
-            isSvg = src.toLowerCase().endsWith('.svg');
-        }
-    }
-
-    if (isSvg) {
-        return new Handlebars.SafeString(`
-            <svg class="${className}">
-                <use href="${src}"></use>
-            </svg>
-        `);
-    }
-
-    return new Handlebars.SafeString(`
-        <img src="${src}" class="${className}" alt="image" />
-    `);
+  return new Handlebars.SafeString(`<div class="${className}" data-svg-src="${src}"></div>`);
 });
 
 export {};
 
 
-// svgHelper.ts
-export function inlineExternalSVGs(root: HTMLElement | Document = document) {
-  const svgUses = root.querySelectorAll<SVGUseElement>('svg use');
 
-  svgUses.forEach(async (use) => {
-    const href = use.getAttribute('href');
-    if (!href) return;
-    if (href.startsWith('#')) return;
+export function inlineExternalSVGs(root: HTMLElement | Document = document) {
+  const svgPlaceholders = root.querySelectorAll<HTMLElement>('[data-svg-src]');
+
+  svgPlaceholders.forEach(async (el) => {
+    const src = el.getAttribute('data-svg-src');
+    if (!src) return;
 
     try {
-      const res = await fetch(href);
+      const res = await fetch(src);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const svgText = await res.text();
+
       const parser = new DOMParser();
       const doc = parser.parseFromString(svgText, 'image/svg+xml');
       const svg = doc.querySelector('svg');
       if (!svg) return;
 
-      const parent = use.parentElement;
-      if (!parent) return;
+      svg.removeAttribute('width');
+      svg.removeAttribute('height');
 
-      parent.innerHTML = '';
-      Array.from(svg.childNodes).forEach((child) => {
-        parent.appendChild(child.cloneNode(true));
-      });
+      const className = el.getAttribute('class') ?? '';
+      svg.setAttribute('class', className);
+      svg.setAttribute('fill', 'currentColor');
 
-      const className = parent.getAttribute('class') ?? '';
-      parent.setAttribute('class', className);
-      parent.removeAttribute('width');
-      parent.removeAttribute('height');
-
+      el.replaceWith(svg);
     } catch (err) {
-      console.warn('Не удалось загрузить SVG:', href, err);
+      console.warn('Не удалось загрузить SVG:', src, err);
     }
   });
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => inlineExternalSVGs());
-} else {
-  inlineExternalSVGs();
-}
+const observer = new MutationObserver((mutations) => {
+  mutations.forEach((m) => {
+    m.addedNodes.forEach((node) => {
+      if (node instanceof HTMLElement) {
+        inlineExternalSVGs(node);
+      }
+    });
+  });
+});
+observer.observe(document.body, { childList: true, subtree: true });
 
+inlineExternalSVGs();
