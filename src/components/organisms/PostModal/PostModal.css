@@ -64,6 +64,7 @@
         border-bottom-right-radius: 0 !important;
         min-height: 500px;
         max-height: 500px;
+        overflow-y: auto;
     }
 
     .post-modal-overlay {
