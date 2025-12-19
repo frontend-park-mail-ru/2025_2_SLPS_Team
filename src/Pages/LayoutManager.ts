@@ -59,7 +59,7 @@ export class LayoutManager {
     return [
       { label: 'Профиль', view: '/profile', icon: '/public/MenuIcons/ProfileIcon.svg' },
       { label: 'Лента', view: '/', icon: '/public/MenuIcons/FeedIcon.svg' },
-      { label: 'Сообщества', view: '/community', icon: '/public/MenuIcons/FeedIcon.svg' },
+      { label: 'Сообщества', view: '/community', icon: '/public/MenuIcons/CommunityIcon.svg' },
       { label: 'Мессенджер', view: '/messanger', icon: '/public/MenuIcons/MessengerIcon.svg' },
       { label: 'Друзья', view: '/friends', icon: '/public/MenuIcons/FriendsIcon.svg' },
       { label: 'Поддержка', view: '/help', icon: '/public/MenuIcons/HelpIcon.svg' },
