@@ -10,7 +10,6 @@ async function readJsonSafe<T = JsonValue>(res: Response): Promise<T | null> {
   try {
     return JSON.parse(text) as T;
   } catch {
-    // иногда сервер может вернуть не-JSON (текст)
     return text as unknown as T;
   }
 }
@@ -121,4 +120,20 @@ export async function togglePostLike<T = JsonValue>(postId: number | string): Pr
   }
 
   return data as T;
+}
+
+/** GET /api/posts?page=&limit= */
+export async function getPostsPaged<T = JsonValue>(
+  page: number = 1,
+  limit: number = 20,
+): Promise<T[]> {
+  const res = await apiRaw(`/api/posts?page=${page}&limit=${limit}`, { method: 'GET' });
+  const data = await readJsonSafe<T[] | T>(res);
+
+  if (!res.ok) {
+    console.error('getPostsPaged error', res.status, data);
+    throwApiError(res.status, data);
+  }
+
+  return Array.isArray(data) ? data : [];
 }
