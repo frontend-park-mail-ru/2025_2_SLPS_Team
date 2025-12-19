@@ -67,15 +67,11 @@ async function appendPostsInto(
 }
 
 async function getPostsPage(page: number, limit: number): Promise<PostData[]> {
-  const fn = getPosts as unknown as (p?: number, l?: number) => Promise<PostData[]>;
-  try {
-    const data = await fn(page, limit);
-    return Array.isArray(data) ? data : [];
-  } catch {
-    const data = await (getPosts as unknown as () => Promise<PostData[]>)();
-    return Array.isArray(data) ? data : [];
-  }
+  const offset = page * limit;
+  const fn = getPosts as unknown as (o?: number, l?: number) => Promise<PostData[]>;
+  return fn(offset, limit);
 }
+
 
 async function getPostsUpToPage(maxPage: number, limit: number): Promise<PostData[]> {
   const out: PostData[] = [];
@@ -169,7 +165,9 @@ await renderPostsInto(containerEl, posts);
           inst.reachedEnd = true;
           return;
         }
-
+        console.log('nextPage', nextPage);
+        console.log('batch ids', batch.map((p: any) => p?.id));
+        console.log('loaded ids', Array.from(inst.loadedIds));
         const unique = batch.filter((p) => {
           const id = getPostId(p);
           if (id === null) return true;
