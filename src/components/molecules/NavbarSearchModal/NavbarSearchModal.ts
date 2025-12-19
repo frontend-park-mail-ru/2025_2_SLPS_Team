@@ -14,6 +14,7 @@ import {
   getOtherCommunities,
   searchCommunities,
 } from '../../../shared/api/communityApi';
+import templateAvatar from './navbarSearchItem.hbs';
 
 type UserStatus = 'accepted' | 'pending' | 'sent' | 'notFriends';
 
@@ -207,17 +208,12 @@ export class NavbarSearchModal {
       const left = document.createElement('div');
       left.className = 'navbar-search-item__left';
 
-      const img = document.createElement('img');
-      img.className = 'navbar-search-item__avatar';
-      img.src = this.avatarUrl(user.avatarPath);
-      img.alt = user.fullName;
+      const html = templateAvatar({
+        avatarPath: this.avatarUrl(user.avatarPath),
+        fullName: user.fullName || 'Без имени',
+      });
 
-      const name = document.createElement('div');
-      name.className = 'navbar-search-item__name';
-      name.textContent = user.fullName || 'Без имени';
-
-      left.appendChild(img);
-      left.appendChild(name);
+      left.insertAdjacentHTML('beforeend', html);
 
       const btn = document.createElement('button');
       btn.className = 'navbar-search-item__action';
@@ -284,23 +280,19 @@ export class NavbarSearchModal {
       const left = document.createElement('div');
       left.className = 'navbar-search-item__left';
 
-      const img = document.createElement('img');
-      img.className = 'navbar-search-item__avatar';
-      img.src = this.avatarUrl(
+      const avatar =
         community.avatarPath ||
-          community.avatar ||
-          community.avatarURL ||
-          community.iconPath ||
-          null,
-      );
-      img.alt = community.name || community.title || 'Сообщество';
+        community.avatar ||
+        community.avatarURL ||
+        community.iconPath ||
+        null;
 
-      const name = document.createElement('div');
-      name.className = 'navbar-search-item__name';
-      name.textContent = community.name || community.title || 'Сообщество';
+      const html = templateAvatar({
+        avatar: this.avatarUrl(avatar),
+        name: community.name || community.title || 'Сообщество',
+      });
 
-      left.appendChild(img);
-      left.appendChild(name);
+      left.insertAdjacentHTML('beforeend', html);
 
       const right = document.createElement('div');
       right.className = 'navbar-search-item__action navbar-search-item__action--muted';
