@@ -435,10 +435,10 @@ export default class SearchPage extends BasePage {
     const left = document.createElement('div');
     left.className = 'search-row__left';
 
-    const avatar = document.createElement('img');
-    avatar.className = 'search-row__avatar';
-    avatar.src = avatarUrl;
-    avatar.alt = name;
+    const avatarHtml = AvatarSvgTemplate({
+      avatar: uploadsUrl(avatarUrl),
+      className: 'search-row__avatar',
+    });
 
     const text = document.createElement('div');
     text.className = 'search-row__text';
@@ -461,7 +461,7 @@ export default class SearchPage extends BasePage {
     text.appendChild(title);
     text.appendChild(desc);
 
-    left.appendChild(avatar);
+    left.insertAdjacentHTML('beforeend', avatarHtml);
     left.appendChild(text);
 
     const right = document.createElement('div');
