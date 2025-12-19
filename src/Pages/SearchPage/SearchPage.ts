@@ -1,10 +1,11 @@
 import BasePage from '../BasePage';
 import Template from './SearchPage.hbs';
 import './SearchPage.css';
-import { Notification } from '../../components/molecules/Notification/Notification';
 
 import SearchStatsTemplate from './SearchStats.hbs';
 import '../../components/molecules/FriendsStats/FriendsStats.css';
+
+import { NotificationManager } from '../../components/organisms/NotificationsBlock/NotificationsManager';
 
 import { navigateTo } from '../../app/router/navigateTo';
 import { API_BASE_URL } from '../../shared/api/client';
@@ -27,6 +28,8 @@ import {
 } from '../../shared/api/communityApi';
 
 import type { ProfileDTO, FriendsSearchBackendType } from '../../shared/types/friends';
+
+const notifier = new NotificationManager();
 
 type Tab = 'all' | 'users' | 'communities';
 type FriendStatus = 'accepted' | 'pending' | 'sent' | 'notFriends';
@@ -387,8 +390,7 @@ export default class SearchPage extends BasePage {
     const btn = document.createElement('button');
     btn.className = 'search-row__btn';
 
-    const isSub = c.subscriptionType === 'subscriber';
-    btn.textContent = isSub ? 'Отписаться' : 'Подписаться';
+    btn.textContent = c.subscriptionType === 'subscriber' ? 'Отписаться' : 'Подписаться';
 
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
@@ -399,28 +401,21 @@ export default class SearchPage extends BasePage {
         const res = await toggleCommunitySubscription(c.id, wasSub);
         const nowSub = res.isSubscribed;
 
-        new Notification(
-          document.body,
-          nowSub ? 'Вы подписались на сообщество' : 'Вы отписались от сообщества',
-          c.name,
-          nowSub ? 'success' : 'warning'
-        ).render();
+        notifier.show(
+          nowSub ? 'Подписка оформлена' : 'Вы отписались',
+          nowSub ? `Вы подписались на ${c.name}` : `Вы отписались от ${c.name}`,
+          nowSub ? 'success' : 'warning',
+        );
 
         c.subscriptionType = nowSub ? 'subscriber' : 'recommended';
         btn.textContent = nowSub ? 'Отписаться' : 'Подписаться';
+        this.cachedCommunities = null;
       } catch {
-        new Notification(
-          document.body,
-          'Не удалось выполнить действие',
-          'Попробуйте ещё раз',
-          'error'
-        ).render();
+        notifier.show('Ошибка', 'Не удалось выполнить действие', 'error');
       } finally {
         btn.disabled = false;
       }
     });
-
-
 
     right.appendChild(btn);
 
@@ -492,13 +487,11 @@ export default class SearchPage extends BasePage {
         accept.disabled = true;
         try {
           await acceptFriend(id);
-          new Notification(
-            document.body,
-            'Пользователь добавлен в друзья',
-            undefined,
-            'success'
-          ).render();
+          notifier.show('Готово', 'Пользователь добавлен в друзья', 'success');
+          this.cachedUsers = null;
           await this.loadAndRender();
+        } catch {
+          notifier.show('Ошибка', 'Не удалось принять заявку', 'error');
         } finally {
           accept.disabled = false;
         }
@@ -510,14 +503,11 @@ export default class SearchPage extends BasePage {
         reject.disabled = true;
         try {
           await rejectFriendRequest(id);
-          new Notification(
-            document.body,
-            'Заявка отклонена',
-            undefined,
-            'warning'
-          ).render();
-
+          notifier.show('Отклонено', 'Заявка отклонена', 'warning');
+          this.cachedUsers = null;
           await this.loadAndRender();
+        } catch {
+          notifier.show('Ошибка', 'Не удалось отклонить заявку', 'error');
         } finally {
           reject.disabled = false;
         }
@@ -532,14 +522,11 @@ export default class SearchPage extends BasePage {
         cancel.disabled = true;
         try {
           await deleteFriend(id);
-          new Notification(
-            document.body,
-            'Заявка отменена',
-            undefined,
-            'warning'
-          ).render();
-
+          notifier.show('Отменено', 'Заявка отменена', 'warning');
+          this.cachedUsers = null;
           await this.loadAndRender();
+        } catch {
+          notifier.show('Ошибка', 'Не удалось отменить заявку', 'error');
         } finally {
           cancel.disabled = false;
         }
@@ -552,13 +539,11 @@ export default class SearchPage extends BasePage {
         add.disabled = true;
         try {
           await sendFriendRequest(id);
-          new Notification(
-            document.body,
-            'Заявка отправлена',
-            'Пользователь получит уведомление',
-            'success'
-          ).render();
+          notifier.show('Заявка отправлена', 'Пользователь получит уведомление', 'success');
+          this.cachedUsers = null;
           await this.loadAndRender();
+        } catch {
+          notifier.show('Ошибка', 'Не удалось отправить заявку', 'error');
         } finally {
           add.disabled = false;
         }
