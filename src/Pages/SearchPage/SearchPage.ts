@@ -219,15 +219,35 @@ export default class SearchPage extends BasePage {
   private async ensureUsers(): Promise<UserView[]> {
     if (this.cachedUsers) return this.cachedUsers;
 
-    const [friends, possible] = await Promise.all([
+    const [friends, possible, sent, pending] = await Promise.all([
       getFriends().catch(() => [] as ProfileDTO[]),
       getPossibleFriends().catch(() => [] as ProfileDTO[]),
+      searchProfiles(' ', 'sent' as unknown as FriendsSearchBackendType, 1, 50).catch(() => [] as ProfileDTO[]),
+      searchProfiles(' ', 'pending' as unknown as FriendsSearchBackendType, 1, 50).catch(() => [] as ProfileDTO[]),
     ]);
 
     const mappedFriends = friends.map((u) => ({ ...(u as any), __friendStatus: 'accepted' as FriendStatus }));
     const mappedPossible = possible.map((u) => ({ ...(u as any), __friendStatus: 'notFriends' as FriendStatus }));
+    const mappedSent = sent.map((u) => ({ ...(u as any), __friendStatus: 'sent' as FriendStatus }));
+    const mappedPending = pending.map((u) => ({ ...(u as any), __friendStatus: 'pending' as FriendStatus }));
 
-    this.cachedUsers = uniqById([...mappedFriends, ...mappedPossible], getUserId);
+    const merged = [...mappedPossible, ...mappedSent, ...mappedPending, ...mappedFriends];
+
+    const byId = new Map<number, UserView>();
+    for (const u of merged) {
+      const id = getUserId(u);
+      if (!id) continue;
+      const st = isFriendStatus((u as any).__friendStatus) ? (u as any).__friendStatus : 'notFriends';
+      const prev = byId.get(id);
+      if (!prev) {
+        byId.set(id, u);
+        continue;
+      }
+      const prevSt = isFriendStatus((prev as any).__friendStatus) ? (prev as any).__friendStatus : 'notFriends';
+      if (priority(st) > priority(prevSt)) byId.set(id, u);
+    }
+
+    this.cachedUsers = Array.from(byId.values());
     return this.cachedUsers;
   }
 
