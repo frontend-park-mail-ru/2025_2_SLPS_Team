@@ -264,13 +264,15 @@
 }
 
 .search-row__btn {
-  border: none;
-  border-radius: 12px;
-  padding: 8px 14px;
-  font-size: 14px;
-  cursor: pointer;
-  background: rgba(93, 77, 255, 0.14);
-  color: var(--base-purple);
+  width: fit-content;
+    height: fit-content;
+    padding: 4px 8px;
+    background-color: var(--light-gray);
+    border: none;
+    font-size: 14px;
+    border-radius: 6px;
+    color: var(--base-purple);
+    font-weight: 400;
 }
 
 .search-row__btn--ghost {

@@ -477,7 +477,7 @@ export default class SearchPage extends BasePage {
       msg.addEventListener('click', (e) => {
         e.stopPropagation();
         sessionStorage.setItem('openChatUserId', String(id));
-        navigateTo('/chats');
+        navigateTo('/messanger');
       });
       right.appendChild(msg);
     } else if (status === 'pending') {

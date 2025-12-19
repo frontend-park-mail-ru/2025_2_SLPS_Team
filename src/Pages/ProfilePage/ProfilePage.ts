@@ -185,7 +185,11 @@ export class ProfilePage extends BasePage {
       },
       likes: (post.likeCount as number | undefined) ?? (post.like_count as number | undefined) ?? 0,
       comments:
-        (post.commentCount as number | undefined) ?? (post.comment_count as number | undefined) ?? 0,
+        (post.comments as number | undefined) ??
+        (post.commentsCount as number | undefined) ??
+        (post.commentCount as number | undefined) ??
+        (post.comment_count as number | undefined) ??
+        0,
       reposts:
         (post.repostCount as number | undefined) ?? (post.repost_count as number | undefined) ?? 0,
       isLiked: (post.isLiked as boolean | undefined) ?? false,
