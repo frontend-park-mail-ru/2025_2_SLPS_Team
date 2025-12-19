@@ -64,7 +64,7 @@ class WebSocketService {
     };
 
     this.ws.onmessage = (event) => {
-      console.debug('[WS] <- raw:', event.data);
+      console.log('[WS] <- raw:', event.data);
 
       let msg: any;
       try {
@@ -74,7 +74,7 @@ class WebSocketService {
         return;
       }
 
-      console.debug('[WS] <- json:', msg);
+      console.log('[WS] <- json:', msg);
 
       const type = msg?.type ?? msg?.event ?? msg?.action ?? msg?.name;
       const payload = msg?.data ?? msg?.message ?? msg?.payload ?? msg?.body ?? msg;
@@ -85,7 +85,7 @@ class WebSocketService {
         return;
       }
 
-      console.debug('[WS] emit:', type, payload);
+      console.log('[WS] emit:', type, payload);
       this.emit(type, payload);
     };
   }
@@ -111,7 +111,7 @@ class WebSocketService {
       return;
     }
     const payload = typeof data === 'string' ? data : JSON.stringify(data);
-    console.debug('[WS] ->', payload);
+    console.log('[WS] ->', payload);
     this.ws.send(payload);
   }
 
