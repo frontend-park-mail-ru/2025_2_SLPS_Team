@@ -131,6 +131,14 @@ export class Chat {
   private lastReadMessageId: number | null = null;
   private wsService: any;
   private wsHandler: ((data: WsNewMessagePayload) => void) | null = null;
+  
+  private page = 1;
+  private totalPages: number | null = null;
+  private isLoadingMore = false;
+  private reachedEnd = false;
+
+  private onScrollBound = () => this.onScroll();
+
 
   constructor(
     rootElement: HTMLElement,
@@ -191,8 +199,20 @@ export class Chat {
       this.sendEvent(e);
     });
 
+    this.page = 1;
+    this.reachedEnd = false;
+
     const raw = await getChatMessages(this.chatId, 1);
+
+    this.totalPages =
+      (raw as any).totalPages ??
+      (raw as any).total_pages ??
+      (raw as any).TotalPages ??
+      null;
+
     const list = (raw as any).messages ?? (raw as any).Messages ?? [];
+
+
 
     this.messages = list.map((m: any) => ({
       id: m.id,
@@ -223,6 +243,8 @@ export class Chat {
     });
 
     this.scrollToBottomSoon();
+    this.messagesContainer.removeEventListener('scroll', this.onScrollBound);
+    this.messagesContainer.addEventListener('scroll', this.onScrollBound, { passive: true });
     this.initWS();
   }
 
@@ -300,6 +322,89 @@ export class Chat {
         this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
       });
     });
+  }
+    private onScroll() {
+    if (this.messagesContainer.scrollTop > 80) return;
+    void this.loadMore();
+  }
+
+  private async loadMore() {
+    if (this.isLoadingMore || this.reachedEnd) return;
+
+    if (this.totalPages !== null && this.page >= this.totalPages) {
+      this.reachedEnd = true;
+      return;
+    }
+
+    this.isLoadingMore = true;
+    const nextPage = this.page + 1;
+
+    const prevScrollHeight = this.messagesContainer.scrollHeight;
+    const prevScrollTop = this.messagesContainer.scrollTop;
+
+    try {
+      const raw = await getChatMessages(this.chatId, nextPage);
+
+      const newTotalPages =
+        (raw as any).totalPages ??
+        (raw as any).total_pages ??
+        (raw as any).TotalPages ??
+        null;
+
+      if (newTotalPages !== null) this.totalPages = newTotalPages;
+
+      const list = (raw as any).messages ?? (raw as any).Messages ?? [];
+      if (!Array.isArray(list) || list.length === 0) {
+        this.reachedEnd = true;
+        return;
+      }
+
+      const batch: ChatMessageView[] = list.map((m: any) => ({
+        id: m.id,
+        text: m.text ?? '',
+        created_at: m.createdAt ?? m.created_at ?? new Date().toISOString(),
+        attachments: normalizeAttachments(m.attachments),
+        User: {
+          id: m.authorID,
+          full_name: 'User',
+          avatar: '',
+        },
+      }));
+
+      batch.sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+      );
+
+      const existing = new Set(this.messages.map((m) => m.id));
+      const uniqueBatch = batch.filter((m) => !existing.has(m.id));
+
+      this.page = nextPage;
+
+      if (uniqueBatch.length === 0) return;
+
+      this.messages = [...uniqueBatch, ...this.messages];
+
+      const frag = document.createDocumentFragment();
+      for (const m of uniqueBatch) {
+        const msg = new Message(
+          this.messagesContainer,
+          m as any,
+          m.User.id === this.myUserId,
+          false,
+          false,
+        );
+        const el = msg.render();
+        if (el) frag.appendChild(el);
+      }
+
+      this.messagesContainer.insertBefore(frag, this.messagesContainer.firstChild);
+
+      const newScrollHeight = this.messagesContainer.scrollHeight;
+      this.messagesContainer.scrollTop = prevScrollTop + (newScrollHeight - prevScrollHeight);
+
+    } finally {
+      this.isLoadingMore = false;
+    }
   }
 
   private initWS() {
