@@ -293,6 +293,7 @@ export class NavbarSearchModal {
       });
 
       left.append(html);
+      console.log(html);
 
       const right = document.createElement('div');
       right.className = 'navbar-search-item__action navbar-search-item__action--muted';
