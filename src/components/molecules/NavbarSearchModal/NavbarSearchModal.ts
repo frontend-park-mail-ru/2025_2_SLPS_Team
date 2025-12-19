@@ -292,7 +292,7 @@ export class NavbarSearchModal {
         fullName: community.name || community.title || 'Сообщество',
       });
 
-      left.append(html);
+      left.insertAdjacentHTML('beforeend', html);
 
       const right = document.createElement('div');
       right.className = 'navbar-search-item__action navbar-search-item__action--muted';
