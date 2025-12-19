@@ -28,6 +28,16 @@
   width: 0px;
   background: transparent;
 }
+.navbar-search-item__actions{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+.navbar-search-item__action--muted{
+  opacity: .75;
+  cursor: default;
+}
 
 .search-page__sidebar {
   order: 3;

@@ -13,6 +13,7 @@ import {
   getPossibleFriends,
   searchProfiles,
   sendFriendRequest,
+  deleteFriend,
 } from '../../shared/api/friendsApi';
 
 import {
@@ -34,6 +35,8 @@ type CommunityLike = {
   avatar?: string | null;
   avatarPath?: string | null;
   photo?: string | null;
+  isSubscribed?: boolean;
+  subscriptionType?: string;
 };
 
 function debounce(fn: () => void, ms: number) {
@@ -72,24 +75,17 @@ function getCommunityName(c: any): string {
   return c?.name ?? c?.groupName ?? 'Сообщество';
 }
 
-function toAbsUploadsUrl(path: string | null | undefined): string {
-  if (!path || path === 'null') return '/public/globalImages/DefaultAvatar.svg';
-  const s = String(path).trim();
-  if (!s) return '/public/globalImages/DefaultAvatar.svg';
-  if (s.startsWith('http://') || s.startsWith('https://')) return s;
-
-  const base = (process.env.API_BASE_URL ?? '').replace(/\/$/, '');
-  if (!base) return s.startsWith('/') ? s : `/${s}`;
-  if (s.startsWith('/')) return `${base}${s}`;
-  return `${base}/${s}`;
-}
-
-function getUserStatus(u: any): string {
-  return (u?.status ?? u?.type ?? u?.friendStatus ?? 'notFriends') as string;
-}
-
 function isCommunitySubscribed(c: any): boolean {
   return c?.isSubscribed === true || c?.subscriptionType === 'subscriber';
+}
+
+type FriendStatus = 'accepted' | 'pending' | 'sent' | 'notFriends';
+
+function statusPriority(s: FriendStatus): number {
+  if (s === 'accepted') return 4;
+  if (s === 'pending') return 3;
+  if (s === 'sent') return 2;
+  return 1;
 }
 
 export default class SearchPage extends BasePage {
@@ -100,6 +96,9 @@ export default class SearchPage extends BasePage {
   private usersList!: HTMLElement;
   private communitiesList!: HTMLElement;
   private statsRoot!: HTMLElement;
+
+  private usersSection!: HTMLElement;
+  private communitiesSection!: HTMLElement;
 
   private tab: Tab = 'all';
   private q = '';
@@ -124,6 +123,9 @@ export default class SearchPage extends BasePage {
     this.usersList = this.root.querySelector('.search-page__list--users') as HTMLElement;
     this.communitiesList = this.root.querySelector('.search-page__list--communities') as HTMLElement;
     this.statsRoot = this.root.querySelector('.search-stats') as HTMLElement;
+
+    this.usersSection = this.root.querySelector('.search-section--users') as HTMLElement;
+    this.communitiesSection = this.root.querySelector('.search-section--communities') as HTMLElement;
 
     const qFromUrl = new URLSearchParams(window.location.search).get('q') ?? '';
     const qFromStorage = sessionStorage.getItem('globalSearchQuery') ?? '';
@@ -155,8 +157,8 @@ export default class SearchPage extends BasePage {
   private setTab(tab: Tab): void {
     this.tab = tab;
 
-    this.usersList.style.display = tab === 'all' || tab === 'users' ? '' : 'none';
-    this.communitiesList.style.display = tab === 'all' || tab === 'communities' ? '' : 'none';
+    this.usersSection.style.display = tab === 'communities' ? 'none' : '';
+    this.communitiesSection.style.display = tab === 'users' ? 'none' : '';
 
     this.renderStats();
   }
@@ -174,6 +176,34 @@ export default class SearchPage extends BasePage {
     this.communitiesList.innerHTML = '';
   }
 
+  private avatarUrl(path: string | null | undefined): string {
+    if (!path || path === 'null') return '/public/globalImages/DefaultAvatar.svg';
+    const s = String(path).trim();
+    if (!s) return '/public/globalImages/DefaultAvatar.svg';
+    if (s.startsWith('http://') || s.startsWith('https://')) return s;
+
+    const apiBase = (process.env.API_BASE_URL ?? '').replace(/\/$/, '');
+    const origin = apiBase.replace(/\/api$/i, '');
+
+    if (s.startsWith('api/uploads/')) {
+      return `${apiBase}/${s.replace(/^api\//, '')}`;
+    }
+
+    if (s.startsWith('/api/uploads/')) {
+      return `${origin}${s}`;
+    }
+
+    if (s.startsWith('/uploads/')) {
+      return `${apiBase}${s}`;
+    }
+    if (s.startsWith('uploads/')) {
+      return `${apiBase}/${s}`;
+    }
+
+    if (s.startsWith('/')) return `${origin}${s}`;
+    return `${origin}/${s}`;
+  }
+
   private async loadAndRender(): Promise<void> {
     this.clearLists();
 
@@ -189,43 +219,50 @@ export default class SearchPage extends BasePage {
     }
 
     const [usersFound, communitiesFound] = await Promise.all([
-      this.searchUsersAllTypes(this.q).catch(() => [] as ProfileDTO[]),
+      this.searchUsersAllTypes(this.q).catch(() => [] as any[]),
       this.searchCommunitiesSafe(this.q).catch(() => [] as CommunityLike[]),
     ]);
 
-    this.renderUsers(usersFound);
+    this.renderUsers(usersFound as any);
     this.renderCommunities(communitiesFound);
   }
 
-  private async searchUsersAllTypes(q: string): Promise<ProfileDTO[]> {
-    const types: FriendsSearchBackendType[] = [
-      'accepted',
-      'pending',
-      'sent',
-      'notFriends',
-    ] as unknown as FriendsSearchBackendType[];
+  private async searchUsersAllTypes(q: string): Promise<any[]> {
+    const types: FriendStatus[] = ['accepted', 'pending', 'sent', 'notFriends'];
 
-    const responses = await Promise.all(
-      types.map((t) => searchProfiles(q, t, 1, 20).catch(() => [] as ProfileDTO[])),
+    const parts = await Promise.all(
+      types.map(async (t) => {
+        const data = await searchProfiles(q, t as unknown as FriendsSearchBackendType, 1, 20).catch(() => []);
+        return (data as any[]).map((u) => ({ ...u, __friendStatus: t as FriendStatus }));
+      }),
     );
 
-    const merged = responses.flat();
-    return uniqById(merged, getUserId);
+    const merged = parts.flat();
+
+    const byId = new Map<number, any>();
+    for (const u of merged) {
+      const id = getUserId(u);
+      if (!id) continue;
+      const prev = byId.get(id);
+      if (!prev) {
+        byId.set(id, u);
+      } else {
+        const a = prev.__friendStatus as FriendStatus;
+        const b = u.__friendStatus as FriendStatus;
+        if (statusPriority(b) > statusPriority(a)) byId.set(id, u);
+      }
+    }
+    return Array.from(byId.values());
   }
 
   private async searchCommunitiesSafe(q: string): Promise<CommunityLike[]> {
     try {
-      const data = await searchCommunities<CommunityLike>({ name: q, page: 1, limit: 20 });
-      if (Array.isArray(data)) return uniqById(data, getCommunityId);
-      return [];
+      const data = await searchCommunities<CommunityLike>({ name: q, page: 1, limit: 20 } as any);
+      return Array.isArray(data) ? uniqById(data, getCommunityId) : [];
     } catch {
       const [sub, rec] = await Promise.all([
-        searchCommunities<CommunityLike>({ name: q, type: 'subscriber', page: 1, limit: 20 }).catch(
-          () => [] as CommunityLike[],
-        ),
-        searchCommunities<CommunityLike>({ name: q, type: 'recommended', page: 1, limit: 20 }).catch(
-          () => [] as CommunityLike[],
-        ),
+        searchCommunities<CommunityLike>({ name: q, type: 'subscriber', page: 1, limit: 20 }).catch(() => []),
+        searchCommunities<CommunityLike>({ name: q, type: 'recommended', page: 1, limit: 20 }).catch(() => []),
       ]);
       return uniqById([...sub, ...rec], getCommunityId);
     }
@@ -255,7 +292,7 @@ export default class SearchPage extends BasePage {
     return this.allCommunities;
   }
 
-  private renderUsers(items: ProfileDTO[]): void {
+  private renderUsers(items: any[]): void {
     if (this.tab === 'communities') return;
 
     if (!items.length) {
@@ -263,8 +300,28 @@ export default class SearchPage extends BasePage {
       return;
     }
 
-    for (const u of items as any[]) {
-      this.usersList.appendChild(this.makeUserRow(u));
+    for (const u of items) {
+      const id = getUserId(u);
+      const status: FriendStatus = (u.__friendStatus ?? 'notFriends') as FriendStatus;
+
+      const row = this.makeUserRow(
+        getUserName(u),
+        u.avatarPath ?? u.avatar ?? null,
+        status,
+        () => navigateTo(`/profile/${id}`),
+        async () => {
+          sessionStorage.setItem('openChatUserId', String(id));
+          navigateTo('/chats');
+        },
+        async () => {
+          await sendFriendRequest(id);
+        },
+        async () => {
+          await deleteFriend(id); 
+        },
+      );
+
+      this.usersList.appendChild(row);
     }
   }
 
@@ -277,149 +334,168 @@ export default class SearchPage extends BasePage {
     }
 
     for (const c of items as any[]) {
-      this.communitiesList.appendChild(this.makeCommunityRow(c));
+      const id = getCommunityId(c);
+
+      const row = this.makeCommunityRow(
+        getCommunityName(c),
+        c.avatar ?? c.avatarPath ?? c.photo ?? null,
+        isCommunitySubscribed(c),
+        () => navigateTo(`/community/${id}`),
+        async (subscribed) => {
+          const res = await toggleCommunitySubscription(id, subscribed);
+          c.isSubscribed = res.isSubscribed;
+          c.subscriptionType = res.isSubscribed ? 'subscriber' : 'recommended';
+          return res.isSubscribed;
+        },
+      );
+
+      this.communitiesList.appendChild(row);
     }
   }
 
-  private makeUserRow(u: any): HTMLElement {
-    const id = getUserId(u);
-    const title = getUserName(u);
-    const status = getUserStatus(u);
-
+  private makeUserRow(
+    title: string,
+    avatar: string | null,
+    status: FriendStatus,
+    onClick: () => void,
+    onMessage: () => Promise<void>,
+    onAdd: () => Promise<void>,
+    onCancelOrRemove: () => Promise<void>,
+  ): HTMLElement {
     const row = document.createElement('div');
-    row.className = 'search-result-item';
+    row.className = 'navbar-search-item';
 
     const left = document.createElement('div');
-    left.className = 'search-result-item__left';
+    left.className = 'navbar-search-item__left';
 
     const img = document.createElement('img');
-    img.className = 'search-result-item__avatar';
-    img.src = toAbsUploadsUrl(u.avatarPath ?? u.avatar ?? null);
+    img.className = 'navbar-search-item__avatar';
+    img.src = this.avatarUrl(avatar);
     img.alt = title;
 
-    const meta = document.createElement('div');
-    meta.className = 'search-result-item__meta';
-
     const name = document.createElement('div');
-    name.className = 'search-result-item__name';
+    name.className = 'navbar-search-item__name';
     name.textContent = title;
 
-    const sub = document.createElement('div');
-    sub.className = 'search-result-item__sub';
-    sub.textContent =
-      status === 'accepted'
-        ? 'У вас в друзьях'
-        : status === 'pending' || status === 'sent'
-          ? 'Заявка отправлена'
-          : 'Не в друзьях';
-
-    meta.appendChild(name);
-    meta.appendChild(sub);
-
     left.appendChild(img);
-    left.appendChild(meta);
+    left.appendChild(name);
 
-    const btn = document.createElement('button');
-    btn.className = 'search-result-item__btn';
+    const actions = document.createElement('div');
+    actions.className = 'navbar-search-item__actions';
+
+    const mkBtn = (text: string, muted = false) => {
+      const b = document.createElement('button');
+      b.className = 'navbar-search-item__action';
+      b.textContent = text;
+      if (muted) b.classList.add('navbar-search-item__action--muted');
+      return b;
+    };
 
     if (status === 'accepted') {
-      btn.textContent = 'В друзьях';
-      btn.classList.add('search-result-item__btn--muted');
-    } else if (status === 'pending' || status === 'sent') {
-      btn.textContent = 'Заявка отправлена';
-      btn.classList.add('search-result-item__btn--muted');
-    } else {
-      btn.textContent = 'Добавить';
-      btn.addEventListener('click', async (e) => {
+      const msg = mkBtn('Сообщение');
+      msg.addEventListener('click', async (e) => {
         e.stopPropagation();
-        if (!id) return;
-        btn.disabled = true;
+        await onMessage();
+      });
+
+      const fr = mkBtn('В друзьях', true);
+      actions.appendChild(msg);
+      actions.appendChild(fr);
+    } else if (status === 'sent') {
+      const cancel = mkBtn('Отменить');
+      cancel.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        cancel.disabled = true;
         try {
-          await sendFriendRequest(id);
-          btn.textContent = 'Заявка отправлена';
-          btn.classList.add('search-result-item__btn--muted');
-          sub.textContent = 'Заявка отправлена';
-        } catch (err) {
-          console.error('[SearchPage] sendFriendRequest error', err);
-          btn.disabled = false;
+          await onCancelOrRemove();
+          cancel.textContent = 'Отменено';
+          cancel.classList.add('navbar-search-item__action--muted');
+        } finally {
+          cancel.disabled = false;
         }
       });
+      actions.appendChild(cancel);
+    } else if (status === 'pending') {
+      actions.appendChild(mkBtn('Ожидает вас', true));
+    } else {
+      const add = mkBtn('Добавить');
+      add.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        add.disabled = true;
+        try {
+          await onAdd();
+          add.textContent = 'Заявка отправлена';
+          add.classList.add('navbar-search-item__action--muted');
+        } finally {
+          add.disabled = false;
+        }
+      });
+      actions.appendChild(add);
     }
 
-    row.addEventListener('click', () => navigateTo(`/profile/${id}`));
     row.appendChild(left);
-    row.appendChild(btn);
+    row.appendChild(actions);
+    row.addEventListener('click', onClick);
     return row;
   }
 
-  private makeCommunityRow(c: any): HTMLElement {
-    const id = getCommunityId(c);
-    const title = getCommunityName(c);
-
-    let subscribed = isCommunitySubscribed(c);
-
+  private makeCommunityRow(
+    title: string,
+    avatar: string | null,
+    subscribed: boolean,
+    onClick: () => void,
+    onToggle: (isSubscribed: boolean) => Promise<boolean>,
+  ): HTMLElement {
     const row = document.createElement('div');
-    row.className = 'search-result-item';
+    row.className = 'navbar-search-item';
 
     const left = document.createElement('div');
-    left.className = 'search-result-item__left';
+    left.className = 'navbar-search-item__left';
 
     const img = document.createElement('img');
-    img.className = 'search-result-item__avatar';
-    img.src = toAbsUploadsUrl(c.avatar ?? c.avatarPath ?? c.photo ?? null);
+    img.className = 'navbar-search-item__avatar';
+    img.src = this.avatarUrl(avatar);
     img.alt = title;
 
-    const meta = document.createElement('div');
-    meta.className = 'search-result-item__meta';
-
     const name = document.createElement('div');
-    name.className = 'search-result-item__name';
+    name.className = 'navbar-search-item__name';
     name.textContent = title;
 
-    const sub = document.createElement('div');
-    sub.className = 'search-result-item__sub';
-    sub.textContent = subscribed ? 'Вы подписаны' : 'Рекомендуемое';
-
-    meta.appendChild(name);
-    meta.appendChild(sub);
-
     left.appendChild(img);
-    left.appendChild(meta);
+    left.appendChild(name);
+
+    const actions = document.createElement('div');
+    actions.className = 'navbar-search-item__actions';
 
     const btn = document.createElement('button');
-    btn.className = 'search-result-item__btn';
+    btn.className = 'navbar-search-item__action';
     btn.textContent = subscribed ? 'Отписаться' : 'Подписаться';
 
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
-      if (!id) return;
       btn.disabled = true;
       try {
-        const res = await toggleCommunitySubscription(id, subscribed);
-        const now = res.isSubscribed;
+        const now = await onToggle(subscribed);
         subscribed = now;
         btn.textContent = now ? 'Отписаться' : 'Подписаться';
-        sub.textContent = now ? 'Вы подписаны' : 'Рекомендуемое';
-        // локально обновим объект (на случай повторного рендера из кэша)
-        c.subscriptionType = now ? 'subscriber' : 'recommended';
-        c.isSubscribed = now;
-      } catch (err) {
-        console.error('[SearchPage] toggleCommunitySubscription error', err);
       } finally {
         btn.disabled = false;
       }
     });
 
-    row.addEventListener('click', () => navigateTo(`/community/${id}`));
+    actions.appendChild(btn);
+
     row.appendChild(left);
-    row.appendChild(btn);
+    row.appendChild(actions);
+    row.addEventListener('click', onClick);
     return row;
   }
 
   private makeEmpty(text: string): HTMLElement {
     const el = document.createElement('div');
     el.textContent = text;
-    el.className = 'search-result-empty';
+    el.style.opacity = '0.75';
+    el.style.padding = '6px 0';
     return el;
   }
 }
