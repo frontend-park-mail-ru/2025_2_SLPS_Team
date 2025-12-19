@@ -59,7 +59,7 @@ export class EditCommunityModal {
   private avatarMenu: DropDown | null = null;
   private outsideClickHandler: ((event: MouseEvent) => void) | null = null;
 
-  private readonly defaultAvatar = '/public/globalImages/DefaultAvatar.svg';
+  private readonly defaultAvatar = '/public/globalImages/Avatar.svg';
 
   private hasCustomAvatar: boolean;
   private avatarDeleted = false;

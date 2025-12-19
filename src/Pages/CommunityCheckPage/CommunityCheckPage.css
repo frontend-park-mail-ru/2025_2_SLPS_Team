@@ -523,7 +523,7 @@
   .community-header-card__content {
     flex-direction: row;
     align-items: flex-end;
-    margin-top: -40px;
+    margin-top: -35px;
     padding: 0 10px 16px 10px;
     gap: 12px;
   }
