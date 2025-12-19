@@ -206,9 +206,6 @@ await renderPostsInto(containerEl, posts);
           inst.reachedEnd = true;
           return;
         }
-        console.log('nextPage', nextPage);
-        console.log('batch ids', batch.map((p: any) => p?.id));
-        console.log('loaded ids', Array.from(inst.loadedIds));
         const unique = batch.filter((p) => {
           const id = getPostId(p);
           if (id === null) return true;

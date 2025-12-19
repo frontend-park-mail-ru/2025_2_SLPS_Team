@@ -93,10 +93,12 @@ export class MessageInput {
         Math.min(this.textarea.scrollHeight, 120) + 'px';
     });
 
-    const pickerRoot = this.wrapper.querySelector(
-      '.emoji-picker',
-    ) as HTMLElement | null;
+    const pickerRoot = this.wrapper.querySelector('.emoji-picker') as HTMLElement | null;
     if (!pickerRoot) throw new Error('[MessageInput] emoji-picker not found');
+
+    pickerRoot.classList.remove('hidden');
+
+    pickerRoot.innerHTML = '';
 
     this.emojiPicker = new EmojiMenu(
       pickerRoot,
@@ -104,6 +106,7 @@ export class MessageInput {
       (sticker) => this.onStickerSelect?.(sticker),
     );
     this.emojiPicker.render();
+
 
     this.emojiBtn.addEventListener('click', (e) => {
       e.preventDefault();
