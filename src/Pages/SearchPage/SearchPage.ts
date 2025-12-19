@@ -4,9 +4,9 @@ import './SearchPage.css';
 
 import SearchStatsTemplate from './SearchStats.hbs';
 import '../../components/molecules/FriendsStats/FriendsStats.css';
-import '../../components/molecules/NavbarSearchModal/NavbarSearchModal.css';
 
 import { navigateTo } from '../../app/router/navigateTo';
+import { API_BASE_URL } from '../../shared/api/client';
 
 import {
   getFriends,
@@ -25,9 +25,6 @@ import {
   toggleCommunitySubscription,
 } from '../../shared/api/communityApi';
 
-import { API_BASE_URL } from '../../shared/api/client';
-import { renderCommunityCard } from '../../components/molecules/CommunityCard/CommunityCard';
-
 import type { ProfileDTO, FriendsSearchBackendType } from '../../shared/types/friends';
 
 type Tab = 'all' | 'users' | 'communities';
@@ -36,11 +33,10 @@ type FriendStatus = 'accepted' | 'pending' | 'sent' | 'notFriends';
 type CommunityDTO = {
   id: number;
   name: string;
-  description: string;
+  description?: string | null;
   avatarPath?: string | null;
-  subscribersCount?: number;
-  isSubscribed?: boolean;
-  subscriptionType?: string;
+  subscribersCount?: number | null;
+  subscriptionType?: 'subscriber' | 'recommended';
 };
 
 type UserView = ProfileDTO & { __friendStatus?: FriendStatus };
@@ -84,6 +80,15 @@ function priority(s: FriendStatus): number {
   return 1;
 }
 
+function pluralSubscribers(n: number): string {
+  const x = Math.abs(n) % 100;
+  const y = x % 10;
+  if (x >= 11 && x <= 19) return `${n} подписчиков`;
+  if (y === 1) return `${n} подписчик`;
+  if (y >= 2 && y <= 4) return `${n} подписчика`;
+  return `${n} подписчиков`;
+}
+
 function uploadsUrl(path?: string | null): string {
   if (!path || path === 'null') return '/public/globalImages/DefaultAvatar.svg';
   const s = String(path).trim();
@@ -103,10 +108,6 @@ function uploadsUrl(path?: string | null): string {
 
 function userAvatar(u: any): string {
   return uploadsUrl(u?.avatarPath ?? u?.avatar ?? null);
-}
-
-function communitySubscribed(c: CommunityDTO): boolean {
-  return c.isSubscribed === true || c.subscriptionType === 'subscriber';
 }
 
 export default class SearchPage extends BasePage {
@@ -161,15 +162,16 @@ export default class SearchPage extends BasePage {
       this.setTab((btn.dataset.type as Tab) ?? 'all');
     });
 
-    const onInput = debounce(() => {
-      this.q = this.input.value.trim();
-      sessionStorage.setItem('globalSearchQuery', this.q);
-      const url = this.q ? `/search?q=${encodeURIComponent(this.q)}` : '/search';
-      window.history.replaceState({}, '', url);
-      void this.loadAndRender();
-    }, 300);
-
-    this.input.addEventListener('input', onInput);
+    this.input.addEventListener(
+      'input',
+      debounce(() => {
+        this.q = this.input.value.trim();
+        sessionStorage.setItem('globalSearchQuery', this.q);
+        const url = this.q ? `/search?q=${encodeURIComponent(this.q)}` : '/search';
+        window.history.replaceState({}, '', url);
+        void this.loadAndRender();
+      }, 300),
+    );
 
     this.setTab('all');
     await this.loadAndRender();
@@ -207,7 +209,7 @@ export default class SearchPage extends BasePage {
 
     const [usersFound, communitiesFound] = await Promise.all([
       this.searchUsersAllStatuses(this.q).catch(() => [] as UserView[]),
-      this.searchCommunitiesSafe(this.q).catch(() => [] as CommunityDTO[]),
+      this.searchCommunitiesTwoTypes(this.q).catch(() => [] as CommunityDTO[]),
     ]);
 
     this.renderUsers(usersFound);
@@ -233,11 +235,14 @@ export default class SearchPage extends BasePage {
     if (this.cachedCommunities) return this.cachedCommunities;
 
     const [mine, other] = await Promise.all([
-      getMyCommunities<CommunityDTO>().catch(() => [] as CommunityDTO[]),
-      getOtherCommunities<CommunityDTO>().catch(() => [] as CommunityDTO[]),
+      getMyCommunities<CommunityDTO>(1, 50).catch(() => [] as CommunityDTO[]),
+      getOtherCommunities<CommunityDTO>(1, 50).catch(() => [] as CommunityDTO[]),
     ]);
 
-    this.cachedCommunities = uniqById([...mine, ...other], (c) => c.id);
+    const subs = (mine ?? []).map((c) => ({ ...c, subscriptionType: 'subscriber' as const }));
+    const reco = (other ?? []).map((c) => ({ ...c, subscriptionType: 'recommended' as const }));
+
+    this.cachedCommunities = uniqById([...subs, ...reco], (c) => c.id);
     return this.cachedCommunities;
   }
 
@@ -272,24 +277,27 @@ export default class SearchPage extends BasePage {
     return Array.from(byId.values());
   }
 
-  private async searchCommunitiesSafe(q: string): Promise<CommunityDTO[]> {
-    try {
-      const data = await searchCommunities<CommunityDTO>({ name: q, page: 1, limit: 20 } as any);
-      return Array.isArray(data) ? uniqById(data, (c) => c.id) : [];
-    } catch {
-      const [sub, rec] = await Promise.all([
-        searchCommunities<CommunityDTO>({ name: q, type: 'subscriber', page: 1, limit: 20 }).catch(() => []),
-        searchCommunities<CommunityDTO>({ name: q, type: 'recommended', page: 1, limit: 20 }).catch(() => []),
-      ]);
-      return uniqById([...sub, ...rec], (c) => c.id);
-    }
+  private async searchCommunitiesTwoTypes(q: string): Promise<CommunityDTO[]> {
+    const [subs, reco] = await Promise.all([
+      searchCommunities<CommunityDTO>({ name: q, type: 'subscriber', page: 1, limit: 20 } as any).catch(
+        () => [] as CommunityDTO[],
+      ),
+      searchCommunities<CommunityDTO>({ name: q, type: 'recommended', page: 1, limit: 20 } as any).catch(
+        () => [] as CommunityDTO[],
+      ),
+    ]);
+
+    const taggedSubs = (subs ?? []).map((c) => ({ ...c, subscriptionType: 'subscriber' as const }));
+    const taggedReco = (reco ?? []).map((c) => ({ ...c, subscriptionType: 'recommended' as const }));
+
+    return uniqById([...taggedSubs, ...taggedReco], (c) => c.id);
   }
 
   private renderUsers(items: UserView[]): void {
     if (this.tab === 'communities') return;
 
     if (!items.length) {
-      this.usersList.appendChild(this.makeEmpty('Пользователи не найдены'));
+      this.usersList.appendChild(this.emptyRow('Пользователи не найдены'));
       return;
     }
 
@@ -298,7 +306,7 @@ export default class SearchPage extends BasePage {
       const id = getUserId(u);
       const name = getUserName(u);
       const status: FriendStatus = isFriendStatus(u.__friendStatus) ? u.__friendStatus : 'notFriends';
-      frag.appendChild(this.renderUserRow(id, name, userAvatar(u), status));
+      frag.appendChild(this.userRow(id, name, userAvatar(u), status));
     }
     this.usersList.appendChild(frag);
   }
@@ -307,68 +315,124 @@ export default class SearchPage extends BasePage {
     if (this.tab === 'users') return;
 
     if (!items.length) {
-      this.communitiesList.appendChild(this.makeEmpty('Сообщества не найдены'));
+      this.communitiesList.appendChild(this.emptyRow('Сообщества не найдены'));
       return;
     }
 
     const frag = document.createDocumentFragment();
     for (const c of items) {
-      const card = renderCommunityCard({
-        id: c.id,
-        name: c.name,
-        description: c.description,
-        subscribers: String(c.subscribersCount ?? 0),
-        avatarPath: uploadsUrl(c.avatarPath ?? null),
-        isSubscribed: communitySubscribed(c),
-        onToggleSubscribe: (id: string | number) => void this.onToggleSubscribe(Number(id), c),
-        onClick: (id: string | number) => navigateTo(`/community/${Number(id)}`),
-      });
-      if (card) frag.appendChild(card);
+      frag.appendChild(this.communityRow(c));
     }
     this.communitiesList.appendChild(frag);
   }
 
-  private async onToggleSubscribe(id: number, model: CommunityDTO): Promise<void> {
-    const prev = communitySubscribed(model);
-    model.isSubscribed = !prev;
-    try {
-      const res = await toggleCommunitySubscription(id, prev);
-      model.isSubscribed = res.isSubscribed;
-      model.subscriptionType = res.isSubscribed ? 'subscriber' : 'recommended';
-    } catch {
-      model.isSubscribed = prev;
-      model.subscriptionType = prev ? 'subscriber' : 'recommended';
-    }
-    await this.loadAndRender();
-  }
-
-  private renderUserRow(id: number, name: string, avatar: string, status: FriendStatus): HTMLElement {
+  private communityRow(c: CommunityDTO): HTMLElement {
     const row = document.createElement('div');
-    row.className = 'navbar-search-item';
+    row.className = 'search-row';
 
     const left = document.createElement('div');
-    left.className = 'navbar-search-item__left';
+    left.className = 'search-row__left';
 
-    const img = document.createElement('img');
-    img.className = 'navbar-search-item__avatar';
-    img.src = avatar;
-    img.alt = name;
+    const avatar = document.createElement('img');
+    avatar.className = 'search-row__avatar';
+    avatar.src = uploadsUrl(c.avatarPath ?? null);
+    avatar.alt = c.name;
+
+    const text = document.createElement('div');
+    text.className = 'search-row__text';
 
     const title = document.createElement('div');
-    title.className = 'navbar-search-item__name';
+    title.className = 'search-row__title';
+    title.textContent = c.name;
+
+    const desc = document.createElement('div');
+    desc.className = 'search-row__desc';
+    desc.textContent = (c.description ?? '').trim();
+
+    const meta = document.createElement('div');
+    meta.className = 'search-row__meta';
+    meta.textContent = pluralSubscribers(Number(c.subscribersCount ?? 0));
+
+    text.appendChild(title);
+    text.appendChild(desc);
+    text.appendChild(meta);
+
+    left.appendChild(avatar);
+    left.appendChild(text);
+
+    const right = document.createElement('div');
+    right.className = 'search-row__actions';
+
+    const btn = document.createElement('button');
+    btn.className = 'search-row__btn';
+
+    const isSub = c.subscriptionType === 'subscriber';
+    btn.textContent = isSub ? 'Отписаться' : 'Подписаться';
+
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      btn.disabled = true;
+      try {
+        const res = await toggleCommunitySubscription(c.id, isSub);
+        c.subscriptionType = res.isSubscribed ? 'subscriber' : 'recommended';
+        btn.textContent = res.isSubscribed ? 'Отписаться' : 'Подписаться';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    right.appendChild(btn);
+
+    row.appendChild(left);
+    row.appendChild(right);
+
+    row.addEventListener('click', () => navigateTo(`/community/${c.id}`));
+    return row;
+  }
+
+  private userRow(id: number, name: string, avatarUrl: string, status: FriendStatus): HTMLElement {
+    const row = document.createElement('div');
+    row.className = 'search-row';
+
+    const left = document.createElement('div');
+    left.className = 'search-row__left';
+
+    const avatar = document.createElement('img');
+    avatar.className = 'search-row__avatar';
+    avatar.src = avatarUrl;
+    avatar.alt = name;
+
+    const text = document.createElement('div');
+    text.className = 'search-row__text';
+
+    const title = document.createElement('div');
+    title.className = 'search-row__title';
     title.textContent = name;
 
-    left.appendChild(img);
-    left.appendChild(title);
+    const desc = document.createElement('div');
+    desc.className = 'search-row__desc';
+    desc.textContent =
+      status === 'accepted'
+        ? 'В друзьях'
+        : status === 'pending'
+          ? 'Запрос в друзья'
+          : status === 'sent'
+            ? 'Запрос отправлен'
+            : 'Возможный друг';
 
-    const actions = document.createElement('div');
-    actions.className = 'navbar-search-item__actions';
+    text.appendChild(title);
+    text.appendChild(desc);
 
-    const mkBtn = (text: string, muted = false) => {
+    left.appendChild(avatar);
+    left.appendChild(text);
+
+    const right = document.createElement('div');
+    right.className = 'search-row__actions';
+
+    const mkBtn = (t: string, variant: 'primary' | 'ghost' = 'primary') => {
       const b = document.createElement('button');
-      b.className = 'navbar-search-item__action';
-      b.textContent = text;
-      if (muted) b.classList.add('navbar-search-item__action--muted');
+      b.className = `search-row__btn ${variant === 'ghost' ? 'search-row__btn--ghost' : ''}`.trim();
+      b.textContent = t;
       return b;
     };
 
@@ -379,23 +443,7 @@ export default class SearchPage extends BasePage {
         sessionStorage.setItem('openChatUserId', String(id));
         navigateTo('/chats');
       });
-
-      const fr = mkBtn('В друзьях', true);
-      actions.appendChild(msg);
-      actions.appendChild(fr);
-    } else if (status === 'sent') {
-      const cancel = mkBtn('Отменить');
-      cancel.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        cancel.disabled = true;
-        try {
-          await deleteFriend(id);
-          await this.loadAndRender();
-        } finally {
-          cancel.disabled = false;
-        }
-      });
-      actions.appendChild(cancel);
+      right.appendChild(msg);
     } else if (status === 'pending') {
       const accept = mkBtn('Принять');
       accept.addEventListener('click', async (e) => {
@@ -409,7 +457,7 @@ export default class SearchPage extends BasePage {
         }
       });
 
-      const reject = mkBtn('Отклонить');
+      const reject = mkBtn('Отклонить', 'ghost');
       reject.addEventListener('click', async (e) => {
         e.stopPropagation();
         reject.disabled = true;
@@ -421,8 +469,21 @@ export default class SearchPage extends BasePage {
         }
       });
 
-      actions.appendChild(accept);
-      actions.appendChild(reject);
+      right.appendChild(accept);
+      right.appendChild(reject);
+    } else if (status === 'sent') {
+      const cancel = mkBtn('Отменить');
+      cancel.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        cancel.disabled = true;
+        try {
+          await deleteFriend(id);
+          await this.loadAndRender();
+        } finally {
+          cancel.disabled = false;
+        }
+      });
+      right.appendChild(cancel);
     } else {
       const add = mkBtn('Добавить');
       add.addEventListener('click', async (e) => {
@@ -435,20 +496,20 @@ export default class SearchPage extends BasePage {
           add.disabled = false;
         }
       });
-      actions.appendChild(add);
+      right.appendChild(add);
     }
 
     row.appendChild(left);
-    row.appendChild(actions);
+    row.appendChild(right);
 
     row.addEventListener('click', () => navigateTo(`/profile/${id}`));
     return row;
   }
 
-  private makeEmpty(text: string): HTMLElement {
+  private emptyRow(text: string): HTMLElement {
     const el = document.createElement('div');
+    el.className = 'search-row search-row--empty';
     el.textContent = text;
-    el.style.opacity = '0.7';
     return el;
   }
 }
