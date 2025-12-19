@@ -46,11 +46,12 @@ export class EmojiMenu {
 
   private wrapper!: HTMLElement;
   private tabs!: NodeListOf<HTMLButtonElement>;
+
   private emojiPanel!: HTMLElement;
   private stickersPanel!: HTMLElement;
 
   private searchContainer!: HTMLElement;
-  private grid!: HTMLElement;
+  private emojiGrid!: HTMLElement;
 
   private packsRoot!: HTMLElement;
   private stickerGrid!: HTMLElement;
@@ -60,6 +61,7 @@ export class EmojiMenu {
   private stickersInited = false;
 
   private searchInput!: SearchInput;
+  private currentTab: 'emoji' | 'stickers' = 'emoji';
 
   constructor(
     rootElement: HTMLElement,
@@ -77,33 +79,36 @@ export class EmojiMenu {
     const root = temp.firstElementChild as HTMLElement | null;
     if (!root) return;
 
-    this.wrapper = root;
-
     const tabs = root.querySelectorAll('.emoji-modal__tab') as NodeListOf<HTMLButtonElement>;
     const emojiPanel = root.querySelector('.emoji-modal__panel--emoji') as HTMLElement | null;
     const stickersPanel = root.querySelector('.emoji-modal__panel--stickers') as HTMLElement | null;
 
     const searchContainer = root.querySelector('.emoji-search-container') as HTMLElement | null;
-    const grid = root.querySelector('.emoji-picker-grid') as HTMLElement | null;
+    const emojiGrid = root.querySelector('.emoji-picker-grid') as HTMLElement | null;
 
     const packsRoot = root.querySelector('.sticker-packs') as HTMLElement | null;
     const stickerGrid = root.querySelector('.sticker-grid') as HTMLElement | null;
 
-    if (!tabs.length || !emojiPanel || !stickersPanel || !searchContainer || !grid || !packsRoot || !stickerGrid) return;
+    if (!tabs.length || !emojiPanel || !stickersPanel || !searchContainer || !emojiGrid || !packsRoot || !stickerGrid) return;
 
+    this.wrapper = root;
     this.tabs = tabs;
+
     this.emojiPanel = emojiPanel;
     this.stickersPanel = stickersPanel;
 
     this.searchContainer = searchContainer;
-    this.grid = grid;
+    this.emojiGrid = emojiGrid;
 
     this.packsRoot = packsRoot;
     this.stickerGrid = stickerGrid;
 
     this.searchInput = new SearchInput(this.searchContainer);
     this.searchInput.render();
-    this.searchInput.onInput((value) => this.renderEmojis(value));
+    this.searchInput.onInput((value) => {
+      if (this.currentTab !== 'emoji') return;
+      this.renderEmojis(value);
+    });
 
     this.tabs.forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -112,7 +117,8 @@ export class EmojiMenu {
       });
     });
 
-    this.renderEmojis('');
+    this.switchTab('emoji');
+
     this.rootElement.appendChild(root);
   }
 
@@ -132,6 +138,8 @@ export class EmojiMenu {
   }
 
   private switchTab(tab: 'emoji' | 'stickers') {
+    this.currentTab = tab;
+
     this.tabs.forEach((t) => t.classList.remove('active'));
     const active = this.wrapper.querySelector(`.emoji-modal__tab[data-tab="${tab}"]`) as HTMLButtonElement | null;
     if (active) active.classList.add('active');
@@ -139,26 +147,28 @@ export class EmojiMenu {
     this.emojiPanel.classList.toggle('hidden', tab !== 'emoji');
     this.stickersPanel.classList.toggle('hidden', tab !== 'stickers');
 
-    if (tab === 'stickers' && !this.stickersInited) {
-      this.stickersInited = true;
-      void this.initStickers();
+    if (tab === 'emoji') {
+      this.renderEmojis('');
+    } else {
+      if (!this.stickersInited) {
+        this.stickersInited = true;
+        void this.initStickers();
+      }
     }
   }
 
   private renderEmojis(search: string): void {
-    if (!this.grid) return;
-
     const q = (search ?? '').trim();
     const src = emojiData as any[];
     const results = q ? (searchEmojis(q, src as any) as any[]) : src;
 
-    this.grid.innerHTML = '';
+    this.emojiGrid.innerHTML = '';
 
     if (!results.length) {
       const no = document.createElement('div');
       no.className = 'no-result-text';
       no.textContent = 'Нет результатов';
-      this.grid.appendChild(no);
+      this.emojiGrid.appendChild(no);
       return;
     }
 
@@ -174,7 +184,7 @@ export class EmojiMenu {
         this.onSelectEmoji(ch);
         this.hide();
       };
-      this.grid.appendChild(btn);
+      this.emojiGrid.appendChild(btn);
     });
   }
 
