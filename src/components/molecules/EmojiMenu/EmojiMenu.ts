@@ -1,3 +1,4 @@
+import Template from './EmojiMenu.hbs';
 import './EmojiMenu.css';
 import emojiData from '../../../services/Emoji/compact.raw.json';
 import { SearchInput } from '../SearchInput/SearchInput';
@@ -72,32 +73,25 @@ export class EmojiMenu {
   }
 
   render(): void {
-    const wrapper = this.rootElement.querySelector('.emoji-picker') as HTMLElement | null;
-    if (!wrapper) throw new Error('[EmojiMenu] .emoji-picker not found');
+    const temp = document.createElement('div');
+    temp.innerHTML = Template({});
+    const root = temp.firstElementChild as HTMLElement | null;
+    if (!root) return;
 
-    const tabs = wrapper.querySelectorAll('.emoji-tab') as NodeListOf<HTMLButtonElement>;
-    const emojiPanel = wrapper.querySelector('.emoji-tab-content--emoji') as HTMLElement | null;
-    const stickersPanel = wrapper.querySelector('.emoji-tab-content--stickers') as HTMLElement | null;
+    this.wrapper = root;
 
-    const searchContainer = wrapper.querySelector('.emoji-search-container') as HTMLElement | null;
-    const emojiGrid = wrapper.querySelector('.emoji-picker-grid') as HTMLElement | null;
+    const tabs = root.querySelectorAll('.emoji-modal__tab') as NodeListOf<HTMLButtonElement>;
+    const emojiPanel = root.querySelector('.emoji-modal__panel--emoji') as HTMLElement | null;
+    const stickersPanel = root.querySelector('.emoji-modal__panel--stickers') as HTMLElement | null;
 
-    const packsRoot = wrapper.querySelector('.sticker-packs') as HTMLElement | null;
-    const stickerGrid = wrapper.querySelector('.sticker-grid') as HTMLElement | null;
+    const searchContainer = root.querySelector('.emoji-search-container') as HTMLElement | null;
+    const emojiGrid = root.querySelector('.emoji-picker-grid') as HTMLElement | null;
 
-    if (
-      !tabs.length ||
-      !emojiPanel ||
-      !stickersPanel ||
-      !searchContainer ||
-      !emojiGrid ||
-      !packsRoot ||
-      !stickerGrid
-    ) {
-      throw new Error('[EmojiMenu] required elements not found');
-    }
+    const packsRoot = root.querySelector('.sticker-packs') as HTMLElement | null;
+    const stickerGrid = root.querySelector('.sticker-grid') as HTMLElement | null;
 
-    this.wrapper = wrapper;
+    if (!tabs.length || !emojiPanel || !stickersPanel || !searchContainer || !emojiGrid || !packsRoot || !stickerGrid) return;
+
     this.tabs = tabs;
     this.emojiPanel = emojiPanel;
     this.stickersPanel = stickersPanel;
@@ -108,7 +102,6 @@ export class EmojiMenu {
     this.packsRoot = packsRoot;
     this.stickerGrid = stickerGrid;
 
-    this.searchContainer.innerHTML = '';
     this.searchInput = new SearchInput(this.searchContainer);
     this.searchInput.render();
     this.searchInput.onInput((value) => {
@@ -120,11 +113,12 @@ export class EmojiMenu {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        const tab = (btn.getAttribute('data-tab') as 'emoji' | 'stickers') ?? 'emoji';
+        const tab = (btn.dataset.tab as 'emoji' | 'stickers') ?? 'emoji';
         this.switchTab(tab);
       });
     });
 
+    this.rootElement.appendChild(root);
     this.switchTab('emoji');
     this.hide();
   }
@@ -141,7 +135,7 @@ export class EmojiMenu {
     this.currentTab = tab;
 
     this.tabs.forEach((t) => t.classList.remove('active'));
-    const active = this.wrapper.querySelector(`.emoji-tab[data-tab="${tab}"]`) as HTMLButtonElement | null;
+    const active = this.wrapper.querySelector(`.emoji-modal__tab[data-tab="${tab}"]`) as HTMLButtonElement | null;
     if (active) active.classList.add('active');
 
     this.emojiPanel.classList.toggle('hidden', tab !== 'emoji');
