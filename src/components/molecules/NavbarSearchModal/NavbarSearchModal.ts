@@ -14,6 +14,7 @@ import {
   getOtherCommunities,
   searchCommunities,
 } from '../../../shared/api/communityApi';
+import templateAvatar from './navbarSearchItem.hbs';
 
 type UserStatus = 'accepted' | 'pending' | 'sent' | 'notFriends';
 
@@ -207,17 +208,12 @@ export class NavbarSearchModal {
       const left = document.createElement('div');
       left.className = 'navbar-search-item__left';
 
-      const img = document.createElement('img');
-      img.className = 'navbar-search-item__avatar';
-      img.src = this.avatarUrl(user.avatarPath);
-      img.alt = user.fullName;
+      const html = templateAvatar({
+        avatarPath: this.avatarUrl(user.avatarPath),
+        fullName: user.fullName || 'Без имени',
+      });
 
-      const name = document.createElement('div');
-      name.className = 'navbar-search-item__name';
-      name.textContent = user.fullName || 'Без имени';
-
-      left.appendChild(img);
-      left.appendChild(name);
+      left.insertAdjacentHTML('beforeend', html);
 
       const btn = document.createElement('button');
       btn.className = 'navbar-search-item__action';
