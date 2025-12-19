@@ -415,6 +415,7 @@ export class Chat {
     }
 
     this.wsHandler = (data: any) => {
+      console.debug('[Chat] WS new_message:', data);
       const msg = data?.message ?? data;
       if (!msg) return;
 

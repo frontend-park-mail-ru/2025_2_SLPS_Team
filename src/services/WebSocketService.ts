@@ -18,15 +18,33 @@ class WebSocketService {
     };
 
     this.ws.onmessage = (event) => {
+      console.debug('[WS] <- raw:', event.data);
+
       try {
         const msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-        const type = msg?.type;
-        const data = msg?.data;
-        if (type) this.emit(type, data);
+
+        console.debug('[WS] <- json:', msg);
+
+        const type = msg?.type ?? msg?.event ?? msg?.action;
+
+        const payload =
+          msg?.data ??
+          msg?.message ??
+          msg?.payload ??
+          msg;
+
+        if (type) {
+          console.debug('[WS] emit:', type, payload);
+          this.emit(type, payload);
+        } else {
+          console.warn('[WS] message without type:', msg);
+          this.emit('__raw__', msg);
+        }
       } catch (err) {
         console.error('[WS] Parse error:', err, event.data);
       }
     };
+
 
     this.ws.onclose = () => {
       console.warn('[WS] Connection closed. Reconnecting...');
