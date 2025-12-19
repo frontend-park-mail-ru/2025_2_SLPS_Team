@@ -415,15 +415,15 @@ export class Chat {
     }
 
     this.wsHandler = (data: any) => {
-      console.debug('[Chat] WS new_message:', data);
-      const msg = data?.message ?? data;
+      console.log('[Chat] WS new_message payload:', data);
+
+      const msg = data?.lastMessage;
       if (!msg) return;
 
-      const chatId = msg.chatID ?? msg.chatId ?? msg.chat_id;
+      const chatId = msg.chatID ?? msg.chatId;
       if (chatId !== this.chatId) return;
 
-      const authorId = msg.authorID ?? msg.authorId ?? msg.author_id;
-      if (authorId === this.myUserId) return;
+      if (msg.authorID === this.myUserId) return;
 
       const view: ChatMessageView = {
         id: msg.id,
@@ -431,9 +431,9 @@ export class Chat {
         created_at: msg.createdAt ?? msg.created_at ?? new Date().toISOString(),
         attachments: normalizeAttachments(msg.attachments),
         User: {
-          id: authorId,
-          full_name: 'User',
-          avatar: '',
+          id: msg.authorID,
+          full_name: data?.lastMessageAuthor?.fullName ?? 'User',
+          avatar: data?.lastMessageAuthor?.avatarPath ?? '',
         },
       };
 
@@ -441,7 +441,6 @@ export class Chat {
       new Message(this.messagesContainer, view as any, false, true, true).render();
       this.scrollToBottomSoon();
     };
-
     this.wsService.on('new_message', this.wsHandler);
   }
 
