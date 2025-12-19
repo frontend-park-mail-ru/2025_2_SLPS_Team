@@ -280,19 +280,23 @@ export class NavbarSearchModal {
       const left = document.createElement('div');
       left.className = 'navbar-search-item__left';
 
-      const avatar =
+      const img = document.createElement('img');
+      img.className = 'navbar-search-item__avatar';
+      img.src = this.avatarUrl(
         community.avatarPath ||
-        community.avatar ||
-        community.avatarURL ||
-        community.iconPath ||
-        null;
+          community.avatar ||
+          community.avatarURL ||
+          community.iconPath ||
+          null,
+      );
+      img.alt = community.name || community.title || 'Сообщество';
 
-      const html = templateAvatar({
-        avatar: this.avatarUrl(avatar),
-        name: community.name || community.title || 'Сообщество',
-      });
+      const name = document.createElement('div');
+      name.className = 'navbar-search-item__name';
+      name.textContent = community.name || community.title || 'Сообщество';
 
-      left.insertAdjacentHTML('beforeend', html);
+      left.appendChild(img);
+      left.appendChild(name);
 
       const right = document.createElement('div');
       right.className = 'navbar-search-item__action navbar-search-item__action--muted';
