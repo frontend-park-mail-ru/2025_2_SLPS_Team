@@ -44,16 +44,7 @@ export class MessageInput {
     const attachBtn = this.wrapper.querySelector('.message-attach-btn') as HTMLButtonElement | null;
     const fileInput = this.wrapper.querySelector('.message-file-input') as HTMLInputElement | null;
 
-    if (
-      !previewRoot ||
-      !previewGrid ||
-      !previewFiles ||
-      !textarea ||
-      !sendBtn ||
-      !emojiBtn ||
-      !attachBtn ||
-      !fileInput
-    ) {
+    if (!previewRoot || !previewGrid || !previewFiles || !textarea || !sendBtn || !emojiBtn || !attachBtn || !fileInput) {
       throw new Error('[MessageInput] some elements not found in template');
     }
 
@@ -87,9 +78,9 @@ export class MessageInput {
       this.emojiPicker.toggle();
     });
 
-    document.addEventListener('click', (event) => {
+    document.addEventListener('pointerdown', (event) => {
       const target = event.target as HTMLElement;
-      const picker = this.wrapper.querySelector('.emoji-picker') as HTMLElement | null;
+      const picker = this.wrapper.querySelector('.emoji-modal') as HTMLElement | null;
 
       const clickedEmojiBtn = this.emojiBtn.contains(target);
       const clickedInsidePicker = !!picker && picker.contains(target);

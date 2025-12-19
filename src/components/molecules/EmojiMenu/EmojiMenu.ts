@@ -46,7 +46,6 @@ export class EmojiMenu {
 
   private wrapper!: HTMLElement;
   private tabs!: NodeListOf<HTMLButtonElement>;
-
   private emojiPanel!: HTMLElement;
   private stickersPanel!: HTMLElement;
 
@@ -56,11 +55,11 @@ export class EmojiMenu {
   private packsRoot!: HTMLElement;
   private stickerGrid!: HTMLElement;
 
+  private searchInput!: SearchInput;
+
   private packs: StickerPack[] = [];
   private activePackId: number | null = null;
   private stickersInited = false;
-
-  private searchInput!: SearchInput;
   private currentTab: 'emoji' | 'stickers' = 'emoji';
 
   constructor(
@@ -79,6 +78,8 @@ export class EmojiMenu {
     const root = temp.firstElementChild as HTMLElement | null;
     if (!root) return;
 
+    this.wrapper = root;
+
     const tabs = root.querySelectorAll('.emoji-modal__tab') as NodeListOf<HTMLButtonElement>;
     const emojiPanel = root.querySelector('.emoji-modal__panel--emoji') as HTMLElement | null;
     const stickersPanel = root.querySelector('.emoji-modal__panel--stickers') as HTMLElement | null;
@@ -91,9 +92,7 @@ export class EmojiMenu {
 
     if (!tabs.length || !emojiPanel || !stickersPanel || !searchContainer || !emojiGrid || !packsRoot || !stickerGrid) return;
 
-    this.wrapper = root;
     this.tabs = tabs;
-
     this.emojiPanel = emojiPanel;
     this.stickersPanel = stickersPanel;
 
@@ -111,30 +110,25 @@ export class EmojiMenu {
     });
 
     this.tabs.forEach((btn) => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         const tab = (btn.dataset.tab as 'emoji' | 'stickers') ?? 'emoji';
         this.switchTab(tab);
       });
     });
 
-    this.switchTab('emoji');
-
     this.rootElement.appendChild(root);
+    this.switchTab('emoji');
+    this.hide();
   }
 
   toggle(): void {
-    if (!this.wrapper) return;
     this.wrapper.classList.toggle('hidden');
   }
 
   hide(): void {
-    if (!this.wrapper) return;
     this.wrapper.classList.add('hidden');
-  }
-
-  show(): void {
-    if (!this.wrapper) return;
-    this.wrapper.classList.remove('hidden');
   }
 
   private switchTab(tab: 'emoji' | 'stickers') {
@@ -149,11 +143,12 @@ export class EmojiMenu {
 
     if (tab === 'emoji') {
       this.renderEmojis('');
-    } else {
-      if (!this.stickersInited) {
-        this.stickersInited = true;
-        void this.initStickers();
-      }
+      return;
+    }
+
+    if (!this.stickersInited) {
+      this.stickersInited = true;
+      void this.initStickers();
     }
   }
 
@@ -164,14 +159,6 @@ export class EmojiMenu {
 
     this.emojiGrid.innerHTML = '';
 
-    if (!results.length) {
-      const no = document.createElement('div');
-      no.className = 'no-result-text';
-      no.textContent = 'Нет результатов';
-      this.emojiGrid.appendChild(no);
-      return;
-    }
-
     results.forEach((e: any) => {
       const ch = pickEmoji(e);
       if (!ch) return;
@@ -180,7 +167,9 @@ export class EmojiMenu {
       btn.type = 'button';
       btn.className = 'emoji-item';
       btn.textContent = ch;
-      btn.onclick = () => {
+      btn.onclick = (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
         this.onSelectEmoji(ch);
         this.hide();
       };
@@ -218,10 +207,11 @@ export class EmojiMenu {
       const img = document.createElement('img');
       img.className = 'sticker-pack-cover';
       img.src = toAbs(p.coverPath);
-      img.alt = p.name ?? 'pack';
 
       btn.appendChild(img);
-      btn.onclick = async () => {
+      btn.onclick = async (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
         this.activePackId = p.id;
         this.renderPacks();
         await this.loadPack(p.id);
@@ -237,14 +227,6 @@ export class EmojiMenu {
 
     this.stickerGrid.innerHTML = '';
 
-    if (!list.length) {
-      const no = document.createElement('div');
-      no.className = 'no-result-text';
-      no.textContent = 'В паке нет стикеров';
-      this.stickerGrid.appendChild(no);
-      return;
-    }
-
     list.forEach((s) => {
       const btn = document.createElement('button');
       btn.type = 'button';
@@ -253,10 +235,11 @@ export class EmojiMenu {
       const img = document.createElement('img');
       img.className = 'sticker-img';
       img.src = toAbs(s.filePath);
-      img.alt = `sticker-${s.id}`;
 
       btn.appendChild(img);
-      btn.onclick = () => {
+      btn.onclick = (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
         this.onSelectSticker({ id: s.id, filePath: s.filePath });
         this.hide();
       };
