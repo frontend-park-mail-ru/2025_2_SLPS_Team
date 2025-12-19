@@ -4,6 +4,7 @@ import { NotificationManager } from '../components/organisms/NotificationsBlock/
 import { authService } from '../services/AuthService';
 import { SupportWidget } from '../components/organisms/SupportWidget/SupportWidget';
 import { navigateTo as defaultNavigateTo } from '../index';
+import { inlineExternalSVGs } from '../helpers/svgHelper';
 
 type NavigateTo = (path: string) => void;
 
@@ -196,6 +197,7 @@ export class LayoutManager {
     await pageInstance.render();
 
     this.updateNavbarVisibility();
+    inlineExternalSVGs();
   }
 
   public async rerenderLayout(): Promise<void> {
@@ -243,9 +245,11 @@ export class LayoutManager {
   }
 
   public toggleMenu(): void {
-    console.log(this.menu);
-    const sidebar = this.menu?.sidebarContainer;
+    if (!this.menu) return;
+
+    const sidebar = this.menu.querySelector('.sidebar-container');
     if (!sidebar) return;
+
     sidebar.classList.toggle('menu-hidden');
   }
 }

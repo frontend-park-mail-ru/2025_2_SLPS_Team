@@ -10,7 +10,7 @@
         {{#if communities.length}}
             {{#each communities}}
                 <div class="communities-list__item" data-id="{{id}}">
-                    <img class="communities-list__avatar" src="{{avatar}}" alt="{{name}}">
+                    {{{ svg avatar class="communities-list__avatar"}}}
                     <div class="communities-list__name">{{name}}</div>
                 </div>
             {{/each}}

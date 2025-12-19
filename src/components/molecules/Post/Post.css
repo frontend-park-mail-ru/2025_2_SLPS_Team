@@ -197,5 +197,9 @@
         width: 100%;
         height: auto;
     }
+
+    .community-avatar use {
+        transform: scale(0.25);
+    }
 }
 

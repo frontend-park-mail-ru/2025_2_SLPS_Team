@@ -35,7 +35,7 @@
 }
 
 .community-header-card__content {
-  margin-top: -50px;
+  margin-top: -45px;
   padding: 0 0px 16px 16px;
   display: flex;
   justify-content: space-between;
@@ -392,7 +392,7 @@
 }
 
 .community-tab--active {
-  background: #f4ecff;
+  background: var(--switcher-background);
   border-radius: 8px;
   color: var(--text-black);
   font-weight: 400;
@@ -455,6 +455,7 @@
   border: none;
   background: transparent;
   cursor: pointer;
+  height: 40px;
 }
 
 .community-created__avatar {
@@ -466,14 +467,14 @@
 }
 
 .community-created__img {
-  width: 100%;
-  height: 100%;
+  width: fit-content;
   object-fit: cover;
+  border-radius: 50%;
 }
 
 .community-created__name {
   font-size: 14px;
-  color: #161616;
+  color: var(--text-black);
   text-align: left;
 }
 
