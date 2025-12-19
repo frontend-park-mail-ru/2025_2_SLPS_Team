@@ -1,5 +1,5 @@
 import MessageInputTemplate from './MessageInput.hbs';
-import { EmojiMenu } from '../EmojiMenu/EmojiMenu';
+//import { EmojiMenu } from '../EmojiMenu/EmojiMenu';
 import { FileItem } from '../../atoms/FileItem/FileItem';
 
 export class MessageInput {
@@ -8,7 +8,7 @@ export class MessageInput {
   textarea!: HTMLTextAreaElement;
   sendButton!: HTMLButtonElement;
 
-  emojiPicker!: EmojiMenu;
+ // emojiPicker!: EmojiMenu;
   emojiBtn!: HTMLButtonElement;
   emojiRoot!: HTMLElement;
 
@@ -60,7 +60,7 @@ export class MessageInput {
       this.textarea.style.height = 'auto';
       this.textarea.style.height = Math.min(this.textarea.scrollHeight, 120) + 'px';
     });
-
+/*
     this.emojiPicker = new EmojiMenu(
       this.wrapper,
       (emoji) => this.insertEmoji(emoji),
@@ -78,7 +78,7 @@ export class MessageInput {
       const clickedInside = this.wrapper.contains(target);
       const clickedEmojiBtn = this.emojiBtn.contains(target);
       if (!clickedInside && !clickedEmojiBtn) this.emojiPicker.hide();
-    });
+    });*/
 
     this.attachBtn.addEventListener('click', () => this.fileInput.click());
 
