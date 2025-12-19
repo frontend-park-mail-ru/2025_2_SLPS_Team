@@ -13,18 +13,22 @@
 
 [Владимир Захаров](https://github.com/Gallaann) - _Frontend_
 
-[Степин Александр](https://github.com/k-t-l-h) - _Backend_
+[Степин Александр](https://github.com/llaxzi) - _Backend_
 
-[Сиканов Максим] (https://t.me/msikanov) - СУБД
+[Сиканов Максим](https://t.me/msikanov) - СУБД
 
 [Титова Мария](https://t.me/MarinaTitova1) - _UX_
 
 
 ### Ссылки
 
-[Репозиторий бэкенда](  )
+[Репозиторий бэкенда](https://github.com/go-park-mail-ru/2025_2_SLPS_Team)
 
 [Деплой](https://unitesm.ru/)
 
 [Figma](https://www.figma.com/design/PkGFTZ3LyhNeEEcCUCYmO6/SLPS-team?t=XLtnJhkxA1suqJuR-0)
 
+## Сборка и запус
+```npm run build```
+
+```node server.mjs```
