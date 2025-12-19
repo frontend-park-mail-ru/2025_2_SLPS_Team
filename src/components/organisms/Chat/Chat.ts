@@ -415,9 +415,14 @@ export class Chat {
     }
 
     this.wsHandler = (data: any) => {
-      const msg = data?.message;
-      if (!msg || msg.chatID !== this.chatId) return;
-      if (msg.authorID === this.myUserId) return;
+      const msg = data?.message ?? data;
+      if (!msg) return;
+
+      const chatId = msg.chatID ?? msg.chatId ?? msg.chat_id;
+      if (chatId !== this.chatId) return;
+
+      const authorId = msg.authorID ?? msg.authorId ?? msg.author_id;
+      if (authorId === this.myUserId) return;
 
       const view: ChatMessageView = {
         id: msg.id,
@@ -425,7 +430,7 @@ export class Chat {
         created_at: msg.createdAt ?? msg.created_at ?? new Date().toISOString(),
         attachments: normalizeAttachments(msg.attachments),
         User: {
-          id: msg.authorID,
+          id: authorId,
           full_name: 'User',
           avatar: '',
         },
