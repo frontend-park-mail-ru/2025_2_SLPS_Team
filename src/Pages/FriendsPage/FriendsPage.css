@@ -8,7 +8,9 @@
     gap: 16px;
 }
 
-
+.friends-page__sidebar{
+  height: 190px;
+}
 .friends-page__content {
   order: 2;
   flex: 1;
