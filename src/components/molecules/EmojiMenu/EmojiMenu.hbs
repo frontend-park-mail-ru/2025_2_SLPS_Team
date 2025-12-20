@@ -1,15 +1,19 @@
-<div class="emoji-modal">
+<div class="emoji-modal hidden">
   <div class="emoji-modal__tabs">
-    <button class="emoji-modal__tab active" data-tab="emoji">Эмодзи</button>
-    <button class="emoji-modal__tab" data-tab="stickers">Стикеры</button>
+    <button class="emoji-modal__tab active" type="button" data-tab="emoji">Эмодзи</button>
+    <button class="emoji-modal__tab" type="button" data-tab="stickers">Стикеры</button>
+  </div>
+
+  <div class="emoji-modal__search">
+    <div class="emoji-search-container"></div>
   </div>
 
   <div class="emoji-modal__panel emoji-modal__panel--emoji">
-    <div class="emoji-search-container"></div>
     <div class="emoji-picker-grid"></div>
   </div>
 
   <div class="emoji-modal__panel emoji-modal__panel--stickers hidden">
+    <div class="sticker-packs"></div>
     <div class="sticker-grid"></div>
   </div>
 </div>
