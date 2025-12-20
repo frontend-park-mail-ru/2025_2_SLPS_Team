@@ -141,13 +141,23 @@ export class FriendsPage extends BasePage {
       getFriendRequests() as Promise<ProfileDTO[]>,
       getFriends() as Promise<ProfileDTO[]>,
       getPossibleFriends() as Promise<ProfileDTO[] | null | undefined>,
-      searchProfiles('', 'sent' as any) as Promise<ProfileDTO[]>,
+      searchProfiles('+', 'sent' as any, 1, 50) as Promise<ProfileDTO[]>,
     ]);
 
-    const subscribers = (requestsRaw ?? []).map((u) => mapProfileToFriendItem(u, 'subscribers'));
-    const friends = (friendsRaw ?? []).map((u) => mapProfileToFriendItem(u, 'friends'));
-    const possible = (possibleRaw ?? []).map((u) => mapProfileToFriendItem(u, 'possible'));
-    const sent = (sentRaw ?? []).map((u) => mapProfileToFriendItem(u, 'sent'));
+    console.log('[FriendsPage] sentRaw:', sentRaw);
+
+    const subscribers = (requestsRaw ?? []).map((u) =>
+      mapProfileToFriendItem(u, 'subscribers'),
+    );
+    const friends = (friendsRaw ?? []).map((u) =>
+      mapProfileToFriendItem(u, 'friends'),
+    );
+    const possible = (possibleRaw ?? []).map((u) =>
+      mapProfileToFriendItem(u, 'possible'),
+    );
+    const sent = (sentRaw ?? []).map((u) =>
+      mapProfileToFriendItem(u, 'sent'),
+    );
 
     this.friendsData = {
       friends,
@@ -156,6 +166,7 @@ export class FriendsPage extends BasePage {
       sent,
     };
   }
+
 
   private getCurrentData(): FriendListItem[] {
       return this.currentSearchResults ?? this.friendsData[this.currentListType];
