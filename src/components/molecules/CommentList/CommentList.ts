@@ -87,6 +87,7 @@ export class CommentsList {
     const inputRoot = this.container.querySelector('.new-comment-container') as HTMLElement;
     this.input = new MessageInput(inputRoot);
     this.input.render();
+    this.input.removeFileButton();
 
     this.bindInputEvents();
 

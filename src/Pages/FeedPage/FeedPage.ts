@@ -44,7 +44,6 @@ export class FeedPage extends BasePage {
       const settingsItems: MenuItem[] = [
         { label: 'Рекомендации', view: 'recommendations', isActive: true },
         { label: 'Подписки', view: 'subs' },
-        { label: 'Реакции', view: 'reactions' },
       ];
 
       const feedSettingsElement = await renderFeedSettings(settingsItems);

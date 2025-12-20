@@ -208,4 +208,9 @@ export class MessageInput {
     textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
     textarea.dispatchEvent(new Event('input'));
   }
+
+  removeFileButton(): void {
+    this.attachBtn.style.display = "none";
+    this.textarea.style.padding = "8px 84px 8px 18px";
+  }
 }
