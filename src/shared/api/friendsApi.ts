@@ -10,7 +10,7 @@ interface Paginated<T> {
 
 export async function getFriendRequests(
   page = 1,
-  limit = 20,
+  limit = 50,
 ): Promise<ProfileDTO[]> {
   const data = await api<Paginated<ProfileDTO> | ProfileDTO[]>(
     `/api/friends/requests?page=${page}&limit=${limit}`,
@@ -22,7 +22,7 @@ export async function getFriendRequests(
 
 export async function getFriends(
   page = 1,
-  limit = 20,
+  limit = 50,
 ): Promise<ProfileDTO[]> {
   const data = await api<Paginated<ProfileDTO> | ProfileDTO[]>(
     `/api/friends?page=${page}&limit=${limit}`,
@@ -34,7 +34,7 @@ export async function getFriends(
 
 export async function getPossibleFriends(
   page = 1,
-  limit = 20,
+  limit = 50,
 ): Promise<ProfileDTO[]> {
   const data = await api<ProfileDTO[]>(
     `/api/friends/users/all?page=${page}&limit=${limit}`,
@@ -83,7 +83,7 @@ export async function searchProfiles(
   fullName: string,
   type: FriendsSearchBackendType,
   page = 1,
-  limit = 20,
+  limit = 50,
 ): Promise<ProfileDTO[]> {
   const params = new URLSearchParams({
     full_name: fullName,
