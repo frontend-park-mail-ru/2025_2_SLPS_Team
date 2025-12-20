@@ -90,21 +90,6 @@ export function renderFriendCard(context: FriendCardContext = {}): HTMLElement |
             blockConfirm.open();
           },
         },
-        {
-          label: 'Заблокировать',
-          icon: '/public/FriendsActions/blockUser.svg',
-          onClick: () => {
-            const blockConfirm = new ModalConfirm(
-              'Подтвердите действие',
-              `Вы уверены что хотите заблокировать пользователя ${name}?`,
-              () => {
-                // тут  ручка на блок
-                notifier.show('Пользователь заблокирован', '', 'error');
-              }
-            );
-            blockConfirm.open();
-          },
-        },
       ],
     });
 
