@@ -85,13 +85,23 @@ export class MessageInput {
       (emoji) => this.insertEmoji(emoji),
       (sticker) => this.onStickerSelect?.(sticker),
     );
-    this.emojiPicker.render();
+    console.log('[EmojiMenu] instance created:', this.emojiPicker);
+
+    console.log('[EmojiMenu] render()');
+this.emojiPicker.render();
+console.log('[EmojiMenu] rendered, root:', pickerRoot);
 
     this.emojiBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      this.emojiPicker.toggle();
-    });
+  console.log('[EmojiBtn] click');
+  console.log('[EmojiBtn] target:', e.target);
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  console.log('[EmojiBtn] before toggle');
+  this.emojiPicker.toggle();
+  console.log('[EmojiBtn] after toggle');
+});
 
     document.addEventListener('pointerdown', (event) => {
       const target = event.target as HTMLElement;
