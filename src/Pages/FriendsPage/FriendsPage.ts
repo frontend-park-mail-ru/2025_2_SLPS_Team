@@ -81,7 +81,6 @@ export class FriendsPage extends BasePage {
   }
 
 
-  private sentData: FriendListItem[] = [];
 
   private searchQuery = '';
   private currentSearchResults: FriendListItem[] | null = null;
@@ -138,41 +137,28 @@ export class FriendsPage extends BasePage {
   }
 
   private async loadFriendsData(): Promise<void> {
-    const [requestsRaw, friendsRaw, possibleRaw] = await Promise.all([
+    const [requestsRaw, friendsRaw, possibleRaw, sentRaw] = await Promise.all([
       getFriendRequests() as Promise<ProfileDTO[]>,
       getFriends() as Promise<ProfileDTO[]>,
       getPossibleFriends() as Promise<ProfileDTO[] | null | undefined>,
+      searchProfiles('', 'sent' as any) as Promise<ProfileDTO[]>,
     ]);
 
     const subscribers = (requestsRaw ?? []).map((u) => mapProfileToFriendItem(u, 'subscribers'));
     const friends = (friendsRaw ?? []).map((u) => mapProfileToFriendItem(u, 'friends'));
+    const possible = (possibleRaw ?? []).map((u) => mapProfileToFriendItem(u, 'possible'));
+    const sent = (sentRaw ?? []).map((u) => mapProfileToFriendItem(u, 'sent'));
 
-    const raw = possibleRaw ?? [];
-    const sent: ProfileDTO[] = [];
-    const possible: ProfileDTO[] = [];
-
-    raw.forEach((u: any) => {
-      const status = u?.friendStatus ?? u?.status ?? u?.friend_request_status;
-      if (status === 'sent') sent.push(u);
-      else possible.push(u);
-    });
-
-    this.sentData = sent.map((u) => mapProfileToFriendItem(u, 'sent'));
     this.friendsData = {
       friends,
       subscribers,
-      possible: possible.map((u) => mapProfileToFriendItem(u, 'possible')),
-      sent: sent.map((u) => mapProfileToFriendItem(u, 'sent')),
+      possible,
+      sent,
     };
   }
 
   private getCurrentData(): FriendListItem[] {
-    const baseData =
-      this.currentListType === 'sent'
-        ? this.sentData
-        : this.friendsData[this.currentListType];
-
-    return this.currentSearchResults ?? baseData;
+      return this.currentSearchResults ?? this.friendsData[this.currentListType];
   }
 
   private renderSidebar(): void {
@@ -197,7 +183,8 @@ export class FriendsPage extends BasePage {
     const sentItem = document.createElement('div');
     sentItem.className = 'friends-stats__item';
     sentItem.dataset.type = 'sent';
-    sentItem.textContent = `Отправленные (${this.sentData.length})`;
+    sentItem.textContent = `Отправленные (${this.friendsData.sent.length})`;
+
 
     itemsRoot.appendChild(sentItem);
 
@@ -286,10 +273,8 @@ export class FriendsPage extends BasePage {
       return;
     }
 
-    const backendType =
-      this.currentListType === 'sent'
-        ? ('sent' as any)
-        : (SEARCH_TYPES_BY_LIST as any)[this.currentListType];
+    const backendType = SEARCH_TYPES_BY_LIST[this.currentListType];
+
 
     try {
       const result = (await searchProfiles(query, backendType)) as ProfileDTO[] | null | undefined;
