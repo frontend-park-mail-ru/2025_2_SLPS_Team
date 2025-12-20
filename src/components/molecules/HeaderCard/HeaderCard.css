@@ -14,7 +14,19 @@
 :root[data-theme="dark"] .header-image {
     background-size: contain;
 }
+.community-subscribe-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--base-purple);
+  background: var(--base-white);
+  color: var(--base-purple);
+  cursor: pointer;
+  font-size: 14px;
+}
 
+.community-subscribe-btn:hover {
+  background: var(--light-gray);
+}
 .header-card__content {
     display: flex;
     align-items: center;
