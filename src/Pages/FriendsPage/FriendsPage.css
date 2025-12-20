@@ -36,7 +36,7 @@
 .friends-page__sidebar {
   order: 3;
   width: 330px;
-  height: 140px;
+  height: 190px;
   background-color: var(--base-white);
   border-radius: 14px;
   border: none;
@@ -225,6 +225,9 @@
 
 
 @media (max-width: 768px) {
+  .friends-page__sidebar{
+    height: 190px;
+  }
   .friends-page {
     top: 70px !important;
     bottom: 0 !important;
@@ -240,7 +243,7 @@
   .friends-page__sidebar {
     order: 1;
     width: 100%;
-    height: 140px;
+    height: 190px;
     position: fixed;
   }
 
