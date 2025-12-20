@@ -11,18 +11,22 @@ import {
   getFriendRequests,
   getFriends,
   getPossibleFriends,
+  rejectFriendRequest ,
   searchProfiles,
 } from '../../shared/api/friendsApi';
 
-import {
+import type {
   FriendListItem,
   FriendsData,
   FriendsListType,
   ProfileDTO,
-  SEARCH_TYPES_BY_LIST,
 } from '../../shared/types/friends';
 
+import { SEARCH_TYPES_BY_LIST } from '../../shared/types/friends';
+
 const notifier = new NotificationManager();
+
+type ExtendedFriendsListType = FriendsListType | 'sent';
 
 function calculateAge(dobString?: string | null): number | null {
   if (!dobString) return null;
@@ -30,21 +34,23 @@ function calculateAge(dobString?: string | null): number | null {
   const dob = new Date(dobString);
   if (Number.isNaN(dob.getTime())) return null;
 
-  const diffMs = Date.now() - dob.getTime();
-  const ageDate = new Date(diffMs);
-  const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+  const now = new Date();
+  let age = now.getFullYear() - dob.getFullYear();
 
-  return Number.isFinite(age) ? age : null;
+  const monthDiff = now.getMonth() - dob.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < dob.getDate())) age -= 1;
+
+  return age;
 }
 
-function mapProfileToFriendItem(user: ProfileDTO, type: FriendsListType): FriendListItem {
+function mapProfileToFriendItem(user: ProfileDTO, type: ExtendedFriendsListType): FriendListItem {
   return {
     userID: user.userID,
     name: user.fullName,
     avatarPath: user.avatarPath ?? null,
     age: user.dob ? calculateAge(user.dob) : null,
-    type,
-  };
+    type: type as any,
+  } as FriendListItem;
 }
 
 function debounce<TArgs extends unknown[]>(
@@ -59,20 +65,22 @@ function debounce<TArgs extends unknown[]>(
   };
 }
 
-
-function isFriendsListType(value: string): value is FriendsListType {
-  return value === 'friends' || value === 'subscribers' || value === 'possible';
+function isExtendedFriendsListType(value: string): value is ExtendedFriendsListType {
+  return value === 'friends' || value === 'subscribers' || value === 'possible' || value === 'sent';
 }
 
 export class FriendsPage extends BasePage {
-  private currentListType: FriendsListType = 'friends';
+  private currentListType: ExtendedFriendsListType = 'friends';
   private wrapper: HTMLDivElement | null = null;
 
-  private friendsData: FriendsData = {
+  friendsData: FriendsData = {
     friends: [],
     subscribers: [],
     possible: [],
-  };
+    sent: [],
+  }
+
+
 
   private searchQuery = '';
   private currentSearchResults: FriendListItem[] | null = null;
@@ -83,18 +91,13 @@ export class FriendsPage extends BasePage {
   private searchInput: HTMLInputElement | null = null;
 
   async render(): Promise<void> {
-    document.getElementById('page-wrapper')?.remove();
-
     this.wrapper = document.createElement('div');
-    this.wrapper.id = 'page-wrapper';
 
-    const pageElement = document.createElement('div');
-    pageElement.innerHTML = FriendsPageTemplate({ title: this.getTitle() });
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = FriendsPageTemplate({ title: this.getTitle() });
 
-    const friendsPage = pageElement.firstElementChild;
-    if (!(friendsPage instanceof HTMLElement)) {
-      throw new Error('[FriendsPage] Template root is not an HTMLElement');
-    }
+    const friendsPage = tempDiv.firstElementChild as HTMLElement | null;
+    if (!friendsPage) throw new Error('[FriendsPage] template root not found');
 
     this.pageRoot = friendsPage;
 
@@ -102,7 +105,7 @@ export class FriendsPage extends BasePage {
     const sidebar = friendsPage.querySelector('.friends-page__sidebar');
 
     if (!(content instanceof HTMLElement) || !(sidebar instanceof HTMLElement)) {
-      throw new Error('[FriendsPage] Missing required containers in template');
+      throw new Error('[FriendsPage] content/sidebar not found');
     }
 
     this.contentContainer = content;
@@ -117,7 +120,6 @@ export class FriendsPage extends BasePage {
     this.rootElement.appendChild(this.wrapper);
 
     this.setupSearch();
-
   }
 
   private getTitle(): string {
@@ -126,6 +128,8 @@ export class FriendsPage extends BasePage {
         return 'Подписчики';
       case 'possible':
         return 'Возможные друзья';
+      case 'sent':
+        return 'Отправленные запросы';
       case 'friends':
       default:
         return 'Ваши друзья';
@@ -133,22 +137,39 @@ export class FriendsPage extends BasePage {
   }
 
   private async loadFriendsData(): Promise<void> {
-    const [requestsRaw, friendsRaw, possibleRaw] = await Promise.all([
+    const [requestsRaw, friendsRaw, possibleRaw, sentRaw] = await Promise.all([
       getFriendRequests() as Promise<ProfileDTO[]>,
       getFriends() as Promise<ProfileDTO[]>,
       getPossibleFriends() as Promise<ProfileDTO[] | null | undefined>,
+      searchProfiles(' ', 'sent' as any, 1, 50) as Promise<ProfileDTO[]>,
     ]);
 
-    const subscribers = requestsRaw.map((u) => mapProfileToFriendItem(u, 'subscribers'));
-    const friends = friendsRaw.map((u) => mapProfileToFriendItem(u, 'friends'));
-    const possible = (possibleRaw ?? []).map((u) => mapProfileToFriendItem(u, 'possible'));
+    console.log('[FriendsPage] sentRaw:', sentRaw);
 
-    this.friendsData = { friends, subscribers, possible };
+    const subscribers = (requestsRaw ?? []).map((u) =>
+      mapProfileToFriendItem(u, 'subscribers'),
+    );
+    const friends = (friendsRaw ?? []).map((u) =>
+      mapProfileToFriendItem(u, 'friends'),
+    );
+    const possible = (possibleRaw ?? []).map((u) =>
+      mapProfileToFriendItem(u, 'possible'),
+    );
+    const sent = (sentRaw ?? []).map((u) =>
+      mapProfileToFriendItem(u, 'sent'),
+    );
+
+    this.friendsData = {
+      friends,
+      subscribers,
+      possible,
+      sent,
+    };
   }
 
+
   private getCurrentData(): FriendListItem[] {
-    const baseData = this.friendsData[this.currentListType];
-    return this.currentSearchResults ?? baseData;
+      return this.currentSearchResults ?? this.friendsData[this.currentListType];
   }
 
   private renderSidebar(): void {
@@ -160,10 +181,33 @@ export class FriendsPage extends BasePage {
       friendsCount: this.friendsData.friends.length,
       subscribersCount: this.friendsData.subscribers.length,
       possibleCount: this.friendsData.possible.length,
-      currentType: this.currentListType,
+      currentType: this.currentListType as any,
     });
 
     this.sidebarContainer.appendChild(statsNode);
+
+    const itemsRoot =
+      statsNode.querySelector('.friends-stats__list') ??
+      statsNode.querySelector('.friends-stats') ??
+      statsNode;
+
+    const sentItem = document.createElement('button');
+    sentItem.className = 'friends-stats__item';
+    sentItem.dataset.type = 'sent';
+
+    const label = document.createElement('span');
+    label.className = 'friends-stats__label';
+    label.textContent = 'Отправленные';
+
+    const count = document.createElement('span');
+    count.className = 'friends-stats__count';
+    count.textContent = String(this.friendsData.sent.length);
+
+    sentItem.appendChild(label);
+    sentItem.appendChild(count);
+
+    itemsRoot.appendChild(sentItem);
+
     this.bindStatsEvents();
   }
 
@@ -174,7 +218,7 @@ export class FriendsPage extends BasePage {
 
     const listNode = renderFriendsList({
       friends: this.getCurrentData(),
-      listType: this.currentListType,
+      listType: this.currentListType as any,
     });
 
     this.contentContainer.appendChild(listNode);
@@ -192,7 +236,7 @@ export class FriendsPage extends BasePage {
         if (!(target instanceof HTMLElement)) return;
 
         const raw = target.dataset.type;
-        if (!raw || !isFriendsListType(raw)) return;
+        if (!raw || !isExtendedFriendsListType(raw)) return;
 
         if (raw === this.currentListType) return;
 
@@ -206,9 +250,7 @@ export class FriendsPage extends BasePage {
 
   private changeHeader(): void {
     const header = this.wrapper?.querySelector('.friends-page__title');
-    if (header instanceof HTMLElement) {
-      header.textContent = this.getTitle();
-    }
+    if (header instanceof HTMLElement) header.textContent = this.getTitle();
   }
 
   private resetSearchState(): void {
@@ -253,6 +295,7 @@ export class FriendsPage extends BasePage {
 
     const backendType = SEARCH_TYPES_BY_LIST[this.currentListType];
 
+
     try {
       const result = (await searchProfiles(query, backendType)) as ProfileDTO[] | null | undefined;
 
@@ -264,11 +307,11 @@ export class FriendsPage extends BasePage {
       this.renderList();
     } catch (err) {
       console.error('[FriendsPage] searchProfiles error:', err);
+      notifier.show('Ошибка', 'Не удалось выполнить поиск', 'error');
 
       this.currentSearchResults = null;
       this.renderSidebar();
       this.renderList();
     }
   }
-
 }

@@ -5,7 +5,8 @@
                 {{#if isVideo}}
                     <div class="video-container" data-url="{{url}}"></div>
                 {{else}}
-                    <img src="{{url}}" alt="Фото поста">
+                    <img class="slide-bg" src="{{url}}">
+                    <img class="slide-fg" src="{{url}}">
                 {{/if}}
             </div>
         {{/each}}

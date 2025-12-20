@@ -44,6 +44,7 @@
 {{#if isCommunity}}
   <div class="community-header-card">
     <div class="header-image"></div>
+
     <div class="community-header-card__content">
       <div class="community-header-card__left">
         <div class="community-header-card__avatar-wrapper">
@@ -63,10 +64,9 @@
             <div class="owner-menu-dropdown"></div>
           </div>
         {{else}}
-          <button
-            class="community-subscribe-btn"
-            data-role="subscribe-toggle"
-          ></button>
+          <button class="community-subscribe-btn" data-role="subscribe-toggle">
+            {{#if isSubscribed}}Отписаться{{else}}Подписаться{{/if}}
+          </button>
         {{/if}}
       </div>
     </div>

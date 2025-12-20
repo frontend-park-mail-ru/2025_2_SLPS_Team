@@ -28,6 +28,8 @@ import {
 } from '../../shared/api/communityApi';
 
 import type { ProfileDTO, FriendsSearchBackendType } from '../../shared/types/friends';
+import AvatarSvgTemplate from './AvatarSvg.hbs';
+
 
 const notifier = new NotificationManager();
 
@@ -52,6 +54,11 @@ function debounce(fn: () => void, ms: number) {
     t = window.setTimeout(fn, ms);
   };
 }
+function truncate(text: string | null | undefined, max = 37): string {
+  if (!text) return '';
+  return text.length > max ? text.slice(0, max) + '…' : text;
+}
+
 
 function uniqById<T>(items: T[], getId: (x: T) => number): T[] {
   const seen = new Set<number>();
@@ -357,10 +364,10 @@ export default class SearchPage extends BasePage {
     const left = document.createElement('div');
     left.className = 'search-row__left';
 
-    const avatar = document.createElement('img');
-    avatar.className = 'search-row__avatar';
-    avatar.src = uploadsUrl(c.avatarPath ?? null);
-    avatar.alt = c.name;
+    const avatarHtml = AvatarSvgTemplate({
+      avatar: uploadsUrl(c.avatarPath ?? null),
+      className: 'search-row__avatar',
+    });
 
     const text = document.createElement('div');
     text.className = 'search-row__text';
@@ -371,7 +378,8 @@ export default class SearchPage extends BasePage {
 
     const desc = document.createElement('div');
     desc.className = 'search-row__desc';
-    desc.textContent = (c.description ?? '').trim();
+    desc.textContent = truncate((c.description ?? '').trim(), 37);
+
 
     const meta = document.createElement('div');
     meta.className = 'search-row__meta';
@@ -381,7 +389,7 @@ export default class SearchPage extends BasePage {
     text.appendChild(desc);
     text.appendChild(meta);
 
-    left.appendChild(avatar);
+    left.insertAdjacentHTML('beforeend', avatarHtml);
     left.appendChild(text);
 
     const right = document.createElement('div');
@@ -433,10 +441,10 @@ export default class SearchPage extends BasePage {
     const left = document.createElement('div');
     left.className = 'search-row__left';
 
-    const avatar = document.createElement('img');
-    avatar.className = 'search-row__avatar';
-    avatar.src = avatarUrl;
-    avatar.alt = name;
+    const avatarHtml = AvatarSvgTemplate({
+      avatar: uploadsUrl(avatarUrl),
+      className: 'search-row__avatar',
+    });
 
     const text = document.createElement('div');
     text.className = 'search-row__text';
@@ -459,7 +467,7 @@ export default class SearchPage extends BasePage {
     text.appendChild(title);
     text.appendChild(desc);
 
-    left.appendChild(avatar);
+    left.insertAdjacentHTML('beforeend', avatarHtml);
     left.appendChild(text);
 
     const right = document.createElement('div');
@@ -497,24 +505,7 @@ export default class SearchPage extends BasePage {
         }
       });
 
-      const reject = mkBtn('Отклонить', 'ghost');
-      reject.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        reject.disabled = true;
-        try {
-          await rejectFriendRequest(id);
-          notifier.show('Отклонено', 'Заявка отклонена', 'warning');
-          this.cachedUsers = null;
-          await this.loadAndRender();
-        } catch {
-          notifier.show('Ошибка', 'Не удалось отклонить заявку', 'error');
-        } finally {
-          reject.disabled = false;
-        }
-      });
-
       right.appendChild(accept);
-      right.appendChild(reject);
     } else if (status === 'sent') {
       const cancel = mkBtn('Отменить');
       cancel.addEventListener('click', async (e) => {

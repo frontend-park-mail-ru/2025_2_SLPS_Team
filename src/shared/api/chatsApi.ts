@@ -43,18 +43,26 @@ export function getChatMessages(
   return api(`/api/chats/${chatId}/messages?page=${page}`, { method: 'GET' });
 }
 
-export function sendChatMessage(chatId: number, text: string, attachments: File[] = []) {
-  const form = new FormData();
+export async function sendChatMessage(
+  chatId: number,
+  text: string,
+  files: File[],
+  stickerId?: number,
+) {
+  const fd = new FormData();
 
-  const safeText = text && text.trim().length ? text : ' ';
-  form.append('text', safeText);
+  if (stickerId !== undefined) {
+    fd.append('sticker_id', String(stickerId));
+  } else {
+    if (text) fd.append('text', text);
+    for (const f of files) fd.append('attachments', f);
+  }
 
-  attachments.forEach((f) => form.append('attachments', f));
-
-  return api(`/api/chats/${chatId}/message`, { method: 'POST', body: form });
+  return api(`/api/chats/${chatId}/message`, {
+    method: 'POST',
+    body: fd,
+  });
 }
-
-
 
 export function updateChatReadState(chatId: number, lastReadMessageId: number): Promise<void> {
   return api(`/api/chats/${chatId}/last-read`, {

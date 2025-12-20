@@ -270,10 +270,6 @@ export class CommunityCheckPage extends BasePage {
 
     this.feedContainer = this.root.querySelector('[data-role="community-feed"]') as HTMLElement | null;
     this.subscribersList = this.root.querySelector('[data-role="subscribers-list"]') as HTMLElement | null;
-
-    this.subscribeBtn = this.headerRoot?.querySelector(
-      '[data-role="subscribe-toggle"]'
-    ) as HTMLElement | null;
   }
 
   private renderHeader(templateData: TemplateData): void {
@@ -288,7 +284,13 @@ export class CommunityCheckPage extends BasePage {
       showMoreButton: false,
       isCommunity: true,
       isOwner: this.isOwner,
+
+      isSubscribed: this.isSubscribed,
+      communityId: this.communityId!,
     });
+      this.subscribeBtn = this.headerRoot.querySelector(
+        '[data-role="subscribe-toggle"]'
+      ) as HTMLElement | null;
   }
 
   private initAboutBlock(): void {
@@ -480,7 +482,13 @@ export class CommunityCheckPage extends BasePage {
         showMoreButton: false,
         isCommunity: true,
         isOwner: this.isOwner,
+
+        isSubscribed: this.isSubscribed,
+        communityId: this.communityId!,
       });
+      this.subscribeBtn = this.headerRoot.querySelector(
+        '[data-role="subscribe-toggle"]'
+      ) as HTMLElement | null;
     }
 
     if (this.root) {

@@ -9,7 +9,7 @@
     min-height: 36px;
     height: 37px;
     max-height: 120px;
-    padding: 8px 40px 8px 44px;
+    padding: 8px 84px 8px 44px;
     border: none;
     background-color: var(--light-gray);
     border-radius: 10px;
@@ -88,6 +88,26 @@
   display: none;
 }
 
+.emoji-btn{
+  position: absolute;
+  right: 44px;
+  bottom: 18px;
+  transform: translateY(50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emoji-btn img{
+  width: 24px;
+  height: 24px;
+}
+
+
 .attachments-preview { display:none; margin-bottom:8px; padding:8px; border-radius:12px; background:var(--light-gray); }
 .attachments-preview.visible { display:block; }
 .attachments-preview-grid { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
@@ -95,3 +115,4 @@
 .preview-thumb img { width:100%; height:100%; object-fit:cover; }
 .preview-remove { position:absolute; top:4px; right:4px; width:20px; height:20px; border-radius:50%; border:none; background:rgba(0,0,0,.6); color:#fff; cursor:pointer; font-size:14px; }
 .attachments-preview-files { display:flex; gap:8px; flex-wrap:wrap; }
+

@@ -45,13 +45,6 @@ export async function renderPost(rawPostData: Post | Record<string, any>): Promi
       (post.commentsCount as number | undefined) ??
       (post.comment_count as number | undefined) ??
       0;
-      console.log(post);
-    const reposts =
-      (postData.reposts as number | undefined) ??
-      (post.reposts as number | undefined) ??
-      (post.repostCount as number | undefined) ??
-      (post.repost_count as number | undefined) ??
-      0;
 
     const isLiked = (postData.isLiked as boolean | undefined) ?? (post.isLiked as boolean | undefined) ?? false;
 
@@ -66,7 +59,6 @@ export async function renderPost(rawPostData: Post | Record<string, any>): Promi
       communityAvatar: post.communityAvatar ?? postData.communityAvatar ?? postData.community_avatar ?? null,
       likes,
       comments,
-      reposts,
       isLiked,
     };
   } else {
@@ -228,14 +220,9 @@ export async function renderPost(rawPostData: Post | Record<string, any>): Promi
     '/public/IconButtons/CommentButton.svg',
     postData.comments ?? 0,
   );
-  const ShareButton = await renderIconButton(
-    '/public/IconButtons/ShareButton.svg',
-    postData.reposts ?? 0,
-  );
 
   postFooter.appendChild(LikeButton);
   postFooter.appendChild(CommentButton);
-  postFooter.appendChild(ShareButton);
 
   CommentButton.addEventListener('click', (e) => {
     e.preventDefault();

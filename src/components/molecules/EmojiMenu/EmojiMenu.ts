@@ -1,8 +1,14 @@
+import Template from './EmojiMenu.hbs';
+import './EmojiMenu.css';
 import emojiData from '../../../services/Emoji/compact.raw.json';
 import { SearchInput } from '../SearchInput/SearchInput';
 import { searchEmojis } from '../../../services/Emoji/Emoji';
 import { getStickerPacks, getPackStickers } from '../../../shared/api/stickersApi';
-import './EmojiMenu.css';
+
+type StickerSelectPayload = {
+  id: number;
+  filePath: string;
+};
 
 type StickerPack = {
   id: number;
@@ -12,9 +18,9 @@ type StickerPack = {
 
 type Sticker = {
   id: number;
-  packId: number;
+  packId?: number;
   filePath: string;
-  position: number;
+  position?: number;
 };
 
 function toAbs(u: string): string {
@@ -29,242 +35,216 @@ function toAbs(u: string): string {
   return `${base}/${s}`;
 }
 
+function pickEmoji(e: any): string {
+  return (e?.emoji ?? e?.unicode ?? e?.char ?? '').toString();
+}
+
 export class EmojiMenu {
-  rootElement: HTMLElement;
-  picker!: HTMLElement;
+  private rootElement: HTMLElement;
+  private onSelectEmoji: (emoji: string) => void;
+  private onSelectSticker: (sticker: StickerSelectPayload) => void;
 
-  searchElement!: SearchInput;
-  searchEleentContainer!: HTMLElement;
-  grid!: HTMLElement;
+  private wrapper!: HTMLElement;
+  private tabs!: NodeListOf<HTMLButtonElement>;
+  private emojiPanel!: HTMLElement;
+  private stickersPanel!: HTMLElement;
 
-  tabs!: NodeListOf<HTMLButtonElement>;
-  emojiPanel!: HTMLElement;
-  stickersPanel!: HTMLElement;
+  private searchContainer!: HTMLElement;
+  private emojiGrid!: HTMLElement;
 
-  stickerPacksEl!: HTMLElement;
-  stickerGridEl!: HTMLElement;
+  private packsRoot!: HTMLElement;
+  private stickerGrid!: HTMLElement;
 
-  private stickerPacks: StickerPack[] = [];
+  private searchInput!: SearchInput;
+
+  private packs: StickerPack[] = [];
   private activePackId: number | null = null;
-
-  onSelect: (emoji: string) => void;
-  onSelectSticker: (stickerId: number) => void;
+  private stickersInited = false;
+  private currentTab: 'emoji' | 'stickers' = 'emoji';
 
   constructor(
     rootElement: HTMLElement,
     onSelectEmoji: (emoji: string) => void,
-    onSelectSticker: (stickerId: number) => void,
+    onSelectSticker: (sticker: StickerSelectPayload) => void,
   ) {
     this.rootElement = rootElement;
-    this.onSelect = onSelectEmoji;
+    this.onSelectEmoji = onSelectEmoji;
     this.onSelectSticker = onSelectSticker;
   }
 
   render(): void {
-    const picker = this.rootElement.querySelector('.emoji-picker') as HTMLElement | null;
-    if (!picker) {
-      console.warn('[EmojiMenu] .emoji-picker not found');
-      return;
-    }
-    this.picker = picker;
+    const temp = document.createElement('div');
+    temp.innerHTML = Template({});
+    const root = temp.firstElementChild as HTMLElement | null;
+    if (!root) return;
 
-    this.tabs = this.rootElement.querySelectorAll('.emoji-tab');
+    this.wrapper = root;
 
-    const emojiPanel = this.rootElement.querySelector('.emoji-tab-content--emoji') as HTMLElement | null;
-    const stickersPanel = this.rootElement.querySelector('.emoji-tab-content--stickers') as HTMLElement | null;
+    const tabs = root.querySelectorAll('.emoji-modal__tab') as NodeListOf<HTMLButtonElement>;
+    const emojiPanel = root.querySelector('.emoji-modal__panel--emoji') as HTMLElement | null;
+    const stickersPanel = root.querySelector('.emoji-modal__panel--stickers') as HTMLElement | null;
 
-    const grid = this.rootElement.querySelector('.emoji-picker-grid') as HTMLElement | null;
-    const searchContainer = this.rootElement.querySelector('.emoji-search-container') as HTMLElement | null;
+    const searchContainer = root.querySelector('.emoji-search-container') as HTMLElement | null;
+    const emojiGrid = root.querySelector('.emoji-picker-grid') as HTMLElement | null;
 
-    if (!emojiPanel || !stickersPanel || !grid || !searchContainer) {
-      console.warn('[EmojiMenu] required elements missing', {
-        emojiPanel: !!emojiPanel,
-        stickersPanel: !!stickersPanel,
-        grid: !!grid,
-        searchContainer: !!searchContainer,
-        root: this.rootElement,
-        picker: this.picker,
-      });
-      return;
-    }
+    const packsRoot = root.querySelector('.sticker-packs') as HTMLElement | null;
+    const stickerGrid = root.querySelector('.sticker-grid') as HTMLElement | null;
 
+    if (!tabs.length || !emojiPanel || !stickersPanel || !searchContainer || !emojiGrid || !packsRoot || !stickerGrid) return;
+
+    this.tabs = tabs;
     this.emojiPanel = emojiPanel;
     this.stickersPanel = stickersPanel;
-    this.grid = grid;
-    this.searchEleentContainer = searchContainer;
 
-    const stickerPacksEl = this.rootElement.querySelector('.sticker-packs') as HTMLElement | null;
-    const stickerGridEl = this.rootElement.querySelector('.sticker-grid') as HTMLElement | null;
+    this.searchContainer = searchContainer;
+    this.emojiGrid = emojiGrid;
 
-    const stickersOk = !!stickerPacksEl && !!stickerGridEl;
-    if (stickersOk) {
-      this.stickerPacksEl = stickerPacksEl!;
-      this.stickerGridEl = stickerGridEl!;
-    } else {
-      this.tabs.forEach((t) => {
-        if (t.dataset.tab === 'stickers') t.classList.add('hidden');
-      });
-    }
+    this.packsRoot = packsRoot;
+    this.stickerGrid = stickerGrid;
 
-    this.searchElement = new SearchInput(this.searchEleentContainer);
-    this.searchElement.render();
-    this.searchElement.onInput((value) => this.renderEmojis(value));
-
-    this.tabs.forEach((t) => {
-      t.onclick = () => {
-        const tab = (t.dataset.tab as 'emoji' | 'stickers') || 'emoji';
-        if (tab === 'stickers' && !stickersOk) return;
-        this.switchTab(tab, stickersOk);
-      };
+    this.searchInput = new SearchInput(this.searchContainer);
+    this.searchInput.render();
+    this.searchInput.onInput((value) => {
+      if (this.currentTab !== 'emoji') return;
+      this.renderEmojis(value);
     });
 
-    this.renderEmojis();
-    if (stickersOk) void this.initStickers();
+    this.tabs.forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const tab = (btn.dataset.tab as 'emoji' | 'stickers') ?? 'emoji';
+        this.switchTab(tab);
+      });
+    });
 
+    this.rootElement.appendChild(root);
+    this.switchTab('emoji');
     this.hide();
   }
 
-
-  private switchTab(tab: 'emoji' | 'stickers', stickersOk: boolean) {
-    const safeTab = tab === 'stickers' && !stickersOk ? 'emoji' : tab;
-
-    this.tabs.forEach((t) => t.classList.remove('active'));
-    const current = this.picker.querySelector(`.emoji-tab[data-tab="${safeTab}"]`);
-    if (current) current.classList.add('active');
-
-    this.emojiPanel.classList.toggle('hidden', safeTab !== 'emoji');
-    this.stickersPanel.classList.toggle('hidden', safeTab !== 'stickers');
+  toggle(): void {
+    this.wrapper.classList.toggle('hidden');
   }
 
-  renderEmojis(search: string = ''): void {
-    if (!this.grid) return;
+  hide(): void {
+    this.wrapper.classList.add('hidden');
+  }
 
-    this.grid.innerHTML = '';
+  private switchTab(tab: 'emoji' | 'stickers') {
+    this.currentTab = tab;
 
-    let results: any[] = [];
-    if (search.trim().length === 0) results = emojiData as any;
-    else results = searchEmojis(search, emojiData as any);
+    this.tabs.forEach((t) => t.classList.remove('active'));
+    const active = this.wrapper.querySelector(`.emoji-modal__tab[data-tab="${tab}"]`) as HTMLButtonElement | null;
+    if (active) active.classList.add('active');
 
-    if (results.length === 0) {
-      const noResultContainer = document.createElement('div') as HTMLElement;
-      noResultContainer.classList.add('no-result-text');
-      noResultContainer.textContent = 'Нет результатов';
-      this.grid.appendChild(noResultContainer);
+    this.emojiPanel.classList.toggle('hidden', tab !== 'emoji');
+    this.stickersPanel.classList.toggle('hidden', tab !== 'stickers');
+
+    if (tab === 'emoji') {
+      this.renderEmojis('');
       return;
     }
 
+    if (!this.stickersInited) {
+      this.stickersInited = true;
+      void this.initStickers();
+    }
+  }
+
+  private renderEmojis(search: string): void {
+    const q = (search ?? '').trim();
+    const src = emojiData as any[];
+    const results = q ? (searchEmojis(q, src as any) as any[]) : src;
+
+    this.emojiGrid.innerHTML = '';
+
     results.forEach((e: any) => {
+      const ch = pickEmoji(e);
+      if (!ch) return;
+
       const btn = document.createElement('button');
-      btn.className = 'emoji-item';
       btn.type = 'button';
-      btn.textContent = e.unicode;
-      btn.onclick = () => this.onSelect(e.unicode);
-      this.grid.appendChild(btn);
+      btn.className = 'emoji-item';
+      btn.textContent = ch;
+      btn.onclick = (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        this.onSelectEmoji(ch);
+        this.hide();
+      };
+      this.emojiGrid.appendChild(btn);
     });
   }
 
   private async initStickers() {
-    if (!this.stickerPacksEl || !this.stickerGridEl) return;
-
     try {
-      const packs = (await getStickerPacks()) as StickerPack[];
-      this.stickerPacks = packs ?? [];
-      this.renderStickerPacks();
-
-      const firstPack = this.stickerPacks.at(0);
-      if (firstPack) {
-        await this.openStickerPack(firstPack.id);
+      this.packs = (await getStickerPacks()) as StickerPack[];
+      const first = this.packs[0];
+      if (!first) {
+        this.packsRoot.innerHTML = '';
+        this.stickerGrid.innerHTML = '';
+        return;
       }
-    } catch (e) {
-      console.warn('[EmojiMenu] initStickers failed', e);
+
+      this.activePackId = first.id;
+      this.renderPacks();
+      await this.loadPack(first.id);
+    } catch {
+      this.packsRoot.innerHTML = '';
+      this.stickerGrid.innerHTML = '';
     }
   }
 
-  private renderStickerPacks() {
-    if (!this.stickerPacksEl) return;
+  private renderPacks() {
+    this.packsRoot.innerHTML = '';
 
-    this.stickerPacksEl.innerHTML = '';
-
-    if (!this.stickerPacks.length) {
-      const no = document.createElement('div');
-      no.className = 'no-result-text';
-      no.textContent = 'Нет стикерпаков';
-      this.stickerPacksEl.appendChild(no);
-      return;
-    }
-
-    this.stickerPacks.forEach((p) => {
+    this.packs.forEach((p) => {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'sticker-pack-btn';
-      if (this.activePackId === p.id) btn.classList.add('active');
+      btn.className = 'sticker-pack-btn' + (p.id === this.activePackId ? ' active' : '');
 
       const img = document.createElement('img');
       img.className = 'sticker-pack-cover';
       img.src = toAbs(p.coverPath);
-      img.alt = p.name ?? 'pack';
 
       btn.appendChild(img);
-      btn.onclick = async () => {
-        await this.openStickerPack(p.id);
-        this.renderStickerPacks();
+      btn.onclick = async (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        this.activePackId = p.id;
+        this.renderPacks();
+        await this.loadPack(p.id);
       };
 
-      this.stickerPacksEl.appendChild(btn);
+      this.packsRoot.appendChild(btn);
     });
   }
 
-  private async openStickerPack(packId: number) {
-    if (!this.stickerGridEl) return;
+  private async loadPack(packId: number) {
+    const stickers = (await getPackStickers(packId)) as Sticker[];
+    const list = (stickers ?? []).slice().sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
 
-    this.activePackId = packId;
+    this.stickerGrid.innerHTML = '';
 
-    try {
-      const stickers = (await getPackStickers(packId)) as Sticker[];
-      const list = (stickers ?? [])
-        .slice()
-        .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+    list.forEach((s) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'sticker-item';
 
-      this.stickerGridEl.innerHTML = '';
+      const img = document.createElement('img');
+      img.className = 'sticker-img';
+      img.src = toAbs(s.filePath);
 
-      if (!list.length) {
-        const no = document.createElement('div');
-        no.className = 'no-result-text';
-        no.textContent = 'В паке нет стикеров';
-        this.stickerGridEl.appendChild(no);
-        return;
-      }
+      btn.appendChild(img);
+      btn.onclick = (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        this.onSelectSticker({ id: s.id, filePath: s.filePath });
+        this.hide();
+      };
 
-      list.forEach((s) => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'sticker-item';
-
-        const img = document.createElement('img');
-        img.className = 'sticker-img';
-        img.src = toAbs(s.filePath);
-        img.alt = `sticker-${s.id}`;
-
-        btn.appendChild(img);
-        btn.onclick = () => this.onSelectSticker(s.id);
-
-        this.stickerGridEl.appendChild(btn);
-      });
-    } catch (e) {
-      console.warn('[EmojiMenu] openStickerPack failed', e);
-    }
-  }
-
-  show() {
-    if (!this.picker) return;
-    this.picker.classList.remove('hidden');
-  }
-  hide() {
-    if (!this.picker) return;
-    this.picker.classList.add('hidden');
-  }
-  toggle() {
-    if (!this.picker) return;
-    this.picker.classList.toggle('hidden');
+      this.stickerGrid.appendChild(btn);
+    });
   }
 }

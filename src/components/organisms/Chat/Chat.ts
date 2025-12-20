@@ -40,7 +40,13 @@ interface ChatOptions {
 
 type WsNewMessagePayload = any;
 
-const UPLOADS_BASE = `${process.env.API_BASE_URL}/uploads/`;
+type StickerSelectPayload = {
+  id: number;
+  filePath: string;
+};
+
+const API_ORIGIN = (process.env.API_BASE_URL ?? '').replace(/\/$/, '');
+const UPLOADS_BASE = `${API_ORIGIN}/uploads/`;
 
 function isRecord(v: unknown): v is Record<string, any> {
   return typeof v === 'object' && v !== null;
@@ -52,6 +58,11 @@ function toAbsoluteAttachmentUrl(u: string): string {
 
   if (s.startsWith('blob:')) return s;
   if (s.startsWith('http://') || s.startsWith('https://')) return s;
+
+  if (s.startsWith('/uploads/') || s.startsWith('/api/uploads/')) {
+    return `${API_ORIGIN}${s}`;
+  }
+
   if (s.startsWith('/')) return `${location.origin}${s}`;
 
   return `${UPLOADS_BASE}${s}`;
@@ -96,6 +107,36 @@ function normalizeAttachments(raw: unknown): string[] {
   return [];
 }
 
+function extractStickerUrl(m: any): string {
+  const p =
+    m?.sticker?.filePath ??
+    m?.sticker?.file_path ??
+    m?.stickerPath ??
+    m?.sticker_filePath ??
+    m?.sticker_file_path;
+
+  return typeof p === 'string' && p.length ? toAbsoluteAttachmentUrl(p) : '';
+}
+
+function extractStickerId(m: any): number | null {
+  const id =
+    m?.stickerID ??
+    m?.stickerId ??
+    m?.sticker_id ??
+    m?.StickerID ??
+    m?.StickerId ??
+    m?.Sticker_id;
+
+  return typeof id === 'number' ? id : null;
+}
+
+function mergeAttachmentsWithSticker(rawAttachments: unknown, rawMessage: any): string[] {
+  const atts = normalizeAttachments(rawAttachments);
+  const stickerUrl = extractStickerUrl(rawMessage);
+  if (stickerUrl) atts.unshift(stickerUrl);
+  return atts;
+}
+
 function buildLocalAttachmentUrls(files: File[]) {
   const created: string[] = [];
   const urls = files.map((f) => {
@@ -112,6 +153,9 @@ function buildLocalAttachmentUrls(files: File[]) {
 export class Chat {
   private rootElement: HTMLElement;
   private chatId: number;
+
+  private stickerUrlById = new Map<number, string>();
+  private stickersLoaded = false;
 
   private myUserId: number;
   private myUserName: string;
@@ -131,14 +175,13 @@ export class Chat {
   private lastReadMessageId: number | null = null;
   private wsService: any;
   private wsHandler: ((data: WsNewMessagePayload) => void) | null = null;
-  
+
   private page = 1;
   private totalPages: number | null = null;
   private isLoadingMore = false;
   private reachedEnd = false;
 
   private onScrollBound = () => this.onScroll();
-
 
   constructor(
     rootElement: HTMLElement,
@@ -163,6 +206,76 @@ export class Chat {
       data.lastReadMessageId ?? (data as any).lastReadMessageID ?? null;
   }
 
+  private async ensureStickersLoaded(): Promise<void> {
+    if (this.stickersLoaded) return;
+    this.stickersLoaded = true;
+
+    try {
+      const mod = await import('../../../shared/api/stickersApi');
+      const packs = await (mod as any).getStickerPacks();
+
+      for (const p of packs) {
+        const stickers = await (mod as any).getPackStickers(p.id);
+        for (const s of stickers) {
+          this.stickerUrlById.set(s.id, toAbsoluteAttachmentUrl(s.filePath));
+        }
+      }
+    } catch {
+      this.stickersLoaded = false;
+    }
+  }
+
+  private mapMessage(m: any, authorFallback?: number): ChatMessageView {
+    const atts = mergeAttachmentsWithSticker(m?.attachments, m);
+
+    if (atts.length === 0) {
+      const sid = extractStickerId(m);
+      if (sid !== null) {
+        const url = this.stickerUrlById.get(sid);
+        if (url) atts.unshift(url);
+      }
+    }
+
+    return {
+      id: m.id,
+      text: m.text ?? '',
+      created_at: m.createdAt ?? m.created_at ?? new Date().toISOString(),
+      attachments: atts,
+      User: {
+        id: m.authorID ?? authorFallback ?? 0,
+        full_name: 'User',
+        avatar: '',
+      },
+    };
+  }
+
+  private isSyncingAfterWs = false;
+
+  private async syncMessageFromApi(messageId: number) {
+    if (this.isSyncingAfterWs) return;
+    this.isSyncingAfterWs = true;
+
+    try {
+      await this.ensureStickersLoaded();
+
+      const raw: any = await getChatMessages(this.chatId, 0);
+      const list = raw?.messages ?? raw?.Messages ?? [];
+
+      const found = (list as any[]).find((m) => m.id === messageId);
+      if (!found) return;
+
+      if (this.messages.some((m) => m.id === messageId)) return;
+
+      const view = this.mapMessage(found, found.authorID);
+
+      this.messages.push(view);
+      new Message(this.messagesContainer, view as any, false, true, true).render();
+      this.scrollToBottomSoon();
+    } finally {
+      this.isSyncingAfterWs = false;
+    }
+  }
+
   async render(): Promise<void> {
     await this.loadSocket();
 
@@ -175,9 +288,7 @@ export class Chat {
 
     this.messagesContainer = main.querySelector('.chat-messeges') as HTMLElement;
     const inputContainer = main.querySelector('.messege-input') as HTMLElement;
-    const headerContainer = main.querySelector(
-      '.chat-header-container',
-    ) as HTMLElement;
+    const headerContainer = main.querySelector('.chat-header-container') as HTMLElement;
 
     this.chatHeader = new ChatHeader(
       headerContainer,
@@ -190,6 +301,12 @@ export class Chat {
 
     this.input = new MessageInput(inputContainer);
     this.input.render();
+
+    await this.ensureStickersLoaded();
+
+    this.input.onStickerSelect = (sticker: StickerSelectPayload) => {
+      void this.sendSticker(sticker);
+    };
 
     this.input.textarea.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) this.sendEvent(e);
@@ -212,19 +329,7 @@ export class Chat {
 
     const list = (raw as any).messages ?? (raw as any).Messages ?? [];
 
-
-
-    this.messages = list.map((m: any) => ({
-      id: m.id,
-      text: m.text ?? '',
-      created_at: m.createdAt ?? m.created_at ?? new Date().toISOString(),
-      attachments: normalizeAttachments(m.attachments),
-      User: {
-        id: m.authorID,
-        full_name: 'User',
-        avatar: '',
-      },
-    }));
+    this.messages = list.map((m: any) => this.mapMessage(m));
 
     this.messages.sort(
       (a, b) =>
@@ -246,6 +351,52 @@ export class Chat {
     this.messagesContainer.removeEventListener('scroll', this.onScrollBound);
     this.messagesContainer.addEventListener('scroll', this.onScrollBound, { passive: true });
     this.initWS();
+  }
+
+  private async sendSticker(sticker: StickerSelectPayload): Promise<void> {
+    this.input.clear();
+
+    const optimisticId = -Date.now();
+    const stickerUrl = toAbsoluteAttachmentUrl(sticker.filePath);
+
+    const optimistic: ChatMessageView = {
+      id: optimisticId,
+      text: '',
+      created_at: new Date().toISOString(),
+      attachments: stickerUrl ? [stickerUrl] : [],
+      User: {
+        id: this.myUserId,
+        full_name: this.myUserName,
+        avatar: this.myUserAvatar,
+      },
+    };
+
+    new Message(this.messagesContainer, optimistic as any, true, true, true).render();
+    this.messages.push(optimistic);
+    this.scrollToBottomSoon();
+
+    try {
+      const resp: any = await sendChatMessage(this.chatId, '', [], sticker.id);
+
+      const serverId = resp?.messageID ?? resp?.messageId ?? resp?.id;
+
+      const final: ChatMessageView = {
+        ...optimistic,
+        id: typeof serverId === 'number' ? serverId : optimisticId,
+      };
+
+      this.replaceMessage(optimisticId, final);
+      this.replaceMessageInState(optimisticId, final);
+
+      if (typeof serverId === 'number') {
+        this.lastReadMessageId = serverId;
+        await updateChatReadState(this.chatId, serverId);
+      }
+
+      EventBus.emit('chatUpdated', { chatId: this.chatId });
+    } catch (e) {
+      console.error('sendSticker error', e);
+    }
   }
 
   private async sendEvent(e: Event): Promise<void> {
@@ -279,7 +430,7 @@ export class Chat {
 
     try {
       const resp: any = await sendChatMessage(this.chatId, text, files);
-      const serverAttachments = normalizeAttachments(resp.attachments);
+      const serverAttachments = mergeAttachmentsWithSticker(resp.attachments, resp);
 
       const final: ChatMessageView = {
         id: resp.id,
@@ -323,7 +474,8 @@ export class Chat {
       });
     });
   }
-    private onScroll() {
+
+  private onScroll() {
     if (this.messagesContainer.scrollTop > 80) return;
     void this.loadMore();
   }
@@ -359,17 +511,7 @@ export class Chat {
         return;
       }
 
-      const batch: ChatMessageView[] = list.map((m: any) => ({
-        id: m.id,
-        text: m.text ?? '',
-        created_at: m.createdAt ?? m.created_at ?? new Date().toISOString(),
-        attachments: normalizeAttachments(m.attachments),
-        User: {
-          id: m.authorID,
-          full_name: 'User',
-          avatar: '',
-        },
-      }));
+      const batch: ChatMessageView[] = list.map((m: any) => this.mapMessage(m));
 
       batch.sort(
         (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
@@ -401,7 +543,6 @@ export class Chat {
 
       const newScrollHeight = this.messagesContainer.scrollHeight;
       this.messagesContainer.scrollTop = prevScrollTop + (newScrollHeight - prevScrollHeight);
-
     } finally {
       this.isLoadingMore = false;
     }
@@ -415,26 +556,34 @@ export class Chat {
     }
 
     this.wsHandler = (data: any) => {
-      console.debug('[Chat] WS new_message:', data);
-      const msg = data?.message ?? data;
+      const msg = data?.lastMessage;
       if (!msg) return;
 
-      const chatId = msg.chatID ?? msg.chatId ?? msg.chat_id;
+      const chatId = msg.chatID ?? msg.chatId;
       if (chatId !== this.chatId) return;
 
-      const authorId = msg.authorID ?? msg.authorId ?? msg.author_id;
+      const authorId = msg.authorID ?? msg.authorId;
       if (authorId === this.myUserId) return;
 
-      const view: ChatMessageView = {
-        id: msg.id,
-        text: msg.text ?? '',
-        created_at: msg.createdAt ?? msg.created_at ?? new Date().toISOString(),
-        attachments: normalizeAttachments(msg.attachments),
-        User: {
-          id: authorId,
-          full_name: 'User',
-          avatar: '',
-        },
+      void this.ensureStickersLoaded();
+
+      const stickerUrl = extractStickerUrl(msg);
+
+      const hasAttachments =
+        Array.isArray(msg.attachments) ? msg.attachments.length > 0 : !!msg.attachments;
+
+      const hasAnyMedia = hasAttachments || !!stickerUrl || extractStickerId(msg) !== null;
+
+      if (!hasAnyMedia) {
+        void this.syncMessageFromApi(msg.id);
+        return;
+      }
+
+      const view = this.mapMessage(msg, authorId);
+      view.User = {
+        id: authorId,
+        full_name: data?.lastMessageAuthor?.fullName ?? 'User',
+        avatar: data?.lastMessageAuthor?.avatarPath ?? '',
       };
 
       this.messages.push(view);

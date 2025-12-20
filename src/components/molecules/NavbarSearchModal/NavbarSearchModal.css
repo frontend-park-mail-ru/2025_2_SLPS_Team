@@ -64,6 +64,7 @@
     height: 36px;
     border-radius: 50%;
     object-fit: cover;
+    color: var(--avatar-color);
 }
 
 .navbar-search-item__name {
