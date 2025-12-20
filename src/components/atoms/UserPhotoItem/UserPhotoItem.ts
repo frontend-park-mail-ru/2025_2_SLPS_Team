@@ -36,8 +36,18 @@ export class UserPhotoItem {
     }
 
     getPhotoPath(photoPath?: string | null): string {
-    if (!photoPath || photoPath === 'null') return '/public/globalImages/DefaultAvatar.svg';
-    if (photoPath.startsWith('/public/globalImages/')) return photoPath;
+    if (!photoPath || photoPath === 'null') {
+        return '/public/globalImages/DefaultAvatar.svg';
+    }
+
+    if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
+        return photoPath;
+    }
+
+    if (photoPath.startsWith('/public/globalImages/')) {
+        return photoPath;
+    }
+
     return `${process.env.API_BASE_URL}/uploads/${photoPath}`;
-}
+    }
 }
