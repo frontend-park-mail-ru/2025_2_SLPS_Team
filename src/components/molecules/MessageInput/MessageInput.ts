@@ -88,7 +88,9 @@ export class MessageInput {
     console.log('[EmojiMenu] instance created:', this.emojiPicker);
 
     console.log('[EmojiMenu] render()');
-this.emojiPicker.render();
+    this.emojiPicker.render();
+    pickerRoot.classList.remove('hidden');
+
 console.log('[EmojiMenu] rendered, root:', pickerRoot);
 
     this.emojiBtn.addEventListener('click', (e) => {
@@ -105,6 +107,7 @@ console.log('[EmojiMenu] rendered, root:', pickerRoot);
 
     document.addEventListener('pointerdown', (event) => {
       const target = event.target as HTMLElement;
+        console.log('[PointerDown]', target);
 
       if (
         !this.emojiBtn.contains(target) &&

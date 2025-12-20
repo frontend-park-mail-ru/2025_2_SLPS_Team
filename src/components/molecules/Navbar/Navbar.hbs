@@ -1,20 +1,24 @@
 <div class="navbar">
-    <div class="navbar-left">
-        <img class="navbar-logo" src = "{{logo}}">
+  <div class="navbar-left">
+    <a class="navbar-logo-link" href="/" aria-label="На главную">
+      <img class="navbar-logo" src="{{logo}}" alt="Logo">
+    </a>
+  </div>
+
+  <div class="navbar-center">
+    <div class="navbar-input-container">
+      <img class="navbar-input-icon" src="{{serachIcon}}" alt="icon">
+      <input class="navbar-input" placeholder="Поиск...">
     </div>
-    <div class="navbar-center">
-        <div class="navbar-input-container">
-            <img class="navbar-input-icon" src="{{serachIcon}}" alt="icon">
-            <input class="navbar-input" placeholder="Поиск...">
-        </div>
+  </div>
+
+  <div class="navbar-right">
+    {{{ svg profilePhoto class="navbar-profile-photo"}}}
+    <div class="navbar-dropdown">
+      <div class="dropdown-button">
+        <img class="dropdown-button-icon" src="{{dropdownIcon}}" alt="Menu">
+      </div>
+      <div class="navbar-profile-actions"></div>
     </div>
-    <div class="navbar-right">
-        {{{ svg profilePhoto class="navbar-profile-photo"}}}
-        <div class="navbar-dropdown">
-            <div class="dropdown-button">
-                <img class="dropdown-button-icon" src="{{dropdownIcon}}" alt="Menu">
-            </div>
-            <div class="navbar-profile-actions"></div>
-        </div>
-    </div>
+  </div>
 </div>

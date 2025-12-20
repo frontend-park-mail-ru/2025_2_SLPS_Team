@@ -14,7 +14,12 @@
     height: 30px;
     object-fit: contain;
 }
-
+.navbar-logo-link {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  text-decoration: none;
+}
 .navbar-input{
     width: 602px;
     height: 34px;
