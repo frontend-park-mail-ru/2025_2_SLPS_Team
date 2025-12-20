@@ -96,10 +96,6 @@ export class MessageInput {
     const pickerRoot = this.wrapper.querySelector('.emoji-picker') as HTMLElement | null;
     if (!pickerRoot) throw new Error('[MessageInput] emoji-picker not found');
 
-    pickerRoot.classList.remove('hidden');
-
-    pickerRoot.innerHTML = '';
-
     this.emojiPicker = new EmojiMenu(
       pickerRoot,
       (emoji) => this.insertEmoji(emoji),
