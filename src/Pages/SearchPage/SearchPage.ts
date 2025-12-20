@@ -499,24 +499,7 @@ export default class SearchPage extends BasePage {
         }
       });
 
-      const reject = mkBtn('Отклонить', 'ghost');
-      reject.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        reject.disabled = true;
-        try {
-          await rejectFriendRequest(id);
-          notifier.show('Отклонено', 'Заявка отклонена', 'warning');
-          this.cachedUsers = null;
-          await this.loadAndRender();
-        } catch {
-          notifier.show('Ошибка', 'Не удалось отклонить заявку', 'error');
-        } finally {
-          reject.disabled = false;
-        }
-      });
-
       right.appendChild(accept);
-      right.appendChild(reject);
     } else if (status === 'sent') {
       const cancel = mkBtn('Отменить');
       cancel.addEventListener('click', async (e) => {

@@ -45,7 +45,6 @@ export async function renderPost(rawPostData: Post | Record<string, any>): Promi
       (post.commentsCount as number | undefined) ??
       (post.comment_count as number | undefined) ??
       0;
-      console.log(post);
     const reposts =
       (postData.reposts as number | undefined) ??
       (post.reposts as number | undefined) ??
