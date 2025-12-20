@@ -191,11 +191,20 @@ export class FriendsPage extends BasePage {
       statsNode.querySelector('.friends-stats') ??
       statsNode;
 
-    const sentItem = document.createElement('div');
+    const sentItem = document.createElement('button');
     sentItem.className = 'friends-stats__item';
     sentItem.dataset.type = 'sent';
-    sentItem.textContent = `Отправленные (${this.friendsData.sent.length})`;
 
+    const label = document.createElement('span');
+    label.className = 'friends-stats__label';
+    label.textContent = 'Отправленные';
+
+    const count = document.createElement('span');
+    count.className = 'friends-stats__count';
+    count.textContent = String(this.friendsData.sent.length);
+
+    sentItem.appendChild(label);
+    sentItem.appendChild(count);
 
     itemsRoot.appendChild(sentItem);
 

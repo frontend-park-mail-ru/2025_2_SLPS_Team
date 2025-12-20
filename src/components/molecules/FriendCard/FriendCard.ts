@@ -159,7 +159,7 @@ export function renderFriendCard(context: FriendCardContext = {}): HTMLElement |
         const btn = e.target as HTMLButtonElement;
         btn.disabled = true;
 
-        const res = await rejectFriendRequest(userID!);
+        const res = await deleteFriend(userID!);
 
         if (res.ok) {
           notifier.show(
