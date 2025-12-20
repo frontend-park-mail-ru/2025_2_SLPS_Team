@@ -141,7 +141,7 @@ export class FriendsPage extends BasePage {
       getFriendRequests() as Promise<ProfileDTO[]>,
       getFriends() as Promise<ProfileDTO[]>,
       getPossibleFriends() as Promise<ProfileDTO[] | null | undefined>,
-      searchProfiles('+', 'sent' as any, 1, 50) as Promise<ProfileDTO[]>,
+      searchProfiles(' ', 'sent' as any, 1, 50) as Promise<ProfileDTO[]>,
     ]);
 
     console.log('[FriendsPage] sentRaw:', sentRaw);
