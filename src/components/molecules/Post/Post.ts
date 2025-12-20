@@ -220,14 +220,9 @@ export async function renderPost(rawPostData: Post | Record<string, any>): Promi
     '/public/IconButtons/CommentButton.svg',
     postData.comments ?? 0,
   );
-  const ShareButton = await renderIconButton(
-    '/public/IconButtons/ShareButton.svg',
-    postData.reposts ?? 0,
-  );
 
   postFooter.appendChild(LikeButton);
   postFooter.appendChild(CommentButton);
-  postFooter.appendChild(ShareButton);
 
   CommentButton.addEventListener('click', (e) => {
     e.preventDefault();

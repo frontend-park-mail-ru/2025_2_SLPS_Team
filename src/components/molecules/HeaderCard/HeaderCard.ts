@@ -11,6 +11,7 @@ export interface HeaderCardProps {
 
   isProfile?: boolean;
   isOwner?: boolean;
+
   showMoreButton?: boolean;
   showCancelRequest?: boolean;
   showMessage?: boolean;
@@ -23,8 +24,8 @@ export interface HeaderCardProps {
   isSubscribed?: boolean;
 }
 
-function setSubscribeText(btn: HTMLButtonElement, isSubscribed: boolean) {
-  btn.textContent = isSubscribed ? 'Отписаться' : 'Подписаться';
+function setSubscribeText(btn: HTMLButtonElement, subscribed: boolean) {
+  btn.textContent = subscribed ? 'Отписаться' : 'Подписаться';
 }
 
 export function renderHeaderCard(root: HTMLElement | null, props: HeaderCardProps): void {
@@ -39,23 +40,25 @@ export function renderHeaderCard(root: HTMLElement | null, props: HeaderCardProp
 
   const communityId = props.communityId;
   if (typeof communityId !== 'number') {
-    console.warn('[HeaderCard] communityId is required to toggle subscription');
+    console.warn('[HeaderCard] communityId is required');
     return;
   }
 
-  let isSubscribed = !!props.isSubscribed;
-  setSubscribeText(btn, isSubscribed);
+  let subscribed = !!props.isSubscribed;
+  setSubscribeText(btn, subscribed);
 
-  btn.addEventListener('click', async () => {
+  btn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (btn.disabled) return;
 
     btn.disabled = true;
     try {
-      const res = await toggleCommunitySubscription(communityId, isSubscribed);
-      isSubscribed = !!res.isSubscribed;
-      setSubscribeText(btn, isSubscribed);
-    } catch (e) {
-      console.error('[HeaderCard] toggle subscription failed', e);
+      const res = await toggleCommunitySubscription(communityId, subscribed);
+      subscribed = !!res.isSubscribed;
+      setSubscribeText(btn, subscribed);
+    } catch (err) {
+      console.error('[HeaderCard] toggle subscribe error', err);
     } finally {
       btn.disabled = false;
     }
