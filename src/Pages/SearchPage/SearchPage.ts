@@ -54,6 +54,11 @@ function debounce(fn: () => void, ms: number) {
     t = window.setTimeout(fn, ms);
   };
 }
+function truncate(text: string | null | undefined, max = 37): string {
+  if (!text) return '';
+  return text.length > max ? text.slice(0, max) + '…' : text;
+}
+
 
 function uniqById<T>(items: T[], getId: (x: T) => number): T[] {
   const seen = new Set<number>();
@@ -373,7 +378,8 @@ export default class SearchPage extends BasePage {
 
     const desc = document.createElement('div');
     desc.className = 'search-row__desc';
-    desc.textContent = (c.description ?? '').trim();
+    desc.textContent = truncate((c.description ?? '').trim(), 37);
+
 
     const meta = document.createElement('div');
     meta.className = 'search-row__meta';

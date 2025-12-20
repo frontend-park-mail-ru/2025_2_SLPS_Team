@@ -4,20 +4,21 @@ import BaseButton from '../../atoms/BaseButton/BaseButton';
 import { ModalConfirm } from '../ModalConfirm/ModalConfirm';
 import { NotificationManager } from '../../organisms/NotificationsBlock/NotificationsManager';
 import { navigateTo } from '../../../app/router/navigateTo';
-import { deleteFriend, acceptFriend, sendFriendRequest} from '../../../shared/api/friendsApi';
+import { deleteFriend, acceptFriend, sendFriendRequest, rejectFriendRequest } from '../../../shared/api/friendsApi';
 
 import './FriendCard.css';
 
 const notifier = new NotificationManager();
+
+import type { FriendsListType } from '../../../shared/types/friends';
 
 interface FriendCardContext {
   userID?: number;
   name?: string;
   age?: number;
   avatarPath?: string;
-  listType?: 'friends' | 'subscribers' | 'possible';
+  listType?: FriendsListType;
 }
-
 export function renderFriendCard(context: FriendCardContext = {}): HTMLElement | null {
   const {
     userID,
@@ -30,6 +31,8 @@ export function renderFriendCard(context: FriendCardContext = {}): HTMLElement |
   const isFriendsList = listType === 'friends';
   const isSubscribersList = listType === 'subscribers';
   const isPossibleList = listType === 'possible';
+  const isSentList = listType === 'sent';
+
 
   const baseUrl = `${process.env.API_BASE_URL}/uploads/`;
 
@@ -144,7 +147,37 @@ export function renderFriendCard(context: FriendCardContext = {}): HTMLElement |
     });
     acceptBtn.render();
   }
-  else if (isPossibleList) {
+  else if (isSentList) {
+    const buttonContainer = wrapper.querySelector('.freind-buttons-container') as HTMLElement;
+
+    const cancelBtn = new BaseButton(buttonContainer, {
+      text: 'Отменить запрос',
+      style: 'normal',
+      onClick: async (e: MouseEvent) => {
+        e.stopPropagation();
+
+        const btn = e.target as HTMLButtonElement;
+        btn.disabled = true;
+
+        const res = await rejectFriendRequest(userID!);
+
+        if (res.ok) {
+          notifier.show(
+            'Запрос отменён',
+            `Вы отменили запрос пользователю ${name}`,
+            'success',
+          );
+
+          btn.textContent = 'Отменено';
+        } else {
+          btn.disabled = false;
+          notifier.show('Ошибка', 'Не удалось отменить запрос', 'error');
+        }
+      },
+    });
+
+    cancelBtn.render();
+  }else if (isPossibleList) {
     const buttonContainer = wrapper.querySelector('.freind-buttons-container') as HTMLElement;
 
     const addBtn = new BaseButton(buttonContainer, {

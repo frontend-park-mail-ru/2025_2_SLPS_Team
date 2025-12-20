@@ -1,6 +1,6 @@
-export type FriendsListType = 'friends' | 'subscribers' | 'possible';
+export type FriendsListType = 'friends' | 'subscribers' | 'possible' | 'sent';
 
-export type FriendsSearchBackendType = 'accepted' | 'pending' | 'notFriends';
+export type FriendsSearchBackendType = 'accepted' | 'pending' | 'notFriends' | 'sent';
 
 export interface ProfileDTO {
   userID: number;
@@ -23,6 +23,7 @@ export const SEARCH_TYPES_BY_LIST: Record<FriendsListType, FriendsSearchBackendT
   friends: 'accepted',
   subscribers: 'pending',
   possible: 'notFriends',
+  sent: 'sent',
 };
 export type FriendStatus = '' | 'pending' | 'accepted' | 'blocked' | 'sent';
 
